@@ -48,3 +48,10 @@
 
 # Embedded web-server pid file
 /.web-server-pid
+
+app/config/
+app/log/
+app/config/eccube/path.yml
+error.log
+app/config/eccube/path.yml
+app/config/eccube/path.yml
