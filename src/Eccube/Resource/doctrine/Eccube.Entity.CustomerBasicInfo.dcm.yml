@@ -61,12 +61,12 @@ Eccube\Entity\CustomerBasicInfo:
                 name: supporter_type
                 referencedColumnName: id
         Bureau:
-            targetEntity: Eccube\Entity\Master\SupporterType
+            targetEntity: Eccube\Entity\Master\Bureau
             joinColumn:
                 name: bureau
                 referencedColumnName: id
         ExemptionType:
-            targetEntity: Eccube\Entity\Master\SupporterType
+            targetEntity: Eccube\Entity\Master\ExemptionType
             joinColumn:
                 name: membership_exemption
                 referencedColumnName: id

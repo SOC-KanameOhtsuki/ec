@@ -29,8 +29,9 @@ class ProductMembershipType extends AbstractType
             ->add('membership_year', 'text', array(
                 'label' => '年会費対象年度',
                 'constraints' => array(
-                    new Assert\NotBlank(),
-                    new Assert\Regex(array('pattern' => '/^[0-9]{4}$/')),
+                    new Assert\Regex(array(
+                        'pattern' => "/^\d{4}$/u",
+                        'message' => 'form.type.numeric.invalid')),
                 ),
             ))
         ;

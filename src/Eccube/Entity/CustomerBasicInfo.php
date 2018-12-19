@@ -269,12 +269,12 @@ class CustomerBasicInfo extends \Eccube\Entity\AbstractEntity
     private $regular_member_promoted;
 
     /**
-     * @var \Eccube\Entity\Master\SupporterType
+     * @var \Eccube\Entity\Master\Bureau
      */
     private $Bureau;
 
     /**
-     * @var \Eccube\Entity\Master\SupporterType
+     * @var \Eccube\Entity\Master\ExemptionType
      */
     private $ExemptionType;
 
@@ -374,10 +374,10 @@ class CustomerBasicInfo extends \Eccube\Entity\AbstractEntity
     /**
      * Set Bureau
      *
-     * @param \Eccube\Entity\Master\SupporterType $bureau
+     * @param \Eccube\Entity\Master\Bureau $bureau
      * @return CustomerBasicInfo
      */
-    public function setBureau(\Eccube\Entity\Master\SupporterType $bureau = null)
+    public function setBureau(\Eccube\Entity\Master\Bureau $bureau = null)
     {
         $this->Bureau = $bureau;
 
@@ -387,7 +387,7 @@ class CustomerBasicInfo extends \Eccube\Entity\AbstractEntity
     /**
      * Get Bureau
      *
-     * @return \Eccube\Entity\Master\SupporterType 
+     * @return \Eccube\Entity\Master\Bureau 
      */
     public function getBureau()
     {
@@ -397,10 +397,10 @@ class CustomerBasicInfo extends \Eccube\Entity\AbstractEntity
     /**
      * Set ExemptionType
      *
-     * @param \Eccube\Entity\Master\SupporterType $exemptionType
+     * @param \Eccube\Entity\Master\ExemptionType $exemptionType
      * @return CustomerBasicInfo
      */
-    public function setExemptionType(\Eccube\Entity\Master\SupporterType $exemptionType = null)
+    public function setExemptionType(\Eccube\Entity\Master\ExemptionType $exemptionType = null)
     {
         $this->ExemptionType = $exemptionType;
 
@@ -410,7 +410,7 @@ class CustomerBasicInfo extends \Eccube\Entity\AbstractEntity
     /**
      * Get ExemptionType
      *
-     * @return \Eccube\Entity\Master\SupporterType 
+     * @return \Eccube\Entity\Master\ExemptionType 
      */
     public function getExemptionType()
     {

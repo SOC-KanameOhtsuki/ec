@@ -355,28 +355,34 @@ class ProductController extends AbstractController
 
         if ('POST' === $request->getMethod()) {
             $form->handleRequest($request);
+            $membershipError = false;
             $membershipExists = false;
             if (isset($request->get('admin_product')['class'])) {
                 if ($request->get('admin_product')['class']['product_type'] == $app['config']['product_type_membership']) {
                     $is_membership = true;
                     $membership_year = $request->get('admin_product')['membership']['membership_year'];
+                    
                     if (!is_null($membership_year)) {
-                        $membershipExists = $app['eccube.repository.product_membership']->isExistsMembership($membership_year, $Product->getId());
+                        if (preg_match("/^[0-9][0-9][0-9][0-9]$/", $membership_year)) {
+                            $membershipExists = $app['eccube.repository.product_membership']->isExistsMembership($membership_year, $Product->getId());
+                        } else {
+                            $membershipError = true;
+                        }
+                    } else {
+                        $membershipError = true;
                     }
                 }
             }
             if ($membershipExists) {
-                $form['membership']['membership_year']->addError(new FormError('既に対象年度の年会費は登録されております。'));
+                $form['membership']['membership_year']->addError(new FormError('既に対象年度の年会費は登録されております'));
+            } else if ($membershipError) {
+                $form['membership']['membership_year']->addError(new FormError('年会費の対象年度が不正です'));
             } else if ($form->isValid()) {
                 log_info('商品登録開始', array($id));
                 $Product = $form->getData();
 
                 if (!$has_class) {
                     $ProductClass = $form['class']->getData();
-
-                    if ($ProductClass->getProductType()->getId()) {
-                        $is_membership = true;
-                    }
 
                     // 個別消費税
                     $BaseInfo = $app['eccube.repository.base_info']->get();
@@ -430,6 +436,10 @@ class ProductController extends AbstractController
                         $ProductMembership = new \Eccube\Entity\ProductMembership();
                         $ProductMembership->setProduct($Product);
                     }
+                    $ProductCategory = $this->createProductCategory($Product, $app['eccube.repository.category']->find(7), 1);
+                    $app['orm.em']->persist($ProductCategory);
+                    $count++;
+                    $Product->addProductCategory($ProductCategory);
                     $ProductMembership->setProduct($Product);
                     $ProductMembership->setMembershipYear($Membership->getMembershipYear());
                     $app['orm.em']->persist($ProductMembership);

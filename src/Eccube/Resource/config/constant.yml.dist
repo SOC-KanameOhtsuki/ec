@@ -284,6 +284,7 @@ pdf_template_flyer1: flyer_1.pdf
 pdf_template_flyer2: flyer_2.pdf
 default_membership: 2000
 initialize_customer_basicinfo_status: 9
+initialize_exemption_type: 1
 initialize_supporter_type: 6
 initialize_instructor_type: 6
 paying_slip_csv_manufacturer_code: 550056
