@@ -102,7 +102,7 @@ class MailService
         ));
 
         $message = \Swift_Message::newInstance()
-            ->setSubject('【ふまねっと】ユーザー本登録完了メール');
+            ->setSubject('【ふまねっと】ユーザー本登録完了メール')
             ->setFrom(array($this->BaseInfo->getEmail01() => $this->BaseInfo->getShopName()))
             ->setTo(array($Customer->getEmail()))
             ->setBcc($this->BaseInfo->getEmail01())
