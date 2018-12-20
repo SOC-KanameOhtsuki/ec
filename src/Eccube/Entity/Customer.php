@@ -277,6 +277,13 @@ class Customer extends \Eccube\Entity\AbstractEntity implements UserInterface
     private $Orders;
 
     /**
+     * @var \Eccube\Entity\AttendanceHistory
+     */
+    private $AttendanceHistories;
+
+    private $AttendanceHistory;
+
+    /**
      * Constructor
      */
     public function __construct()
@@ -287,6 +294,7 @@ class Customer extends \Eccube\Entity\AbstractEntity implements UserInterface
         $this->CustomerQrs = new \Doctrine\Common\Collections\ArrayCollection();
         $this->MembershipBillingDetails = new \Doctrine\Common\Collections\ArrayCollection();
         $this->Orders = new \Doctrine\Common\Collections\ArrayCollection();
+        $this->AttendanceHistories = new \Doctrine\Common\Collections\ArrayCollection();
 
         $this->setBuyTimes(0);
         $this->setBuyTotal(0);
@@ -1235,6 +1243,40 @@ class Customer extends \Eccube\Entity\AbstractEntity implements UserInterface
         return $this->Orders;
     }
 
+
+    /**
+     * Add AttendanceHistory
+     *
+     * @param  \Eccube\Entity\AttendanceHistory $AttendanceHistory
+     * @return Customer
+     */
+    public function addAttendanceHistory(\Eccube\Entity\AttendanceHistory $AttendanceHistory)
+    {
+        $this->AttendanceHistories[] = $AttendanceHistory;
+
+        return $this;
+    }
+
+    /**
+     * Remove AttendanceHistory
+     *
+     * @param \Eccube\Entity\AttendanceHistory $AttendanceHistory
+     */
+    public function removeAttendanceHistory(\Eccube\Entity\AttendanceHistory $AttendanceHistory)
+    {
+        $this->AttendanceHistories->removeElement($AttendanceHistory);
+    }
+
+    /**
+     * Get AttendanceHistory
+     *
+     * @return \Doctrine\Common\Collections\Collection
+     */
+    public function getAttendanceHistories()
+    {
+        return $this->AttendanceHistories;
+    }
+
     /**
      * Add CustomerAddress
      *
@@ -1562,5 +1604,17 @@ class Customer extends \Eccube\Entity\AbstractEntity implements UserInterface
     public function getMembershipBillingDetails()
     {
         return $this->MembershipBillingDetails;
+    }
+
+    public function setAttendanceHistory(\Eccube\Entity\AttendanceHistory $AttendanceHistory)
+    {
+        $this->AttendanceHistory = $AttendanceHistory;
+
+        return $this;
+    }
+
+    public function getAttendanceHistory()
+    {
+        return $this->AttendanceHistory;
     }
 }

@@ -1,0 +1,19 @@
+Eccube\Entity\Master\AttendanceStatus:
+    type: entity
+    table: mtb_attendance_status
+    repositoryClass: Eccube\Repository\Master\AttendanceStatusRepository
+    id:
+        id:
+            type: smallint
+            nullable: false
+            unsigned: false
+            id: true
+    fields:
+        name:
+            type: text
+            nullable: true
+        rank:
+            type: smallint
+            nullable: false
+            unsigned: false
+    lifecycleCallbacks: {  }

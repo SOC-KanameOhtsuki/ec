@@ -178,7 +178,6 @@ This file is Custom File
         </div>
         <form id="dropdown-form">
             <input type="hidden" name="modeAll" value="0">
-        {% for Customer in pagination %}
             <div id="result_list_main__list" class="table_list">
                 <div class="table-responsive with-border">
                     <table class="table table-striped">
@@ -189,6 +188,8 @@ This file is Custom File
                             <th id="result_list_main__header_name">会員名</th>
                             <th id="result_list_main__header_tel">電話番号</th>
                             <th id="result_list_main__header_mail">メールアドレス</th>
+                            <th id="result_list_main__header_denial">資格認定/否認</th>
+                            <th id="result_list_main__header_denial_reason">否認理由</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -199,13 +200,43 @@ This file is Custom File
                             <td id="result_list_main__name--{{ Customer.id }}" class="member_name">{{ Customer.name01 }}&nbsp;{{ Customer.name02 }}</td>
                             <td id="result_list_main__tel--{{ Customer.id }}" class="member_tel">{{ Customer.tel01 }}-{{ Customer.tel02 }}-{{ Customer.tel03 }}</td>
                             <td id="result_list_main__mail--{{ Customer.id }}" class="member_mail">{{ Customer.email }}</td>
+                            <td class="col-md-1 col-sm-1 text-center">
+                                {% if Customer.AttendanceHistory == null %}
+                                    <span class="badge progress-bar-secondary">未定</span>
+                                {% else %}
+                                    {% if Customer.AttendanceHistory.AttendanceStatus.id == 1 %}
+                                        <span class="badge progress-bar-success">{{Customer.AttendanceHistory.AttendanceStatus.name}}</span>
+                                    {% else %}
+                                        <span class="badge progress-bar-danger">{{Customer.AttendanceHistory.AttendanceStatus.name}}</span>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                            <td class="col-md-2 col-sm-2">
+                                {% if Customer.AttendanceHistory != null and Customer.AttendanceHistory.AttendanceStatus.id == 2 %}
+                                    <select class="form-control" id="approveOrDenial">
+                                        {% if Customer.AttendanceHistory == null %}
+                                            <option value="0">-- アイテムを選択 --</option>
+                                        {% endif %}
+                                        {% for denial in attendanceDenialReasons %}
+                                        {% if Customer.AttendanceHistory == null %}
+                                            <option value="{{denial.id}}">{{denial.name}}</option>
+                                        {% else %}
+                                            {% if Customer.AttendanceHistory.AttendanceDenialReason.id == denial.id %}
+                                                <option value="{{denial.id}}" selected>{{denial.name}}</option>
+                                            {% else %}
+                                                <option value="{{denial.id}}">{{denial.name}}</option>
+                                            {% endif %}
+                                        {% endif %}
+                                        {% endfor %}
+                                    </select>
+                                {% endif %}
+                            </td>
                         </tr>
                         {% endfor %}
                         </tbody>
                     </table>
                 </div>
             </div>
-        {% endfor %}
         </form>
       </div><!-- /.box-body -->
       {% if pagination.totalItemCount > 0 %}

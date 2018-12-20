@@ -79,6 +79,10 @@ class ProductTraining extends \Eccube\Entity\AbstractEntity
      */
     private $Pref;
 
+    /**
+     * @var \Eccube\Entity\AttendanceHistory
+     */
+    private $AttendanceHistories;
 
     /**
      * Get id
@@ -540,6 +544,7 @@ class ProductTraining extends \Eccube\Entity\AbstractEntity
      */
     public function __construct()
     {
+        $this->AttendanceHistories = new \Doctrine\Common\Collections\ArrayCollection();
         $this->TrainingType = new \Doctrine\Common\Collections\ArrayCollection();
     }
 
@@ -647,5 +652,38 @@ class ProductTraining extends \Eccube\Entity\AbstractEntity
     public function getAcceptLimitDate()
     {
         return (is_null($this->accept_limit_date)?"":$this->accept_limit_date->format('Y/m/d H:i'));
+    }
+
+    /**
+     * Add AttendanceHistory
+     *
+     * @param  \Eccube\Entity\AttendanceHistory $AttendanceHistory
+     * @return Customer
+     */
+    public function addAttendanceHistory(\Eccube\Entity\AttendanceHistory $AttendanceHistory)
+    {
+        $this->AttendanceHistories[] = $AttendanceHistory;
+
+        return $this;
+    }
+
+    /**
+     * Remove AttendanceHistory
+     *
+     * @param \Eccube\Entity\AttendanceHistory $AttendanceHistory
+     */
+    public function removeAttendanceHistory(\Eccube\Entity\AttendanceHistory $AttendanceHistory)
+    {
+        $this->AttendanceHistories->removeElement($AttendanceHistory);
+    }
+
+    /**
+     * Get AttendanceHistory
+     *
+     * @return \Doctrine\Common\Collections\Collection
+     */
+    public function getAttendanceHistories()
+    {
+        return $this->AttendanceHistories;
     }
 }

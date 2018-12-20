@@ -147,6 +147,12 @@ class EccubeServiceProvider implements ServiceProviderInterface
         $app['eccube.repository.master.page_max'] = $app->share(function () use ($app) {
             return $app['orm.em']->getRepository('Eccube\Entity\Master\PageMax');
         });
+        $app['eccube.repository.master.attendance_denial_reason'] = $app->share(function () use ($app) {
+            return $app['orm.em']->getRepository('Eccube\Entity\Master\AttendanceDenialReason');
+        });
+        $app['eccube.repository.master.attendance_status'] = $app->share(function () use ($app) {
+            return $app['orm.em']->getRepository('Eccube\Entity\Master\AttendanceStatus');
+        });
         $app['eccube.repository.master.product_list_max'] = $app->share(function () use ($app) {
             return $app['orm.em']->getRepository('Eccube\Entity\Master\ProductListMax');
         });
@@ -239,6 +245,9 @@ class EccubeServiceProvider implements ServiceProviderInterface
         });
         $app['eccube.repository.order'] = $app->share(function () use ($app) {
             return $app['orm.em']->getRepository('Eccube\Entity\Order');
+        });
+        $app['eccube.repository.attendance_history'] = $app->share(function () use ($app) {
+            return $app['orm.em']->getRepository('Eccube\Entity\AttendanceHistory');
         });
         $app['eccube.repository.membership_billing'] = $app->share(function () use ($app) {
             return $app['orm.em']->getRepository('Eccube\Entity\MembershipBilling');

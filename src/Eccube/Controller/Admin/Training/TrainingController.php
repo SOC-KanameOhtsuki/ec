@@ -506,6 +506,9 @@ class TrainingController extends AbstractController
 
         $pagination = array();
         $pageMaxis = $app['eccube.repository.master.page_max']->findAll();
+        $attendanceDenialReasons = $app['eccube.repository.master.attendance_denial_reason']->findAll();
+
+
 
         // 表示件数は順番で取得する、1.SESSION 2.設定ファイル
         $page_count = $session->get('eccube.admin.student.search.page_count', $app['config']['default_page_count']);
@@ -561,6 +564,15 @@ class TrainingController extends AbstractController
             );
         }
 
+        foreach ($pagination as $Customer) {
+            foreach ($Customer->getAttendanceHistories() as $history) {
+                if ($history->getProductTraining()->getId() == $id) {
+                    $Customer->setAttendanceHistory($history);
+                    break;
+                }
+            }
+        }
+
         return $app->render('Training/index_student.twig', array(
             'pagination' => $pagination,
             'pageMaxis' => $pageMaxis,
@@ -568,6 +580,7 @@ class TrainingController extends AbstractController
             'page_status' => $page_status,
             'page_count' => $page_count,
             'ProductId' => $id,
+            'attendanceDenialReasons' => $attendanceDenialReasons
         ));
     }
 
@@ -1914,7 +1927,6 @@ class TrainingController extends AbstractController
 
         return $ProductCategory;
     }
-
 
     /**
      * requestからID一覧を取得する.

@@ -72,6 +72,10 @@ Eccube\Entity\ProductTraining:
             joinColumn:
                 name: training_type
                 referencedColumnName: id
+    oneToMany:
+        AttendanceHistories:
+            targetEntity: Eccube\Entity\AttendanceHistory
+            mappedBy: ProductTraining
     oneToOne:
         Product:
             targetEntity: Eccube\Entity\Product

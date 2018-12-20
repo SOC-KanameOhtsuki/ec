@@ -203,6 +203,9 @@ Eccube\Entity\Customer:
         Orders:
             targetEntity: Eccube\Entity\Order
             mappedBy: Customer
+        AttendanceHistories:
+            targetEntity: Eccube\Entity\AttendanceHistory
+            mappedBy: Customer
         MembershipBillingDetails:
             targetEntity: Eccube\Entity\MembershipBillingDetail
             mappedBy: Customer
