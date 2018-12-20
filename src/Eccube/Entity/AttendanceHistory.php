@@ -16,16 +16,6 @@ class AttendanceHistory extends \Eccube\Entity\AbstractEntity
     private $id;
 
     /**
-     * @var \Eccube\Entity\AttendanceStatus
-     */
-    // private $AttendanceStatus;
-
-    /**
-     * @var \Eccube\Entity\AttendanceDenialReason
-     */
-    // private $AttendanceDenialReason;
-
-    /**
      * @var \DateTime
      */
     private $create_date;
@@ -34,9 +24,6 @@ class AttendanceHistory extends \Eccube\Entity\AbstractEntity
      * @var \DateTime
      */
     private $update_date;
-
-    private $reason;
-
 
     /**
      * @var \Eccube\Entity\ProductTraining
@@ -48,8 +35,14 @@ class AttendanceHistory extends \Eccube\Entity\AbstractEntity
      */
     private $Customer;
 
+    /**
+     * @var \Eccube\Entity\Master\AttendanceStatus
+     */
     private $AttendanceStatus;
 
+    /**
+     * @var \Eccube\Entity\Master\AttendanceDenialReason
+     */
     private $AttendanceDenialReason;
 
 
@@ -109,31 +102,6 @@ class AttendanceHistory extends \Eccube\Entity\AbstractEntity
         return $this->update_date;
     }
 
-    public function setStatus($status)
-    {
-        $this->status = $status;
-        
-        return $this;
-    }
-
-    public function getStatus()
-    {
-        return $this->status;
-    }
-
-    public function setReason($reason)
-    {
-        $this->reason = $reason;
-
-        return $this;
-    }
-
-    public function getReason()
-    {
-        return $this->reason;
-    }
-
-
     /**
      * Set Customer
      *
@@ -150,7 +118,7 @@ class AttendanceHistory extends \Eccube\Entity\AbstractEntity
     /**
      * Get Customer
      *
-     * @return \Eccube\Entity\ProductTraining
+     * @return \Eccube\Entity\Customer
      */
     public function getCustomer()
     {
@@ -158,7 +126,7 @@ class AttendanceHistory extends \Eccube\Entity\AbstractEntity
     }
 
     /**
-     * Set Customer
+     * Set ProductTraining
      *
      * @param \Eccube\Entity\ProductTraining $ProductTraining
      * @return CustomerImage
@@ -171,7 +139,7 @@ class AttendanceHistory extends \Eccube\Entity\AbstractEntity
     }
 
     /**
-     * Get Customer
+     * Get ProductTraining
      *
      * @return \Eccube\Entity\ProductTraining
      */
@@ -181,9 +149,9 @@ class AttendanceHistory extends \Eccube\Entity\AbstractEntity
     }
 
     /**
-     * Set Customer
+     * Set AttendanceStatus
      *
-     * @param \Eccube\Entity\ProductTraining $ProductTraining
+     * @param \Eccube\Entity\Master\AttendanceStatus $AttendanceStatus
      * @return CustomerImage
      */
     public function setAttendanceStatus(\Eccube\Entity\Master\AttendanceStatus $AttendanceStatus)
@@ -194,9 +162,9 @@ class AttendanceHistory extends \Eccube\Entity\AbstractEntity
     }
 
     /**
-     * Get Customer
+     * Get AttendanceStatus
      *
-     * @return \Eccube\Entity\ProductTraining
+     * @return \Eccube\Entity\Master\AttendanceStatus
      */
     public function getAttendanceStatus()
     {
@@ -204,9 +172,9 @@ class AttendanceHistory extends \Eccube\Entity\AbstractEntity
     }
 
     /**
-     * Set Customer
+     * Set AttendanceDenialReason
      *
-     * @param \Eccube\Entity\ProductTraining $ProductTraining
+     * @param \Eccube\Entity\Master\AttendanceDenialReason $AttendanceDenialReason
      * @return CustomerImage
      */
     public function setAttendanceDenialReason(\Eccube\Entity\Master\AttendanceDenialReason $AttendanceDenialReason)
@@ -217,13 +185,12 @@ class AttendanceHistory extends \Eccube\Entity\AbstractEntity
     }
 
     /**
-     * Get Customer
+     * Get AttendanceDenialReason
      *
-     * @return \Eccube\Entity\ProductTraining
+     * @return \Eccube\Entity\Master\AttendanceDenialReason
      */
     public function getAttendanceDenialReason()
     {
         return $this->AttendanceDenialReason;
     }
-
 }
