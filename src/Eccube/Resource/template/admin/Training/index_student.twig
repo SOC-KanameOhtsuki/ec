@@ -158,16 +158,6 @@ This file is Custom File
         $('#dropdown-form input:hidden[name="modeAll"]').val("1")
         $("#dropdown-form").submit();
     });
-    $('#all_bulk_deny').click(function() {
-        /* $("#dropdown-form").attr('action', "{{ path('admin_training_bulk_deny', {'id': ProductId}) }}");
-        $('#dropdown-form input:hidden[name="modeAll"]').val("1")
-        $("#dropdown-form").submit(); */
-    });
-    $('#all_bulk_certified').click(function() {
-        $("#dropdown-form").attr('action', "{{  path('admin_training_bulk_certified', {'id': ProductId}) }}");
-        $('#dropdown-form input:hidden[name="modeAll"]').val("1")
-        $("#dropdown-form").submit();
-    });
     $('select[name="approveOrDenials"]').change(function() {
         if ($(this).val() == 0) {
             return;
