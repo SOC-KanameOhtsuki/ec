@@ -17,10 +17,6 @@ This file is Custom File
 <script src="{{ app.config.admin_urlpath }}/assets/js/vendor/bootstrap-datetimepicker.min.js"></script>
 <script>
   $(function() {
-    /* $('#result_list_main__all_output_menu').click(function() {
-        $('#subMenu').show();
-    });
-*/
     // チェックボックス
     $('#check-all').click(function() {
       var checkall = $('#check-all').prop('checked');
@@ -85,7 +81,7 @@ This file is Custom File
                 id: {{ProductId}},
                 customerIds: Ids
             }, function(response) {
-                $('#subMenu').hide();
+                $('#result_list_main__all_output_menu').attr('class', 'dropdown');
                 Ids.split(",").forEach(function(id) {
                     $('#approveOrDenial-' + id).show();
                     $('#approveStatus-' + id).html('');
@@ -114,7 +110,7 @@ This file is Custom File
                 id: {{ProductId}},
                 customerIds: Ids
             }, function(response) {
-                $('#subMenu').hide();
+                $('#result_list_main__all_output_menu').attr('class', 'dropdown');
                 Ids.split(",").forEach(function(id) {
                     $('#approveOrDenial-' + id).hide();
                     $('#approveStatus-' + id).html('');
@@ -205,7 +201,7 @@ This file is Custom File
               </li>
               <li id="result_list_main__all_output_menu" class="dropdown">
               <a class="dropdown-toggle" data-toggle="dropdown">各種個別実行<svg class="cb cb-angle-down icon_down"><use xlink:href="#cb-angle-down"></svg></a>
-              <ul class="dropdown-menu" id="subMenu">
+              <ul class="dropdown-menu">
                 <li><a id="fax_accept" href="javascript:void(0);">FAX受付票</a></li>
                 <li><a id="payment_confirm" href="javascript:void(0);">入金確認票</a></li>
                 <li><a id="registration_confirm" href="javascript:void(0);">登録内容確認票</a></li>
