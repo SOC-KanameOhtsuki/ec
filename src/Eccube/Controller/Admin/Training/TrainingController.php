@@ -2034,7 +2034,6 @@ class TrainingController extends AbstractController
             $AttendanceHistory->setCreateDate(Date("Y-m-d H:i:s"));
 
             $app['orm.em']->persist($AttendanceHistory);
-            // $app['orm.em']->flush();
 
             // Update Customer_Basic_info table
             $CustomerInfo = $app['eccube.repository.customer_basic_info']->getCustomerBasicInfoByCustomer($Customer);
