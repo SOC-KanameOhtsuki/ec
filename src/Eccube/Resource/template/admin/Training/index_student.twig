@@ -77,6 +77,7 @@ This file is Custom File
                 $('#customAlert').hide();
             }, 3000);
         } else {
+            $('#loadingModal').modal('show');
             $.post("{{path('admin_training_bulk_deny')}}", {
                 id: {{ProductId}},
                 customerIds: Ids
@@ -87,6 +88,7 @@ This file is Custom File
                     $('#approveStatus-' + id).html('');
                     $('#approveStatus-' + id).append($('<span>').attr('class', 'badge progress-bar-danger').text('否認')); 
                 });
+                $('#loadingModal').modal('hide');
             });
         }
     });
@@ -106,6 +108,7 @@ This file is Custom File
                 $('#customAlert').hide();
             }, 3000);
         } else {
+            $('#loadingModal').modal('show');
             $.post("{{path('admin_training_bulk_certified')}}", {
                 id: {{ProductId}},
                 customerIds: Ids
@@ -116,6 +119,7 @@ This file is Custom File
                     $('#approveStatus-' + id).html('');
                     $('#approveStatus-' + id).append($('<span>').attr('class', 'badge progress-bar-success').text('認定')); 
                 });
+                $('#loadingModal').modal('hide');
             });
         }
     });
@@ -158,13 +162,13 @@ This file is Custom File
         if ($(this).val() == 0) {
             return;
         }
-
+        $('#loadingModal').modal('show');
         $.post("{{path('admin_training_deny_reason')}}", {
             id: {{ProductId}},
             customerId: $(this).data('id'),
             denialId: $(this).val()
         }, function(response) {
-            
+            $('#loadingModal').modal('hide');
         });
     })
   });
@@ -319,6 +323,11 @@ This file is Custom File
       {% endif %}
     </div><!-- /.box -->
   </div><!-- /.col -->
+</div>
+<div id="loadingModal" class="modal fade" data-backdrop="static" data-keyboard="false" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="loader"></div>
+    </div>
 </div>
 {% endif %}
 </form>
