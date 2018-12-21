@@ -43,5 +43,5 @@ Eccube\Entity\AttendanceHistory:
             joinColumn:
                 name: reason
                 referencedColumnName: id
-                nullable: false
+                nullable: true
     lifecycleCallbacks: {  }

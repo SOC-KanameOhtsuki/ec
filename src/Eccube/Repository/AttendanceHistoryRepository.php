@@ -35,24 +35,14 @@ use Eccube\Application;
  */
 class AttendanceHistoryRepository extends EntityRepository
 {
-	public function getAttendanceHistoryByCustomerAndTraining($customerId, $trainingId)
+    public function getAttendanceHistory($Customer = null, $ProductTraining = null)
     {
-    	// var_dump($this->find(1));
-    	// exit(0);
-//         $qb = $this->createQueryBuilder('a')
-//             ->where('a.customer_id = :customer_id')
-//             ->andWhere('a.product_training_id = :product_training_id')
-//             ->setParameter('customer_id', $customerId)
-//             ->setParameter('product_training_id', $trainingId);
-//         $query = $qb->getQuery();
-// try {
-//         var_dump($query->getSingleResult());
-
-//     } catch (Exception $e) {
-//     	var_dump($e);
-//     }
-
-//         exit(0);
-//         return $query->getSingleResult();
+    	return $this->createQueryBuilder('h')
+    			->where('h.Customer = :Customer')
+    			->andWhere('h.ProductTraining = :ProductTraining')
+    			->setParameter('Customer', $Customer)
+    			->setParameter('ProductTraining', $ProductTraining)
+    			->getQuery()
+    			->getOneOrNullResult();
     }
 }

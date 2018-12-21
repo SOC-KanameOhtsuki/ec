@@ -12,4 +12,12 @@ use Doctrine\ORM\EntityRepository;
  */
 class CustomerBasicInfoRepository extends EntityRepository
 {
+	public function getCustomerBasicInfoByCustomer(\Eccube\Entity\Customer $Customer)
+	{
+		return $this->createQueryBuilder('c')
+    			->where('c.Customer = :Customer')
+    			->setParameter('Customer', $Customer)
+    			->getQuery()
+    			->getOneOrNullResult();
+	}
 }
