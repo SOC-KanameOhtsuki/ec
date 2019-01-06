@@ -311,7 +311,6 @@ class CustomerController extends AbstractController
     {
         $Customer = $app['eccube.repository.customer']->find($request->get('id'));
         $billingStatuses = $app['eccube.repository.membership_billing_status']->getBillingStatus($Customer);
-        $notPaid = $app['eccube.repository.master.billing_status']->find(1);
 
         $regularMemberPromotedYear = (int) date('Y', strtotime($Customer->getCustomerBasicInfo()->getRegularMemberPromoted()));
         $currentYear = (int) date('Y');
@@ -331,7 +330,7 @@ class CustomerController extends AbstractController
             } else {
                 $annualFees[$i] = [
                     $i,
-                    $notPaid->getName(),
+                    '未納',
                     $app['eccube.repository.product_membership']->getMembershipProductName($i)
                 ];
             }
