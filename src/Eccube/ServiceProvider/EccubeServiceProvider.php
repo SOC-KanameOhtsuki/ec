@@ -153,6 +153,9 @@ class EccubeServiceProvider implements ServiceProviderInterface
         $app['eccube.repository.master.attendance_status'] = $app->share(function () use ($app) {
             return $app['orm.em']->getRepository('Eccube\Entity\Master\AttendanceStatus');
         });
+        $app['eccube.repository.master.billing_status'] = $app->share(function () use ($app) {
+            return $app['orm.em']->getRepository('Eccube\Entity\Master\BillingStatus');
+        });
         $app['eccube.repository.master.product_list_max'] = $app->share(function () use ($app) {
             return $app['orm.em']->getRepository('Eccube\Entity\Master\ProductListMax');
         });
@@ -254,6 +257,9 @@ class EccubeServiceProvider implements ServiceProviderInterface
         });
         $app['eccube.repository.membership_billing_detail'] = $app->share(function () use ($app) {
             return $app['orm.em']->getRepository('Eccube\Entity\MembershipBillingDetail');
+        });
+        $app['eccube.repository.membership_billing_status'] = $app->share(function () use ($app) {
+            return $app['orm.em']->getRepository('Eccube\Entity\MembershipBillingStatus');
         });
         $app['eccube.repository.group_order'] = $app->share(function () use ($app) {
             return $app['orm.em']->getRepository('Eccube\Entity\GroupOrder');

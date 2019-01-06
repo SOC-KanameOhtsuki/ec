@@ -296,6 +296,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
                                     <ul id="result_list_main__menu--{{ Customer.id }}" class="dropdown-menu dropdown-menu-right">
                                         <li><a href="{{ url('admin_customer_edit', { 'id': Customer.id}) }}">編集</a></li>
                                         <li><a href="{{ url('admin_customer_delete', { 'id': Customer.id}) }}" {{ csrf_token_for_anchor() }} data-method="delete" data-message="この会員情報を削除してもよろしいですか？">削除</a></li>
+                                        {% if Customer.CustomerBasicInfo.Status.id != 9 %}
+                                        <li><a href="{{ url('admin_customer_annual_fee_report', {'id': Customer.id}) }}">年会費支払い状況</a></li>
+                                        {% endif %}
                                         {% if Customer.Status.id == 1 %}
                                         <li><a href="{{ url('admin_customer_resend', { 'id': Customer.id}) }}" {{ csrf_token_for_anchor() }} data-method="put" data-message="仮登録メールを再送してもよろしいですか？">仮会員メール再送</a></li>
                                         {% endif %}

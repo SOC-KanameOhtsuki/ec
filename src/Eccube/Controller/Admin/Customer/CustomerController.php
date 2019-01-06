@@ -299,4 +299,47 @@ class CustomerController extends AbstractController
 
         return $response;
     }
+
+    /**
+     * 年会費支払い状況.
+     * @param Application $app
+     * @param Request $request
+     * @param $id Customer ID
+     * @return StreamedResponse
+     */
+    public function annualFeeReport(Application $app, Request $request, $id)
+    {
+        $Customer = $app['eccube.repository.customer']->find($request->get('id'));
+        $billingStatuses = $app['eccube.repository.membership_billing_status']->getBillingStatus($Customer);
+        $notPaid = $app['eccube.repository.master.billing_status']->find(1);
+
+        $regularMemberPromotedYear = (int) date('Y', strtotime($Customer->getCustomerBasicInfo()->getRegularMemberPromoted()));
+        $currentYear = (int) date('Y');
+        $annualFeeStatuses = array();
+        $annualFees = array();
+        foreach ($billingStatuses as $billingStatus) {
+            $annualFeeStatuses[$billingStatus->getProductMembership()->getMembershipYear()] = [
+                $billingStatus->getProductMembership()->getMembershipYear(),
+                $billingStatus->getStatus()->getName(),
+                $billingStatus->getProductMembership()->getProduct()->getName()
+            ];
+        }
+
+        for ($i = $currentYear; $i >= $regularMemberPromotedYear; $i--) {
+            if (isset($annualFeeStatuses[$i])) {
+                $annualFees[$i] = $annualFeeStatuses[$i];
+            } else {
+                $annualFees[$i] = [
+                    $i,
+                    $notPaid->getName(),
+                    $app['eccube.repository.product_membership']->getMembershipProductName($i)
+                ];
+            }
+        }
+
+        return $app->render('Customer/annual_fee_report.twig', array(
+            'Customer' => $Customer,
+            'annualFeeStatuses' => $annualFees
+        ));
+    }
 }

@@ -67,4 +67,19 @@ class ProductMembershipRepository extends EntityRepository
             ->getResult();
         return (0 < count($ProductMembership));
     }
+
+    public function getMembershipProductName($membershipYear)
+    {
+        $productMembership = $this->createQueryBuilder('pm')
+            ->where('pm.membership_year = :membership_year')
+            ->setParameter('membership_year', $membershipYear)
+            ->getQuery()
+            ->getOneOrNullResult();
+        
+        if (isset($productMembership)) {
+            return $productMembership->getProduct()->getName();
+        }
+            
+        return '';
+    }
 }
