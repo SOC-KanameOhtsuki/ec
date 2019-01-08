@@ -752,4 +752,25 @@ class OrderRepository extends EntityRepository
 
         return $result;
     }
+
+    public function getProductTrainingOrders(\Eccube\Application $app, \Eccube\Entity\Customer $Customer)
+    {
+        //mtb_product_type.id 4 == 講習会
+        $ProductType = $app['eccube.repository.master.product_type']->find(4); 
+        $ProductClasses = $app['eccube.repository.product_class']->getProductClassesForType($ProductType);
+
+        $orders = $this->createQueryBuilder('o')
+                ->select('o')
+                ->leftJoin('o.OrderDetails', 'od')
+                ->where('o.del_flg = 0')
+                ->andWhere('o.Customer = :Customer')
+                ->andWhere('od.ProductClass IN (:productClassIds)')
+                ->orderBy('o.create_date', 'desc')
+                ->setParameter('productClassIds', $ProductClasses)
+                ->setParameter('Customer', $Customer)
+                ->getQuery()
+                ->getResult();
+
+        return $orders;
+    }
 }

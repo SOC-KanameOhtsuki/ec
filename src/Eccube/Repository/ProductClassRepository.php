@@ -34,4 +34,13 @@ use Doctrine\ORM\EntityRepository;
  */
 class ProductClassRepository extends EntityRepository
 {
+	public function getProductClassesForType(\Eccube\Entity\Master\ProductType $ProductType)
+	{
+		return $this->createQueryBuilder('pc')
+						->select('pc.id')
+                        ->where('pc.ProductType = :ProductType')
+                        ->setParameter('ProductType', $ProductType)
+                        ->getQuery()
+                        ->getResult();
+	}
 }

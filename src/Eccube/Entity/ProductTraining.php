@@ -494,6 +494,11 @@ class ProductTraining extends \Eccube\Entity\AbstractEntity
         return (is_null($this->training_date_start)?'':$this->training_date_start->format('Y/m/d H:i'));
     }
 
+    public function getTrainingDateStartDay()
+    {
+        return (is_null($this->training_date_start)?'':$this->training_date_start->format('Y/m/d'));   
+    }
+
     /**
      * Set training_date_end
      *

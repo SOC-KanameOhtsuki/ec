@@ -145,6 +145,15 @@ class CustomerController extends AbstractController
                 }
             }
         }
+
+        foreach ($pagination as $Customer) {
+            if (sizeof($app['eccube.repository.order']->getProductTrainingOrders($app, $Customer)) > 0) {
+                $Customer->hasTrainingOrders = true;
+            } else {
+                $Customer->hasTrainingOrders = false;
+            }
+        }
+
         return $app->render('Customer/index.twig', array(
             'searchForm' => $searchForm->createView(),
             'pagination' => $pagination,
@@ -339,6 +348,39 @@ class CustomerController extends AbstractController
         return $app->render('Customer/annual_fee_report.twig', array(
             'Customer' => $Customer,
             'annualFeeStatuses' => $annualFees
+        ));
+    }
+
+    /**
+     * 受講履歴.
+     * @param Application $app
+     * @param Request $request
+     * @param $id Customer ID
+     * @return StreamedResponse
+     */
+    public function trainingOrderHistory(Application $app, Request $request, $id)
+    {
+        $Customer = $app['eccube.repository.customer']->find($id);
+        $orders = $app['eccube.repository.order']->getProductTrainingOrders($app, $Customer);
+
+        $trainingOrders = [];
+
+        foreach ($orders as $order) {
+            foreach ($order->getOrderDetails() as $orderDetail) {
+                //mtb_product_type.id 4 == 講習会
+                if ($orderDetail->getProduct()->getProductClasses()[0]->getProductType()->getId() == 4) {
+                    $trainingOrders[] = [
+                            $orderDetail->getProduct()->getName(),
+                            $orderDetail->getProduct()->getProductTraining()->getTrainingDateStartDay(),
+                            $order->getCreateDate()->format('Y/m/d')
+                        ];
+                }
+            }
+        }
+
+        return $app->render('Customer/training_order_history.twig', array(
+            'Customer' => $Customer,
+            'trainingOrders' => $trainingOrders
         ));
     }
 }
