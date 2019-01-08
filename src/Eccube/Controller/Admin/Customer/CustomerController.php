@@ -372,7 +372,8 @@ class CustomerController extends AbstractController
                     $trainingOrders[] = [
                             $orderDetail->getProduct()->getName(),
                             $orderDetail->getProduct()->getProductTraining()->getTrainingDateStartDay(),
-                            $order->getCreateDate()->format('Y/m/d')
+                            $order->getCreateDate()->format('Y/m/d'),
+                            $orderDetail->getProduct()->getId()
                         ];
                 }
             }
