@@ -321,6 +321,10 @@ class CustomerController extends AbstractController
         $Customer = $app['eccube.repository.customer']->find($request->get('id'));
         $billingStatuses = $app['eccube.repository.membership_billing_status']->getBillingStatus($Customer);
 
+        if ($Customer->getCustomerBasicInfo()->getRegularMemberPromoted() == "" || $Customer->getCustomerBasicInfo()->getRegularMemberPromoted() == null) {
+            return $app->redirect($app->url('admin_customer'));
+        }
+
         $regularMemberPromotedYear = (int) date('Y', strtotime($Customer->getCustomerBasicInfo()->getRegularMemberPromoted()));
         $currentYear = (int) date('Y');
         $annualFeeStatuses = array();
