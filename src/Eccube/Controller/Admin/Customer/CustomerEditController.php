@@ -219,6 +219,12 @@ class CustomerEditController extends AbstractController
 
         $searchCustomerGroupModalForm = $builder->getForm();
 
+        if (sizeof($app['eccube.repository.order']->getProductTrainingOrders($app, $Customer)) > 0) {
+            $Customer->hasTrainingOrders = true;
+        } else {
+            $Customer->hasTrainingOrders = false;
+        }
+
         return $app->render('Customer/edit.twig', array(
             'form' => $form->createView(),
             'searchCustomerGroupModalForm' => $searchCustomerGroupModalForm->createView(),
