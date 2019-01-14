@@ -773,4 +773,21 @@ class OrderRepository extends EntityRepository
 
         return $orders;
     }
+
+    public function getContributionOrders(\Eccube\Application $app, \Eccube\Entity\Customer $Customer, $Products)
+    {
+        $orders = $this->createQueryBuilder('o')
+                ->select('o')
+                ->leftJoin('o.OrderDetails', 'od')
+                ->where('o.del_flg = 0')
+                ->andWhere('o.Customer = :Customer')
+                ->andWhere('od.Product IN (:Products)')
+                ->orderBy('o.create_date', 'desc')
+                ->setParameter('Products', $Products)
+                ->setParameter('Customer', $Customer)
+                ->getQuery()
+                ->getResult();
+
+        return $orders;
+    }
 }

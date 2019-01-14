@@ -146,11 +146,21 @@ class CustomerController extends AbstractController
             }
         }
 
+        //dtb_category.id 2 == 寄付
+        $ProductCategory = $app['eccube.repository.category']->find(2); 
+        $Products = $app['eccube.repository.product_category']->getProductsForCategory($ProductCategory);
+
         foreach ($pagination as $Customer) {
             if (sizeof($app['eccube.repository.order']->getProductTrainingOrders($app, $Customer)) > 0) {
                 $Customer->hasTrainingOrders = true;
             } else {
                 $Customer->hasTrainingOrders = false;
+            }
+
+            if (sizeof($app['eccube.repository.order']->getContributionOrders($app, $Customer, $Products)) > 0) {
+                $Customer->hasContributionOrders = true;
+            } else {
+                $Customer->hasContributionOrders = false;
             }
         }
 
@@ -386,6 +396,42 @@ class CustomerController extends AbstractController
         return $app->render('Customer/training_order_history.twig', array(
             'Customer' => $Customer,
             'trainingOrders' => $trainingOrders
+        ));
+    }
+
+    /**
+     * 寄付金入金照会.
+     * @param Application $app
+     * @param Request $request
+     * @param $id Customer ID
+     * @return StreamedResponse
+     */
+    public function contributionOrderHistory(Application $app, Request $request, $id)
+    {
+        $Customer = $app['eccube.repository.customer']->find($id);
+        //dtb_category.id 2 == 寄付
+        $ProductCategory = $app['eccube.repository.category']->find(2); 
+        $Products = $app['eccube.repository.product_category']->getProductsForCategory($ProductCategory);
+
+        $orders = $app['eccube.repository.order']->getContributionOrders($app, $Customer, $Products);
+
+        $contributionOrders = [];
+
+        foreach ($orders as $order) {
+            foreach ($order->getOrderDetails() as $orderDetail) {
+                $contributionOrders[] = [
+                        $orderDetail->getProduct()->getName(),
+                        $order->getPayment()->getMethod(),
+                        $order->getCreateDate()->format('Y/m/d'),
+                        $orderDetail->getProduct()->getId(),
+                        $orderDetail->getPrice() * $orderDetail->getQuantity()
+                    ];
+            }
+        }
+
+        return $app->render('Customer/contribution_order_history.twig', array(
+            'Customer' => $Customer,
+            'contributionOrders' => $contributionOrders
         ));
     }
 }

@@ -302,6 +302,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
                                         {% if Customer.hasTrainingOrders == true %}
                                         <li><a href="{{ url('admin_customer_training_order_history', {'id': Customer.id}) }}">受講履歴</a></li>
                                         {% endif %}
+                                        {% if Customer.hasContributionOrders == true %}
+                                        <li><a href="{{ url('admin_customer_contribution_order_history', {'id': Customer.id}) }}">寄付金入金照会</a></li>
+                                        {% endif %}
                                         {% if Customer.Status.id == 1 %}
                                         <li><a href="{{ url('admin_customer_resend', { 'id': Customer.id}) }}" {{ csrf_token_for_anchor() }} data-method="put" data-message="仮登録メールを再送してもよろしいですか？">仮会員メール再送</a></li>
                                         {% endif %}

@@ -641,6 +641,13 @@
                             </div>
                         </div>
                         {% endif %}
+                        {% if Customer.hasContributionOrders == true %}
+                        <div class="row text-center margin-top-15">
+                            <div class="col-sm-6 col-sm-offset-3 col-md-12 col-md-offset-0">
+                                <a href="{{ url('admin_customer_contribution_order_history', {'id': Customer.id}) }}" class="btn btn-primary btn-block btn-lg">寄付金入金照会</a>
+                            </div>
+                        </div>
+                        {% endif %}
                     </div><!-- /.box-body -->
                 </div><!-- /.box -->
 
