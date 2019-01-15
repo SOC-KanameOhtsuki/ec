@@ -423,7 +423,7 @@ class CustomerController extends AbstractController
                         $orderDetail->getProduct()->getName(),
                         $order->getPayment()->getMethod(),
                         $order->getCreateDate()->format('Y/m/d'),
-                        $orderDetail->getProduct()->getId(),
+                        $order->getId(),
                         $orderDetail->getPrice() * $orderDetail->getQuantity()
                     ];
             }
