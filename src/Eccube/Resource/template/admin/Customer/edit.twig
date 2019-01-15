@@ -627,27 +627,21 @@
                                 <button class="btn btn-primary btn-block btn-lg" type="submit">会員情報を登録</button>
                             </div>
                         </div>
-                        {% if Customer.CustomerBasicInfo.Status.id != 9 and Customer.CustomerBasicInfo.RegularMemberPromoted != "" %}
                         <div class="row text-center margin-top-15">
                             <div class="col-sm-6 col-sm-offset-3 col-md-12 col-md-offset-0">
-                                <a href="{{ url('admin_customer_annual_fee_report', {'id': Customer.id}) }}" class="btn btn-primary btn-block btn-lg">年会費支払い状況</a>
+                                <a href="{{ (Customer.CustomerBasicInfo.Status.id != 9 and Customer.CustomerBasicInfo.RegularMemberPromoted != "") ? url('admin_customer_annual_fee_report', {'id': Customer.id}) }}" class="btn btn-primary btn-block btn-lg" {{ (Customer.CustomerBasicInfo.Status.id != 9 and Customer.CustomerBasicInfo.RegularMemberPromoted != "") ? '' : 'disabled' }}>年会費支払い状況</a>
                             </div>
                         </div>
-                        {% endif %}
-                        {% if Customer.hasTrainingOrders == true %}
                         <div class="row text-center margin-top-15">
                             <div class="col-sm-6 col-sm-offset-3 col-md-12 col-md-offset-0">
-                                <a href="{{ url('admin_customer_training_order_history', {'id': Customer.id}) }}" class="btn btn-primary btn-block btn-lg">受講履歴</a>
+                                <a href="{{ (Customer.hasTrainingOrders == true == true ) ? url('admin_customer_training_order_history', {'id': Customer.id}) }}" class="btn btn-primary btn-block btn-lg" {{(Customer.hasTrainingOrders == false) ? 'disabled'}}>受講履歴</a>
                             </div>
                         </div>
-                        {% endif %}
-                        {% if Customer.hasContributionOrders == true %}
                         <div class="row text-center margin-top-15">
                             <div class="col-sm-6 col-sm-offset-3 col-md-12 col-md-offset-0">
-                                <a href="{{ url('admin_customer_contribution_order_history', {'id': Customer.id}) }}" class="btn btn-primary btn-block btn-lg">寄付金入金照会</a>
+                                <a href="{{ (Customer.hasContributionOrders == true) ? url('admin_customer_contribution_order_history', {'id': Customer.id}) }}" class="btn btn-primary btn-block btn-lg" {{ (Customer.hasContributionOrders == true) ? '' : 'disabled' }}>寄付金入金照会</a>
                             </div>
                         </div>
-                        {% endif %}
                     </div><!-- /.box-body -->
                 </div><!-- /.box -->
 
