@@ -1,0 +1,35 @@
+Eccube\Entity\ProductMembership:
+    type: entity
+    table: dtb_product_membership
+    repositoryClass: Eccube\Repository\ProductMembershipRepository
+    id:
+        id:
+            type: integer
+            nullable: false
+            unsigned: false
+            id: true
+            column: product_membership_id
+            generator:
+                strategy: AUTO
+    fields:
+        membership_year:
+            type: integer
+            nullable: false
+        create_date:
+            type: datetime
+            nullable: false
+        update_date:
+            type: datetime
+            nullable: false
+    oneToMany:
+        MembershipBilling:
+            targetEntity: Eccube\Entity\MembershipBilling
+            mappedBy: ProductMembership
+    oneToOne:
+        Product:
+            targetEntity: Eccube\Entity\Product
+            inversedBy: ProductMembership
+            joinColumn:
+                name: product_id
+                referencedColumnName: product_id
+    lifecycleCallbacks: {  }

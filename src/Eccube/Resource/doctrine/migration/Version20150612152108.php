@@ -38,6 +38,10 @@ class Version20150612152108 extends AbstractMigration
      */
     public function up(Schema $schema)
     {
+        // $t = $schema->getTable('mtb_country');
+        // if (!$t->hasColumn('code')) {
+        //     $t->addColumn('code', 'text', array('NotNull' => false));
+        // }
     }
 
     /**

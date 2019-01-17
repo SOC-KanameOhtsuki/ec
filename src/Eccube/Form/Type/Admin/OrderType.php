@@ -232,7 +232,20 @@ class OrderType extends AbstractType
                 'allow_add' => true,
                 'allow_delete' => true,
                 'prototype' => true,
-            ));
+            ))
+            ->add('CustomerGroupId', 'hidden', array(
+                'required' => false,
+                'mapped' => false,
+            ))
+            ->add('CustomerIds', 'collection', array(
+                'required' => false,
+                'mapped' => false,
+                'type' => 'hidden',
+                'allow_add' => true,
+                'allow_delete' => true,
+                'prototype' => false,
+            ))
+            ;
         $builder
             ->add($builder->create('Customer', 'hidden')
                 ->addModelTransformer(new DataTransformer\EntityToIdTransformer(

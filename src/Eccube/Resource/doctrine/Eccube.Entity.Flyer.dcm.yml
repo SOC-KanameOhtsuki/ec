@@ -1,0 +1,69 @@
+Eccube\Entity\Flyer:
+    type: entity
+    table: dtb_flyer
+    repositoryClass: Eccube\Repository\FlyerRepository
+    id:
+        id:
+            type: integer
+            nullable: false
+            unsigned: false
+            id: true
+            column: flyer_id
+            generator:
+                strategy: AUTO
+    fields:
+        disp_from:
+            type: datetime
+            nullable: false
+        disp_to:
+            type: datetime
+            nullable: false
+        description:
+            type: text
+            nullable: false
+        link_label:
+            type: text
+            nullable: false
+        del_flg:
+            type: smallint
+            nullable: false
+            unsigned: false
+            options:
+                default: '0'
+        create_date:
+            type: datetime
+            nullable: false
+        update_date:
+            type: datetime
+            nullable: false
+    manyToOne:
+        ProductTraining:
+            targetEntity: Eccube\Entity\ProductTraining
+            joinColumn:
+                name: product_training_id
+                referencedColumnName: product_training_id
+                nullable: false
+        Status:
+            targetEntity: Eccube\Entity\Master\Disp
+            joinColumn:
+                name: status
+                referencedColumnName: id
+                default: 2
+        Target:
+            targetEntity: Eccube\Entity\Master\CustomerType
+            joinColumn:
+                name: target
+                referencedColumnName: id
+        Creator:
+            targetEntity: Eccube\Entity\Member
+            joinColumn:
+                name: creator_id
+                referencedColumnName: member_id
+                nullable: false
+        Updater:
+            targetEntity: Eccube\Entity\Member
+            joinColumn:
+                name: updater_id
+                referencedColumnName: member_id
+                nullable: false
+    lifecycleCallbacks: {  }

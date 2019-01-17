@@ -1,0 +1,19 @@
+Eccube\Entity\Master\SupporterType:
+    type: entity
+    table: mtb_supporter_type
+    repositoryClass: Eccube\Repository\Master\SupporterTypeRepository
+    id:
+        id:
+            type: smallint
+            nullable: false
+            unsigned: false
+            id: true
+    fields:
+        name:
+            type: text
+            nullable: true
+        rank:
+            type: smallint
+            nullable: false
+            unsigned: false
+    lifecycleCallbacks: {  }

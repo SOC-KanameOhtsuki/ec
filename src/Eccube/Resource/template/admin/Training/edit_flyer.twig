@@ -1,0 +1,167 @@
+{#
+This file is Customized File
+#}
+{% extends 'default_frame.twig' %}
+
+{% set menus = ['training', 'flyer', 'training_flyer_edit'] %}
+
+{% block title %}受講管理／チラシ管理{% endblock %}
+{% block sub_title %}チラシ編集{% endblock %}
+
+{% form_theme form 'Form/bootstrap_3_horizontal_layout.html.twig' %}
+{% form_theme searchTrainingModalForm 'Form/bootstrap_3_horizontal_layout.html.twig' %}
+
+{% block stylesheet %}
+<link rel="stylesheet" href="{{ app.config.admin_urlpath }}/assets/css/bootstrap-datetimepicker.min.css">
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+{% endblock stylesheet %}
+
+{% block javascript %}
+<script src="{{ app.config.admin_urlpath }}/assets/js/vendor/moment.min.js"></script>
+<script src="{{ app.config.admin_urlpath }}/assets/js/vendor/moment-ja.js"></script>
+<script src="{{ app.config.admin_urlpath }}/assets/js/vendor/bootstrap-datetimepicker.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+<script>
+    // 講習会検索
+    $('#searchTrainingModal').on('click', function() {
+        var list = $('#searchTrainingModalList');
+        list.children().remove();
+
+        $.ajax({
+            type: 'POST',
+            dataType: 'html',
+            data: { 'search_word' : $('#admin_search_training_multi').val() },
+            url: '{{ url('admin_flyer_search_training_html') }}',
+            success: function(data) {
+                // モーダルに結果を書き出し.
+                $('#searchTrainingModalList').html(data);
+            },
+            error: function() {
+                alert('search training failed.');
+            }
+        });
+    });
+    $(function() {
+        $("#admin_flyer_disp_from").datetimepicker({
+            locale: 'ja',
+            format : 'YYYY/MM/DD HH:mm'
+        });
+        $("#admin_flyer_disp_to").datetimepicker({
+            locale: 'ja',
+            format : 'YYYY/MM/DD HH:mm'
+        });
+    });
+</script>
+{% endblock javascript %}
+
+{% block main %}
+    <div class="row" id="aside_wrap">
+        <form role="form" name="form1" id="form1" method="post" action="" novalidate enctype="multipart/form-data">
+        {{ form_widget(form._token) }}
+            <div id="detail_wrap" class="col-md-12">
+                <div id="type_info_box" class="box form-horizontal">
+                    <div id="type_info_box__header" class="box-header toggle">
+                        <h3 class="box-title">チラシ情報</h3>
+                    </div><!-- /.box-header -->
+                    <div id="type_info_box__body" class="box-body">
+                        {# 講習/研修/講演会名 #}
+                        <div id="type_info_box__training_name" class="form-group">
+                            <div class="col-sm-4 col-lg-2">講習/研修/講演会名</div>
+                            <div id="detail_box__training_name" class="col-sm-6">
+                                {{ form_widget(form.product_training_id) }}
+                                {{ form_widget(form.training_name) }}
+                            </div>
+                            <div class="form-horizontal">
+                                <ul>
+                                    <li><a class="btn btn-default" data-toggle="modal" data-target="#searchTrainingModal">講習会検索</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        {# 掲載開始日付 #}
+                        <div id="detail_box__disp_from" class="form-group">
+                            <label class="col-sm-4 col-lg-2 control-label">チラシ掲載開始日付</label>
+                            <div id="detail_box__disp_from" class="col-sm-4">
+                                {{ form_widget(form.disp_from) }}
+                                {{ form_errors(form.disp_from) }}
+                            </div>
+                        </div>
+                        {# 掲載終了日付 #}
+                        <div id="detail_box__disp_to" class="form-group">
+                            <label class="col-sm-4 col-lg-2 control-label">チラシ掲載終了日付</label>
+                            <div id="detail_box__disp_to" class="col-sm-4">
+                                {{ form_widget(form.disp_to) }}
+                                {{ form_errors(form.disp_to) }}
+                            </div>
+                        </div>
+                        {# チラシ詳細 #}
+                        <div id="detail_box_description" class="form-group">
+                            <label class="col-sm-4 col-lg-2 control-label">チラシ詳細</label>
+                            <div id="detail_description_box__description" class="col-sm-6 col-lg-7">
+                                {{ form_widget(form.description) }}
+                                {{ form_errors(form.description) }}
+                            </div>
+                        </div>
+                        {# チラシタイトル(リンクラベル) #}
+                        <div id="detail_box__link_label" class="form-group">
+                            <label class="col-sm-4 col-lg-2 control-label">チラシタイトル(リンクラベル)</label>
+                            <div id="detail_box__link_label" class="col-sm-4 col-lg-3">
+                                {{ form_widget(form.link_label) }}
+                                {{ form_errors(form.link_label) }}
+                            </div>
+                        </div>
+                        {# 公開対象 #}
+                        <div id="detail_box__link_label" class="form-group">
+                            <label class="col-sm-4 col-lg-2 control-label">公開対象</label>
+                            <div id="detail_box__link_label" class="col-sm-4 col-lg-3">
+                                {{ form_widget(form.Target) }}
+                                {{ form_errors(form.Target) }}
+                            </div>
+                        </div>
+                        {# 公開設定 #}
+                        <div id="detail_box__status" class="form-group">
+                            <label class="col-sm-4 col-lg-2 control-label">公開／非公開</label>
+                            <div id="detail_box__status" class="col-sm-4 col-lg-3">
+                                {{ form_widget(form.Status) }}
+                                {{ form_errors(form.Status) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="detail__insert_button" class="row btn_area">
+                    <p class="col-xs-8 col-xs-offset-2 col-sm-4 col-sm-offset-4 text-center">
+                        <button type="submit" class="btn btn-primary btn-block btn-lg" name="mode" value="register">チラシを登録</button>
+                    </p>
+                    <!-- /.col -->
+                </div>
+                <div id="detail_box__footer" class="row hidden-xs hidden-sm">
+                    <div class="col-xs-10 col-xs-offset-1 col-sm-6 col-sm-offset-3 text-center btn_area">
+                        <p><a href="{{ url('admin_training_flyer_page', { page_no : app.session.get('eccube.admin.flyer.search.page_no')|default('1') } ) }}?resume=1">検索画面に戻る</a></p>
+                    </div>
+                </div>
+            </div><!-- /.col -->
+        </form>
+    </div>
+{% endblock %}
+{% block modal %}
+{# 講習会検索モーダル #}
+<div class="modal fade" id="searchTrainingModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div id="search_training_modal_box" class="modal-content">
+            <div id="search_training_modal_box__header" class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span class="modal-close" aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">講習会検索</h4>
+            </div>
+            <div id="search_training_modal_box__body" class="modal-body">
+                <div id="search_training_modal_box__id" class="form-group">
+                    {{ form_widget(searchTrainingModalForm.multi, { attr : { placeholder : '講習会名', class : 'input_search' } } ) }}
+                </div>
+                <div id="search_training_modal_box__button_search" class="form-group">
+                    <button type="button" id="searchTrainingModalButton" class="btn btn-primary">検索</button>
+                </div>
+                <div class="form-group" id="searchTrainingModalList">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

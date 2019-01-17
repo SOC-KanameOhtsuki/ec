@@ -1,0 +1,123 @@
+Eccube\Entity\ProductTraining:
+    type: entity
+    table: dtb_product_training
+    repositoryClass: Eccube\Repository\ProductTrainingRepository
+    id:
+        id:
+            type: integer
+            nullable: false
+            unsigned: false
+            id: true
+            column: product_training_id
+            generator:
+                strategy: AUTO
+    fields:
+        training_date_start:
+            type: datetime
+            nullable: false
+        training_date_end:
+            type: datetime
+            nullable: false
+        lecturer:
+            type: text
+            nullable: true
+        place:
+            type: text
+            nullable: true
+        place_kana:
+            type: text
+            nullable: true
+        place_room:
+            type: text
+            nullable: true
+        zip01:
+            type: text
+            nullable: true
+        zip02:
+            type: text
+            nullable: true
+        zipcode:
+            type: text
+            nullable: true
+        addr01:
+            type: text
+            nullable: true
+        addr02:
+            type: text
+            nullable: true
+        tel01:
+            type: text
+            nullable: true
+        tel02:
+            type: text
+            nullable: true
+        tel03:
+            type: text
+            nullable: true
+        tel_second01:
+            type: text
+            nullable: true
+        tel_second02:
+            type: text
+            nullable: true
+        tel_second03:
+            type: text
+            nullable: true
+        fax01:
+            type: text
+            nullable: true
+        fax02:
+            type: text
+            nullable: true
+        fax03:
+            type: text
+            nullable: true
+        target:
+            type: text
+            nullable: true
+        purpose:
+            type: text
+            nullable: true
+        item:
+            type: text
+            nullable: true
+        place_fee:
+            type: text
+            nullable: true
+        area:
+            type: text
+            nullable: true
+        accept_limit_date:
+            type: datetime
+            nullable: true
+        create_date:
+            type: datetime
+            nullable: false
+        update_date:
+            type: datetime
+            nullable: false
+    manyToOne:
+        Pref:
+            targetEntity: Eccube\Entity\Master\Pref
+            joinColumn:
+                name: pref
+                referencedColumnName: id
+        TrainingType:
+            targetEntity: Eccube\Entity\Master\TrainingType
+            inversedBy: ProductTraining
+            joinColumn:
+                name: training_type
+                referencedColumnName: id
+    oneToMany:
+        AttendanceHistories:
+            targetEntity: Eccube\Entity\AttendanceHistory
+            mappedBy: ProductTraining
+    oneToOne:
+        Product:
+            targetEntity: Eccube\Entity\Product
+            inversedBy: ProductTraining
+            joinColumn:
+                name: product_id
+                referencedColumnName: product_id
+    lifecycleCallbacks: {  }
+

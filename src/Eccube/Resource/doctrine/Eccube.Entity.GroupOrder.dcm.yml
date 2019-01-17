@@ -1,0 +1,146 @@
+Eccube\Entity\GroupOrder:
+    type: entity
+    table: dtb_group_order
+    repositoryClass: Eccube\Repository\GroupOrderRepository
+    indexes:
+        # requires a length on MySQL
+        # dtb_order_pre_order_id_idx:
+        #     columns:
+        #         - pre_order_id
+        # dtb_order_order_email_idx:
+        #     columns:
+        #         - order_email
+        dtb_order_customer_group_idx:
+            columns:
+                - customer_group_id
+    id:
+        id:
+            type: integer
+            nullable: false
+            unsigned: false
+            id: true
+            column: group_order_id
+            generator:
+                strategy: AUTO
+    fields:
+        name:
+            type: text
+            nullable: false
+        kana:
+            type: text
+            nullable: true
+        send_to_zip01:
+            type: text
+            nullable: true
+        send_to_zip02:
+            type: text
+            nullable: true
+        send_to_zipcode:
+            type: text
+            nullable: true
+        send_to_addr01:
+            type: text
+            nullable: true
+        send_to_addr02:
+            type: text
+            nullable: true
+        send_to_email:
+            type: text
+            nullable: false
+        send_to_tel01:
+            type: text
+            nullable: true
+        send_to_tel02:
+            type: text
+            nullable: true
+        send_to_tel03:
+            type: text
+            nullable: true
+        send_to_fax01:
+            type: text
+            nullable: true
+        send_to_fax02:
+            type: text
+            nullable: true
+        send_to_fax03:
+            type: text
+            nullable: true
+        bill_to:
+            type: text
+            nullable: true
+        bill_to_zip01:
+            type: text
+            nullable: true
+        bill_to_zip02:
+            type: text
+            nullable: true
+        bill_to_zipcode:
+            type: text
+            nullable: true
+        bill_to_addr01:
+            type: text
+            nullable: true
+        bill_to_addr02:
+            type: text
+            nullable: true
+        bill_to_email:
+            type: text
+            nullable: false
+        bill_to_tel01:
+            type: text
+            nullable: true
+        bill_to_tel02:
+            type: text
+            nullable: true
+        bill_to_tel03:
+            type: text
+            nullable: true
+        bill_to_fax01:
+            type: text
+            nullable: true
+        bill_to_fax02:
+            type: text
+            nullable: true
+        bill_to_fax03:
+            type: text
+            nullable: true
+        del_flg:
+            type: smallint
+            nullable: false
+            unsigned: false
+            options:
+                default: '0'
+        create_date:
+            type: datetime
+            nullable: false
+        update_date:
+            type: datetime
+            nullable: false
+        order_date:
+            type: datetime
+            nullable: true
+    manyToOne:
+        CustomerGroup:
+            targetEntity: Eccube\Entity\CustomerGroup
+            inversedBy: Orders
+            joinColumn:
+                name: customer_group_id
+                referencedColumnName: customer_group_id
+        SendToPref:
+            targetEntity: Eccube\Entity\Master\Pref
+            joinColumn:
+                name: send_to_pref
+                referencedColumnName: id
+        BillToPref:
+            targetEntity: Eccube\Entity\Master\Pref
+            joinColumn:
+                name: bill_to_pref
+                referencedColumnName: id
+    oneToMany:
+        Order:
+            targetEntity: Eccube\Entity\Order
+            mappedBy: GroupOrder
+            orderBy:
+                id: ASC
+            cascade: ["persist"]
+    lifecycleCallbacks: {  }

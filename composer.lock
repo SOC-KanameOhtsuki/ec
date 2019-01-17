@@ -1,10 +1,10 @@
 {
     "_readme": [
         "This file locks the dependencies of your project to a known state",
-        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1521d13d394252d880141feb52a50f78",
+    "content-hash": "3a9ce6528d86b5952b45118be2bbe91c",
     "packages": [
         {
             "name": "composer/ca-bundle",
@@ -876,6 +876,38 @@
             "time": "2015-03-18T18:23:50+00:00"
         },
         {
+            "name": "japanese-holiday/japanese-holiday",
+            "version": "v2.0.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/77web/Japanese.Holiday.git",
+                "reference": "e513bf206c1973da6d5bd3eca299faef74a575a7"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/77web/Japanese.Holiday/zipball/e513bf206c1973da6d5bd3eca299faef74a575a7",
+                "reference": "e513bf206c1973da6d5bd3eca299faef74a575a7",
+                "shasum": ""
+            },
+            "require": {
+                "symfony/yaml": "~2.5"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "~4.3"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Japanese\\Holiday\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "time": "2018-10-19T11:09:42+00:00"
+        },
+        {
             "name": "jbinfo/mobile-detect-service-provider",
             "version": "v1.1.0",
             "source": {
@@ -1525,6 +1557,7 @@
                 "silex",
                 "webprofiler"
             ],
+            "abandoned": true,
             "time": "2016-07-04T18:40:58+00:00"
         },
         {
@@ -1602,6 +1635,7 @@
             "keywords": [
                 "microframework"
             ],
+            "abandoned": "symfony/flex",
             "time": "2017-04-30T16:26:54+00:00"
         },
         {
@@ -1647,6 +1681,7 @@
             ],
             "description": "A WebProfiler for Silex",
             "homepage": "http://silex.sensiolabs.org/",
+            "abandoned": true,
             "time": "2016-01-10T11:39:13+00:00"
         },
         {

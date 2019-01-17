@@ -1,0 +1,45 @@
+{# default_frame.twigを継承して共通のヘッダー、フッターを表示するにはdtb_page_layout に登録が必要 #}
+{% extends 'default_frame.twig' %}
+{% set body_class = 'affiliate_page' %}
+
+{% block main %}
+ {% include 'Mypage/navi.twig' %}
+
+    <div class="row">
+        <div class="col-md-12">
+               <div id="history_box" class="box accordion">
+                <div id="history_box__toggle" class="box-header toggle">
+                    <h3 class="box-title">広告レポート</h3>
+                   <p>レポートサマリ</p> 
+               </div><!-- /.box-header -->
+                <div id="history_box__body" class="box-body accpanel">
+                     <div id="history_box__list" class="table_list">
+                        <div class="table-responsive with-border">
+                            <table class="table table-striped"　width="60%">
+                                <thead>
+                                    <tr id="history_box__list_header">
+                                        <th >発行日時</th>
+                                        <th >ステータス</th>
+                                        <th >point</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+
+                                    {% for value in AffiliateArr%}
+                                     <tr id="result_list_main__item--62">
+                                        <td id="result_list_main__order_date--62">{{value.CreateDate}}</td>
+                                        <td id="result_list_main__id--62">{{value.AffiliateStatusStr}}</a></td>
+                                        <td id="result_list_main__id--62">{{value.point}}</a></td>
+
+                                     </tr>
+                                    {% endfor %}
+                             </tbody>
+                            </table>
+                        </div>
+                    </div>
+                 </div>
+            </div>
+
+        </div>
+    </div>
+{% endblock %}

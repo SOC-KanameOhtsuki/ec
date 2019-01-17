@@ -77,7 +77,6 @@ class BlockRepository extends EntityRepository
         $result = $qb->getQuery()->getSingleResult();
 
         return $result['block_id'];
-
     }
 
     /**

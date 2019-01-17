@@ -1,0 +1,37 @@
+Eccube\Entity\MembershipBillingStatus:
+    type: entity
+    table: dtb_membership_billing_status
+    repositoryClass: Eccube\Repository\MembershipBillingStatusRepository
+    id:
+        id:
+            type: integer
+            nullable: false
+            unsigned: false
+            id: true
+            column: membership_billing_status_id
+            generator:
+                strategy: AUTO
+    fields:
+        create_date:
+            type: datetime
+            nullable: false
+        update_date:
+            type: datetime
+            nullable: false
+    manyToOne:
+        Status:
+            targetEntity: Eccube\Entity\Master\BillingStatus
+            joinColumn:
+                name: status
+                referencedColumnName: id
+        Customer:
+            targetEntity: Eccube\Entity\Customer
+            joinColumn:
+                name: customer
+                referencedColumnName: customer_id
+        ProductMembership:
+            targetEntity: Eccube\Entity\ProductMembership
+            joinColumn:
+                name: product_membership
+                referencedColumnName: product_membership_id
+    lifecycleCallbacks: {  }

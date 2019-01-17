@@ -1564,4 +1564,60 @@ class Order extends \Eccube\Entity\AbstractEntity
     {
         return $this->OrderStatusColor;
     }
+    /**
+     * @var \Eccube\Entity\CustomerGroup
+     */
+    private $CustomerGroup;
+
+
+    /**
+     * Set CustomerGroup
+     *
+     * @param \Eccube\Entity\CustomerGroup $customerGroup
+     * @return Order
+     */
+    public function setCustomerGroup(\Eccube\Entity\CustomerGroup $customerGroup = null)
+    {
+        $this->CustomerGroup = $customerGroup;
+
+        return $this;
+    }
+
+    /**
+     * Get CustomerGroup
+     *
+     * @return \Eccube\Entity\CustomerGroup 
+     */
+    public function getCustomerGroup()
+    {
+        return $this->CustomerGroup;
+    }
+    /**
+     * @var \Eccube\Entity\GroupOrder
+     */
+    private $GroupOrder;
+
+
+    /**
+     * Set GroupOrder
+     *
+     * @param \Eccube\Entity\GroupOrder $groupOrder
+     * @return Order
+     */
+    public function setGroupOrder(\Eccube\Entity\GroupOrder $groupOrder)
+    {
+        $this->GroupOrder = $groupOrder;
+
+        return $this;
+    }
+
+    /**
+     * Get GroupOrder
+     *
+     * @return \Eccube\Entity\GroupOrder 
+     */
+    public function getGroupOrder()
+    {
+        return $this->GroupOrder;
+    }
 }

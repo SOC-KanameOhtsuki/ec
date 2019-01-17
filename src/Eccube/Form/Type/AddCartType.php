@@ -79,24 +79,49 @@ class AddCartType extends AbstractType
                     new Assert\Regex(array('pattern' => '/^\d+$/')),
                 ),
             ));
+        $is_free_price = false;
+        foreach ($Product->getProductCategories() as $ProductCategory) {
+            if ($ProductCategory->getCategoryId() == \Eccube\Entity\Category::DONATION_CATEGORY) {
+                $is_free_price = true;
+                break;
+            }
+        }
 
         if ($Product->getStockFind()) {
-            $builder
-                ->add('quantity', 'integer', array(
-                    'data' => 1,
-                    'attr' => array(
-                        'min' => 1,
-                        'maxlength' => $this->config['int_len'],
-                    ),
-                    'constraints' => array(
-                        new Assert\NotBlank(),
-                        new Assert\GreaterThanOrEqual(array(
-                            'value' => 1,
-                        )),
-                        new Assert\Regex(array('pattern' => '/^\d+$/')),
-                    ),
-                ))
-            ;
+            if ($is_free_price) {
+                $builder
+                    ->add('price', 'money', array(
+                        'label' => 'お支払い',
+                        'currency' => 'JPY',
+                        'precision' => 0,
+                        'scale' => 0,
+                        'constraints' => array(
+                            new Assert\Length(array(
+                                'max' => 10,
+                            )),
+                            new Assert\Regex(array(
+                                'pattern' => "/^\d+$/u",
+                                'message' => 'form.type.numeric.invalid'
+                            )),
+                        ),
+                    ));
+            } else {
+                $builder
+                    ->add('quantity', 'integer', array(
+                        'data' => 1,
+                        'attr' => array(
+                            'min' => 1,
+                            'maxlength' => $this->config['int_len'],
+                        ),
+                        'constraints' => array(
+                            new Assert\NotBlank(),
+                            new Assert\GreaterThanOrEqual(array(
+                                'value' => 1,
+                            )),
+                            new Assert\Regex(array('pattern' => '/^\d+$/')),
+                        ),
+                    ));
+            }
             if ($Product && $Product->getProductClasses()) {
                 if (!is_null($Product->getClassName1())) {
                     $builder->add('classcategory_id1', 'choice', array(

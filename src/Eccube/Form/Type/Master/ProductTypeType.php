@@ -27,6 +27,7 @@ namespace Eccube\Form\Type\Master;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Doctrine\ORM\EntityRepository;
 
 class ProductTypeType extends AbstractType
 {
@@ -38,6 +39,11 @@ class ProductTypeType extends AbstractType
         $resolver->setDefaults(array(
             'class' => 'Eccube\Entity\Master\ProductType',
             'label' => '商品種別',
+            'query_builder' => function(EntityRepository $er) {
+                return $er->createQueryBuilder('pt')
+                    ->where('pt.id NOT IN (4)')
+                    ->orderBy('pt.rank', 'ASC');
+            },
         ));
     }
 

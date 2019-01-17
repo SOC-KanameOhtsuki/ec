@@ -33,6 +33,9 @@ use Eccube\Util\EntityUtil;
  */
 class Category extends \Eccube\Entity\AbstractEntity
 {
+    const TRAINING_CATEGORY = 1;
+    const DONATION_CATEGORY = 2;
+
     /**
      * @return string
      */

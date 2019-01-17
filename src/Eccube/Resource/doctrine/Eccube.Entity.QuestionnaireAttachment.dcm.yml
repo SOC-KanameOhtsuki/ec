@@ -1,0 +1,39 @@
+Eccube\Entity\QuestionnaireAttachment:
+    type: entity
+    table: dtb_questionnaire_attachment
+    repositoryClass: Eccube\Repository\QuestionnaireAttachmentRepository
+    id:
+        id:
+            type: integer
+            nullable: false
+            unsigned: false
+            id: true
+            column: questionnaire_attachment_id
+            generator:
+                strategy: AUTO
+    fields:
+        file_name:
+            type: text
+            nullable: false
+        rank:
+            type: integer
+            nullable: false
+            unsigned: false
+        create_date:
+            type: datetime
+            nullable: false
+    manyToOne:
+        Questionnaire:
+            targetEntity: Eccube\Entity\Questionnaire
+            inversedBy: QuestionnaireAttachment
+            joinColumn:
+                name: questionnaire_id
+                referencedColumnName: questionnaire_id
+                nullable: false
+        Creator:
+            targetEntity: Eccube\Entity\Member
+            joinColumn:
+                name: creator_id
+                referencedColumnName: member_id
+                nullable: false
+    lifecycleCallbacks: {  }

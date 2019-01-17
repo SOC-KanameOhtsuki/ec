@@ -1,0 +1,26 @@
+Eccube\Entity\Master\TrainingType:
+    type: entity
+    table: mtb_training_type
+    repositoryClass: Eccube\Repository\Master\TrainingTypeRepository
+    id:
+        id:
+            type: smallint
+            nullable: false
+            unsigned: false
+            id: true
+            column: id
+            generator:
+                strategy: AUTO
+    fields:
+        name:
+            type: text
+            nullable: false
+        rank:
+            type: smallint
+            nullable: false
+            unsigned: false
+    oneToMany:
+        ProductTraining:
+            targetEntity: Eccube\Entity\ProductTraining
+            mappedBy: TrainingType
+    lifecycleCallbacks: {  }

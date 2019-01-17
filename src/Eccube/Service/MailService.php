@@ -61,7 +61,7 @@ class MailService
         ));
 
         $message = \Swift_Message::newInstance()
-            ->setSubject('[' . $this->BaseInfo->getShopName() . '] 会員登録のご確認')
+            ->setSubject('【ふまねっと】ユーザー仮登録完了メール')
             ->setFrom(array($this->BaseInfo->getEmail01() => $this->BaseInfo->getShopName()))
             ->setTo(array($Customer->getEmail()))
             ->setBcc($this->BaseInfo->getEmail01())
@@ -102,7 +102,7 @@ class MailService
         ));
 
         $message = \Swift_Message::newInstance()
-            ->setSubject('[' . $this->BaseInfo->getShopName() . '] 会員登録が完了しました。')
+            ->setSubject('【ふまねっと】ユーザー本登録完了メール')
             ->setFrom(array($this->BaseInfo->getEmail01() => $this->BaseInfo->getShopName()))
             ->setTo(array($Customer->getEmail()))
             ->setBcc($this->BaseInfo->getEmail01())
@@ -231,39 +231,72 @@ class MailService
      * @param \Eccube\Entity\Order $Order 受注情報
      * @return string
      */
-    public function sendOrderMail(\Eccube\Entity\Order $Order)
+    public function sendOrderMail(\Eccube\Entity\Order $Order, $needDelivery = true)
     {
         log_info('受注メール送信開始');
 
-        $MailTemplate = $this->app['eccube.repository.mail_template']->find(1);
+        if ($needDelivery == true) {
+            $MailTemplate = $this->app['eccube.repository.mail_template']->find(1);
 
-        $body = $this->app->renderView($MailTemplate->getFileName(), array(
-            'header' => $MailTemplate->getHeader(),
-            'footer' => $MailTemplate->getFooter(),
-            'Order' => $Order,
-        ));
-
-        $message = \Swift_Message::newInstance()
-            ->setSubject('[' . $this->BaseInfo->getShopName() . '] ' . $MailTemplate->getSubject())
-            ->setFrom(array($this->BaseInfo->getEmail01() => $this->BaseInfo->getShopName()))
-            ->setTo(array($Order->getEmail()))
-            ->setBcc($this->BaseInfo->getEmail01())
-            ->setReplyTo($this->BaseInfo->getEmail03())
-            ->setReturnPath($this->BaseInfo->getEmail04())
-            ->setBody($body);
-
-        $event = new EventArgs(
-            array(
-                'message' => $message,
+            $body = $this->app->renderView($MailTemplate->getFileName(), array(
+                'header' => $MailTemplate->getHeader(),
+                'footer' => $MailTemplate->getFooter(),
                 'Order' => $Order,
-                'MailTemplate' => $MailTemplate,
-                'BaseInfo' => $this->BaseInfo,
-            ),
-            null
-        );
-        $this->app['eccube.event.dispatcher']->dispatch(EccubeEvents::MAIL_ORDER, $event);
+            ));
 
-        $count = $this->app->mail($message);
+            if ($needDelivery == false) {
+                
+            }
+
+            $message = \Swift_Message::newInstance()
+                ->setSubject('[' . $this->BaseInfo->getShopName() . '] ' . $MailTemplate->getSubject())
+                ->setFrom(array($this->BaseInfo->getEmail01() => $this->BaseInfo->getShopName()))
+                ->setTo(array($Order->getEmail()))
+                ->setBcc($this->BaseInfo->getEmail01())
+                ->setReplyTo($this->BaseInfo->getEmail03())
+                ->setReturnPath($this->BaseInfo->getEmail04())
+                ->setBody($body);
+
+            $event = new EventArgs(
+                array(
+                    'message' => $message,
+                    'Order' => $Order,
+                    'MailTemplate' => $MailTemplate,
+                    'BaseInfo' => $this->BaseInfo,
+                ),
+                null
+            );
+            $this->app['eccube.event.dispatcher']->dispatch(EccubeEvents::MAIL_ORDER, $event);
+
+            $count = $this->app->mail($message);
+        } else {
+            $body = $this->app->renderView('Mail/no_delivery_order.twig', array(
+                'Order' => $Order,
+            ));
+
+            $message = \Swift_Message::newInstance()
+                ->setSubject('【ふまねっと】商品のご購入ありがとうございました。')
+                ->setFrom(array($this->BaseInfo->getEmail01() => $this->BaseInfo->getShopName()))
+                ->setTo(array($Order->getEmail()))
+                ->setBcc($this->BaseInfo->getEmail01())
+                ->setReplyTo($this->BaseInfo->getEmail03())
+                ->setReturnPath($this->BaseInfo->getEmail04())
+                ->setBody($body);
+
+            $event = new EventArgs(
+                array(
+                    'message' => $message,
+                    'Order' => $Order,
+                    'MailTemplate' => null,
+                    'BaseInfo' => $this->BaseInfo,
+                ),
+                null
+            );
+            $this->app['eccube.event.dispatcher']->dispatch(EccubeEvents::MAIL_ORDER, $event);
+
+            $count = $this->app->mail($message);
+        }
+        
 
         log_info('受注メール送信完了', array('count' => $count));
 

@@ -1,0 +1,77 @@
+<script>
+    $('.select-training').on('click', function () {
+        $.ajax({
+            type: 'POST',
+            data: { 'id' : this.dataset.training },
+            url: '{{ url('admin_flyer_search_training_by_training_id') }}',
+            success: function(data) {
+                // Training情報をフォームにセットする.
+                $('#admin_flyer_product_training_id').val(data['id']);
+                $('#admin_flyer_training_name').val(data['name']);
+                // モーダルを閉じる.
+                $('#searchTrainingModal').modal('hide');
+            },
+            error: function() {
+                alert('search training (by training id) failed.');
+            }
+        });
+    });
+
+    // 講習会検索
+    $('#training_pagination a').on('click', function(event) {
+        if (!$(this).parent().is('.active')) {
+            var list = $('#searchTrainingModalList');
+            list.children().remove();
+
+            $.ajax({
+                type: 'GET',
+                dataType: 'html',
+                url: $(this).attr('href'),
+                success: function(data) {
+                    $('#searchTrainingModalList').html(data);
+                },
+                error: function() {
+                    alert('search training failed.');
+                }
+            });
+        }
+        event.preventDefault();
+    });
+</script>
+<div class="table-responsive">
+    <table class="table">
+        <thead >
+            <tr id="search_training_modal_box__body_inner_header">
+                <th>講習会名</th>
+                <th>講習会種別</th>
+                <th>会場</th>
+                <th>住所</th>
+                <th>選択</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for Training in data %}
+                <tr>
+                    <td>
+                        {{ Training.name }}
+                    </td>
+                    <td>
+                        {{ Training.type_name }}
+                    </td>
+                    <td>
+                        {{ Training.place }}
+                    </td>
+                    <td>
+                        {{ Training.address }}
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-default btn-sm select-training" data-training="{{ Training.id }}">選択</button>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% if pagination.totalItemCount > 0 %}
+        {% include "pager.twig" with {'id': 'training_pagination', 'pages': pagination.paginationData, 'routes': 'admin_flyer_search_training_html_page'} %}
+    {% endif %}
+</div>

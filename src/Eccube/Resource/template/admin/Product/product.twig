@@ -53,6 +53,28 @@ $(function() {
             updateRank();
         }
     });
+    var changeForm = function () {
+        if ($('#admin_product_class_product_type').val() == 5) {
+            $('#detail_category_box').hide();
+            $('#detail_box__stock').hide();
+            $('#product_file_area').hide();
+            $('#membership_year_area').show();
+        } else if($('#admin_product_class_product_type').val() == 2) {
+            $('#detail_category_box').show();
+            $('#detail_box__stock').show();
+            $('#product_file_area').show();
+            $('#membership_year_area').hide();
+        } else {
+            $('#detail_category_box').show();
+            $('#detail_box__stock').show();
+            $('#product_file_area').hide();
+            $('#membership_year_area').hide();
+        }
+    };
+    changeForm();
+    $('#admin_product_class_product_type').change(function() {
+        changeForm();
+    });
     {% if has_class == false %}
     if ($("#{{ form.class.stock_unlimited.vars.id }}").prop("checked")) {
         $("#{{ form.class.stock.vars.id }}").attr("disabled", "disabled").val('');
@@ -156,7 +178,7 @@ $(function() {
             $('#progress').show();
         },
         acceptFileTypes: /(\.|\/)(gif|jpe?g|png)$/i,
-        maxFileSize: 10000000,
+        maxFileSize: 1000000000,
         maxNumberOfFiles: 10,
         progressall: function (e, data) {
             var progress = parseInt(data.loaded / data.total * 100, 10);
@@ -172,8 +194,124 @@ $(function() {
         }
     });
     // 画像アップロード
-    $('#file_upload').on('click', function () {
+    $('#file_upload_image').on('click', function () {
         $('#{{ form.product_image.vars.id }}').click();
+    });
+    $("#thumb_file").sortable({
+        cursor: 'move',
+        opacity: 0.7,
+        placeholder: 'ui-state-highlight',
+        update: function (event, ui) {
+            updateRank();
+        }
+    });
+    var proto_file = ''
+            + '<li class="ui-state-default">'
+            + '<img src="__path__" />'
+            + '<a class="delete-image">'
+            + '<svg class="cb cb-close">'
+            + '<use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#cb-close"></use>'
+            + '</svg>'
+            + '</a>'
+            + '</li>';
+    var proto_file_add = '{{ form_widget(form.add_files.vars.prototype) }}';
+    var proto_file_del = '{{ form_widget(form.delete_files.vars.prototype) }}';
+    {% for file in form.files %}
+    var $file = $(proto_img.replace(/__path__/g, '{{ app.config.image_save_urlpath }}/{{ file.vars.value }}'));
+    var $widget = $('{{ form_widget(form.file) }}');
+    $widget.val('{{ image.vars.value }}');
+    $("#thumb_file").append($file.append($widget));
+    {% endfor %}
+    {% for add_file in form.add_files %}
+    var $fi = $(proto_file.replace(/__path__/g, '{{ app.config.image_temp_urlpath }}/{{ add_file.vars.value }}'));
+    var $widget = $('{{ form_widget(add_file) }}');
+    $widget.val('{{ add_file.vars.value }}');
+    $("#thumb_file").append($fi.append($widget));
+    {% endfor %}
+    {% for delete_file in form.delete_files %}
+    $("#thumb_file").append('{{ form_widget(delete_file) }}');
+    {% endfor %}
+    var hideFileSvg = function () {
+        if ($("#thumb_file li").length > 0) {
+            $("#icon_no_file").css("display", "none");
+        } else {
+            $("#icon_no_file").css("display", "");
+        }
+    };
+    var updateFileRank = function () {
+        $("#thumb_file li").each(function (index) {
+            $(this).find(".rank_files").remove();
+            filename = $(this).find("input[type='hidden']").val();
+            $rank = $('<input type="hidden" class="rank_files" name="rank_files[]" />');
+            $rank.val(filename + '//' + parseInt(index + 1));
+            $(this).append($rank);
+        });
+    }
+    hideFileSvg();
+    updateFileRank();
+    // 画像削除時
+    var count_del = 0;
+    $("#thumb_file").on("click", ".delete-file", function () {
+        var $new_delete_file = $(proto_del.replace(/__name__/g, count_del));
+        var src = $(this).prev().attr('src')
+                .replace('{{ app.config.image_temp_urlpath }}/', '')
+                .replace('{{ app.config.image_save_urlpath }}/', '');
+        $new_delete_file.val(src);
+        $("#thumb_file").append($new_delete_file);
+        $(this).parent("li").remove();
+        hideSvg();
+        updateRank();
+        count_del++;
+    });
+    var count_add = {{ form.add_files|length|default(0) }};
+    $('#{{ form.product_file.vars.id }}').fileupload({
+        url: "{{ url('admin_product_file_add') }}",
+        type: "post",
+        sequentialUploads: true,
+        dataType: 'json',
+        done: function (e, data) {
+            $('#progress').hide();
+            $.each(data.result.files, function (index, file) {
+                var path = '{{ app.config.image_temp_urlpath }}/' + file;
+                var $fi = $(proto_img.replace(/__path__/g, path));
+                var $new_img = $(proto_add.replace(/__name__/g, count_add));
+                $new_img.val(file);
+                $child = $fi.append($new_img);
+                $('#thumb_file').append($child);
+                count_add++;
+            });
+            hideFileSvg();
+            updateFileRank();
+        },
+        fail: function (e, data) {
+            alert('アップロードに失敗しました。');
+        },
+        always: function (e, data) {
+            $('#progress').hide();
+            $('#progress .progress-bar').width('0%');
+        },
+        start: function (e, data) {
+            $('#progress').show();
+        },
+        acceptFileTypes: /(\.|\/)(\*)$/i,
+        maxFileSize: 10000000,
+        maxNumberOfFiles: 10,
+        progressall: function (e, data) {
+            var progress = parseInt(data.loaded / data.total * 100, 10);
+            $('#progress .progress-bar').css(
+                    'width',
+                    progress + '%'
+            );
+        },
+        processalways: function (e, data) {
+            if (data.files.error) {
+                alert("ファイルサイズが大きすぎます。");
+            }
+        }
+    });
+    // 商品ファイルアップロード
+    $('#product_file_upload_file').on('click', function () {
+        $('#{{ form.product_file.vars.id }}').click();
     });
 });
 
@@ -205,8 +343,15 @@ function fnClass(action) {
                                 </div>
                             {% endif %}
 
-
                             {{ form_row(form.name) }}
+                            {# 公開対象 #}
+                            <div id="detail_box__target" class="form-group">
+                                {{ form_label(form.Target) }}
+                                <div class="col-sm-9 col-lg-10">
+                                    {{ form_widget(form.Target) }}
+                                    {{ form_errors(form.Target) }}
+                                </div>
+                            </div>
                             {% if has_class == false %}
                                 {{ form_row(form.class.product_type, { attr : { class : 'form-inline  padT07' } } ) }}
                             {% endif %}
@@ -232,7 +377,7 @@ function fnClass(action) {
 
                                     {{ form_widget(form.product_image, { attr : { accept : 'image/*', style : 'display:none;' } }) }}
                                     {{ form_errors(form.product_image) }}
-                                    <a id="file_upload" class="with-icon">
+                                    <a id="file_upload_image" class="with-icon">
                                         <svg class="cb cb-plus"> <use xlink:href="#cb-plus" /></svg>ファイルをアップロード
                                     </a>
 
@@ -306,6 +451,45 @@ function fnClass(action) {
                                             {{ form_widget(form.Tag) }}
                                             {{ form_errors(form.Tag) }}
                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="membership_year_area">
+                                <div id="detail_box__membership_year_box" class="form-group">
+                                    <label class="col-sm-2 control-label" for="admin_product_membership_membership_year">
+                                    対象年度
+                                    </label>
+                                    <div id="detail_box__membership_year" class="col-sm-9 col-lg-10">
+                                        {{ form_widget(form.membership.membership_year) }}
+                                        {{ form_errors(form.membership.membership_year) }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="product_file_area">
+                                <div id="detail_box__file" class="form-group">
+                                    <label class="col-sm-2 control-label" for="admin_product_product_file">
+                                        {{ form.product_file.vars.label }}
+                                    </label>
+                                    <div id="detail_files_box" class="col-sm-9 col-lg-10">
+                                        <div class="photo_files" id="drag-drop-area">
+                                            <svg id="icon_no_file" class="cb cb-photo no-image"> <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#cb-photo"></use></svg>
+                                            <ul id="thumb_file" class="clearfix"></ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group marB30">
+                                    <div id="detail_box__product_file_upload" class="col-sm-offset-2 col-sm-9 col-lg-10 ">
+                                        <div id="progress" class="progress progress-striped active" style="display:none;">
+                                            <div class="progress-bar progress-bar-info"></div>
+                                        </div>
+                                        {{ form_widget(form.product_file, { attr : { accept : '*/*', style : 'display:none;' } }) }}
+                                        {{ form_errors(form.product_file) }}
+                                        <a id="product_file_upload_file" class="with-icon">
+                                            <svg class="cb cb-plus"> <use xlink:href="#cb-plus" /></svg>ファイルをアップロード
+                                        </a>
+
                                     </div>
                                 </div>
                             </div>
@@ -432,7 +616,11 @@ function fnClass(action) {
                                                     </a>
                                                 </li>
                                                 <li>
+                                                    {% if is_membership == true %}
+                                                    <button class="btn btn-default btn-block btn-sm" disabled>
+                                                    {% else %}
                                                     <a class="btn btn-default btn-block btn-sm" href="{{ url('admin_product_product_copy', {'id' : Product.id}) }}"  {{ csrf_token_for_anchor() }} data-method="post" data-message="この商品情報を複製してもよろしいですか？">
+                                                    {% endif %}
                                                         複製
                                                     </a>
                                                 </li>

@@ -1,0 +1,25 @@
+Plugin\FormDb\Entity\FormContent:
+    type: entity
+    table: plg_FormDb_formcontent
+    repositoryClass: Plugin\FormDb\Repository\FormContentRepository
+    id:
+        id:
+            type: integer
+            nullable: false
+            id: true
+            column: product_video_id
+            generator:
+                strategy: AUTO
+            options:
+                unsigned: true
+    fields:
+        urlpath:
+            type: text
+            nullable: false
+        form_name:
+            type: text
+            nullable: false
+        form_value:
+            type: text
+            nullable: true
+    lifecycleCallbacks: {}

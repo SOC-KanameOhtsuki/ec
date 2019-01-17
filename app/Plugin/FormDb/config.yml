@@ -1,0 +1,8 @@
+name: フォームDB
+code: FormDb
+version: 0.1.0
+event: FormDbEvent
+service:
+    - FormDbServiceProvider
+orm.path:
+    - /Resource/doctrine

@@ -1,0 +1,47 @@
+Eccube\Entity\AttendanceHistory:
+    type: entity
+    table: dtb_attendance_history
+    repositoryClass: Eccube\Repository\AttendanceHistoryRepository
+    id:
+        id:
+            type: integer
+            nullable: false
+            unsigned: false
+            id: true
+            column: attendance_history_id
+            generator:
+                strategy: AUTO
+    fields:
+        create_date:
+            type: datetime
+            nullable: false
+        update_date:
+            type: datetime
+            nullable: false
+    manyToOne:
+        ProductTraining:
+            targetEntity: Eccube\Entity\ProductTraining
+            inversedBy: AttendanceHistory
+            joinColumn:
+                name: product_training_id
+                referencedColumnName: product_training_id
+                nullable: false
+        Customer:
+            targetEntity: Eccube\Entity\Customer
+            inversedBy: AttendanceHistories
+            joinColumn:
+                name: customer_id
+                referencedColumnName: customer_id
+        AttendanceStatus:
+            targetEntity: Eccube\Entity\Master\AttendanceStatus
+            joinColumn:
+                name: status
+                referencedColumnName: id
+                nullable: false
+        AttendanceDenialReason:
+            targetEntity: Eccube\Entity\Master\AttendanceDenialReason
+            joinColumn:
+                name: reason
+                referencedColumnName: id
+                nullable: true
+    lifecycleCallbacks: {  }

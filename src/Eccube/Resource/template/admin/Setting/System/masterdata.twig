@@ -25,7 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 {% set menus = ['setting', 'system', 'masterdata'] %}
 
 {% block title %}システム設定{% endblock %}
-{% block sub_title %}マスターデータ管理{% endblock %}
+{% block sub_title %}マスタデータ管理{% endblock %}
 
 {% block main %}
 <form id="form1" name="form1" method="post" action="{{ url('admin_setting_system_masterdata') }}">
@@ -34,7 +34,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
         <div id="master_edit" class="col-md-12">
             <div id="master_edit_box" class="box">
                 <div id="master_edit_box__header" class="box-header">
-                    <h3 class="box-title">マスターデータ管理</h3>
+                    <h3 class="box-title">マスタデータ管理</h3>
                 </div><!-- /.box-header -->
                 <div id="master_edit_box__body" class="box-body">
                     <div id="master_edit_box__body_inner" class="form-inline form-group">
@@ -72,7 +72,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
             <div id="result_list_box__body" class="box">
                 <div id="result_list_box__header" class="box-header">
                     <div class="read">
-                        マスターデータの値を設定できます。<br />
+                        マスタデータの値を設定できます。<br />
                         重複したIDを登録することはできません。<br />
                         空のIDを登録すると、値は削除されます。<br />
                         設定値によってはサイトが機能しなくなる場合もありますので、十分ご注意下さい。

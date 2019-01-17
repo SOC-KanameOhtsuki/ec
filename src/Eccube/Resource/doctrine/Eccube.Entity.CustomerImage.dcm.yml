@@ -1,0 +1,39 @@
+Eccube\Entity\CustomerImage:
+    type: entity
+    table: dtb_customer_image
+    repositoryClass: Eccube\Repository\CustomerImageRepository
+    id:
+        id:
+            type: integer
+            nullable: false
+            unsigned: false
+            id: true
+            column: customer_image_id
+            generator:
+                strategy: AUTO
+    fields:
+        file_name:
+            type: text
+            nullable: false
+        rank:
+            type: integer
+            nullable: false
+            unsigned: false
+        create_date:
+            type: datetime
+            nullable: false
+    manyToOne:
+        Customer:
+            targetEntity: Eccube\Entity\Customer
+            inversedBy: CustomerImage
+            joinColumn:
+                name: customer_id
+                referencedColumnName: customer_id
+                nullable: false
+        Creator:
+            targetEntity: Eccube\Entity\Member
+            joinColumn:
+                name: creator_id
+                referencedColumnName: member_id
+                nullable: false
+    lifecycleCallbacks: {  }

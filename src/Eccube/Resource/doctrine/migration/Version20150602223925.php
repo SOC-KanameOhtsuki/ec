@@ -16,7 +16,10 @@ class Version20150602223925 extends AbstractMigration
     public function up(Schema $schema)
     {
         // this up() migration is auto-generated, please modify it to your needs
-
+        // $t = $schema->getTable('mtb_pref');
+        // if (!$t->hasColumn('code')) {
+        //     $t->addColumn('code', 'text', array('NotNull' => false));
+        // }
     }
 
     /**

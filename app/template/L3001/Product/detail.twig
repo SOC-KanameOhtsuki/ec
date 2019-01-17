@@ -162,6 +162,7 @@ $(function(){
                     {% endif -%}
 
                     <!--★販売価格★-->
+                    {% if not is_free_price %}
                     {% if Product.hasProductClass -%}
                         {% if Product.getPrice02IncTaxMin == Product.getPrice02IncTaxMax %}
                         <p id="detail_description_box__class_sale_price" class="sale_price text-primary"> <span class="price02_default">{{ Product.getPrice02IncTaxMin|price }}</span> <span class="small">税込</span></p>
@@ -171,8 +172,7 @@ $(function(){
                     {% else -%}
                         <p id="detail_description_box__sale_price" class="sale_price text-primary"> <span class="price02_default">{{ Product.getPrice02IncTaxMin|price }}</span> <span class="small">税込</span></p>
                     {% endif -%}
-
-
+                    {% endif %}
 
                     <!-- ▼関連カテゴリ▼ -->
                     <div id="relative_category_box" class="relative_cat">
@@ -211,6 +211,15 @@ $(function(){
                                 {% endif %}
 
                                 {# 数量 #}
+                                {% if is_free_price %}
+                                <dl id="detail_cart_box__cart_price" class="price">
+                                    <dt>お支払い</dt>
+                                    <dd>
+                                        {{ form_widget(form.price) }}
+                                        {{ form_errors(form.price) }}
+                                    </dd>
+                                </dl>
+                                {% else %}
                                 <dl id="detail_cart_box__cart_quantity" class="quantity">
                                     <dt>数量</dt>
                                     <dd>
@@ -218,6 +227,7 @@ $(function(){
                                         {{ form_errors(form.quantity) }}
                                     </dd>
                                 </dl>
+                                {% endif %}
 
                                 <div class="extra-form">
                                     {% for f in form.getIterator %}

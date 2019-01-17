@@ -953,6 +953,10 @@ textarea.form-control{
     fill: #d0d0d0;
     font-size: 60px;
 }
+#drag-drop-area .no-attachment {
+    fill: #d0d0d0;
+    font-size: 60px;
+}
 #drag-drop-area {
 }
 
@@ -3223,4 +3227,34 @@ textarea#log {
 
 #shipping_info__button_new {
     margin-bottom: 20px;
+}
+
+.loader {
+  border: 7px solid #f3f3f3;
+  border-radius: 50%;
+  border-top: 7px solid #3498db;
+  width: 45px;
+  height: 45px;
+  -webkit-animation: spin 2s linear infinite; /* Safari */
+  animation: spin 2s linear infinite;
+  margin-top: 50%;
+}
+
+/* Safari */
+@-webkit-keyframes spin {
+  0% { -webkit-transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.save_file {
+    display: none;
+}
+
+.org_file {
+    fontsize: 16px;
 }

@@ -1,0 +1,76 @@
+eccube.event.app.controller:
+    - [onAppController, NORMAL]
+eccube.event.app.request:
+    - [onAppRequest, NORMAL]
+eccube.event.app.response:
+    - [onAppResponse, NORMAL]
+eccube.event.app.exception:
+    - [onAppException, NORMAL]
+admin.customer.edit.index.initialize:
+    - [onAdminCustomerEditIndexInitialize, NORMAL]
+admin.customer.edit.index.complete:
+    - [onAdminCustomerEditIndexComplete, NORMAL]
+##
+admin.product.edit.initialize:
+    - [onAdminProductEditIndexInitialize, NORMAL]
+admin.product.edit.complete:
+    - [onAdminProductEditComplete, NORMAL]    
+admin.product.product.class.edit.complete:
+    - [onAdminProductProductClassEditComplete, NORMAL]
+admin.product.product.class.edit.update:
+    - [onAdminProductProductClassEditUpdate, NORMAL]
+admin.product.product.class.edit.initialize:
+    - [onAdminProductProductClassEditInitialize, NORMAL]
+admin.order.edit.index.complete:
+    - [onAdminOrderEditIndexComplete, NORMAL]
+front.mypage.mypage.history.initialize:
+    - [onFrontMypageMypageHistoryInitialize, NORMAL]
+front.cart.buystep.complete:
+    - [onFrontCartBuystepComplete, NORMAL]
+## 商品一覧
+#Product/list.twig:
+eccube.event.render.product_list.before:
+    - [onProductList, NORMAL]
+## 商品詳細
+eccube.event.render.product_detail.before:
+    - [onProductDetail, NORMAL]
+# フロント画面
+# TOP
+Mypage/index.twig:
+    - [onRenderMyPageIndex, NORMAL]
+Mypage/navi.twig:
+    - [onRenderMyPageNavi, NORMAL]
+Mypage/change.twig:
+    - [onMypage_change_twig, NORMAL]
+Mypage/change_complete.twig:
+    - [onMypage_change_complete_twig, NORMAL]
+Mypage/delivery.twig:
+    - [onMypage_delivery_twig, NORMAL]
+Mypage/delivery_edit.twig:
+    - [onMypage_delivery_edit_twig, NORMAL]
+Mypage/favorite.twig:
+    - [onMypage_favorite_twig, NORMAL]
+Mypage/login.twig:
+    - [onMypage_login_twig, NORMAL]
+Mypage/withdraw.twig:
+    - [onMypage_withdraw_twig, NORMAL]
+Mypage/withdraw_complete.twig:
+    - [onMypage_withdraw_complete_twig, NORMAL]
+Mypage/withdraw_confirm.twig:
+    - [onMypage_withdraw_confirm_twig, NORMAL]
+Mypage/history.twig:
+    - [onRenderMypageHistoryTwigIndexRender, NORMAL]
+#front.mypage.mypage.login.initialize:
+#    - [onFrontMypageLoginInitialize, NORMAL]
+#front.mypage.mypage.index.search:
+#    - [onFrontMypageIndexSearch, NORMAL]
+#front.mypage.mypage.history.index.search:
+#    - [onFrontMypageHistoryIndexSeach, NORMAL]
+#front.mypage.mypage.history.initialize:
+#    - [onFrontMypageMypageHistoryInitialize, NORMAL]
+#front.mypage.change.index.initialize:
+#    - [onFrontMypageChangeIndexInitialize, NORMAL]
+#front.mypage.change.index.complete:
+#    - [onFrontMypageChangeIndexComplete, NORMAL]
+
+

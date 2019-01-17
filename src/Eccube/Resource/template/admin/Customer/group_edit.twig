@@ -1,0 +1,335 @@
+{#
+/*
+* This file is Cusomized File Place - Suite 330, Boston, MA  02111-1307, USA.
+*/
+#}
+
+{% extends 'default_frame.twig' %}
+
+{% set menus = ['customer', 'customer_group_edit'] %}
+
+{% block title %}会員管理{% endblock %}
+{% block sub_title %}会員グループ登録・編集{% endblock %}
+
+{% form_theme form 'Form/bootstrap_3_horizontal_layout.html.twig' %}
+{% form_theme searchCustomerModalForm 'Form/bootstrap_3_horizontal_layout.html.twig' %}
+
+{% block javascript %}
+<script src="{{ app.config.admin_urlpath }}/assets/js/vendor/fileupload/vendor/jquery.ui.widget.js"></script>
+<script src="{{ app.config.admin_urlpath }}/assets/js/vendor/fileupload/jquery.iframe-transport.js"></script>
+<script src="//ajaxzip3.github.io/ajaxzip3.js" charset="UTF-8"></script>
+<script>
+$(function() {
+    $('#send_to_zip-search').click(function() {
+        AjaxZip3.zip2addr('admin_customer_group[send_to_zip][send_to_zip01]', 'admin_customer_group[send_to_zip][send_to_zip02]', 'admin_customer_group[send_to_address][send_to_pref]', 'admin_customer_group[send_to_address][send_to_addr01]');
+    });
+    $('#bill_to_zip-search').click(function() {
+        AjaxZip3.zip2addr('admin_customer_group[bill_to_zip][bill_to_zip01]', 'admin_customer_group[bill_to_zip][bill_to_zip02]', 'admin_customer_group[bill_to_address][bill_to_pref]', 'admin_customer_group[bill_to_address][bill_to_addr01]');
+    });
+
+    // 会員検索
+    $('#searchCustomerModalButton').on('click', function() {
+        var list = $('#searchCustomerModalList');
+        list.children().remove();
+
+        $.ajax({
+            type: 'POST',
+            dataType: 'html',
+            data: { 'search_word' : $('#admin_search_customer_multi').val() },
+            url: '{{ url('admin_customer_group_search_customer_html') }}',
+            success: function(data) {
+                // モーダルに結果を書き出し.
+                $('#searchCustomerModalList').html(data);
+            },
+            error: function() {
+                alert('search customer failed.');
+            }
+        });
+    });
+});
+
+function deleteCustomer(idx) {
+    $('#customer_list__item_detail--' + idx).remove();
+}
+</script>
+{% endblock javascript %}
+
+{% block main %}
+<div class="row" id="aside_wrap">
+    <form name="customer_group_form" role="form" id="customer_group_form" method="post" action="{%- if CustomerGroup.id %}{{ url('admin_customer_group_edit', { id : CustomerGroup.id }) }}{% else %}{{ url('admin_customer_group_new') }}{% endif -%}">
+        {{ form_widget(form._token) }}
+        <div id="detail_wrap" class="col-md-9">
+            <div id="detail_box" class="box accordion">
+                <div id="detail_box__header" class="box-header toggle active">
+                    <h3 class="box-title">会員グループ情報<svg class="cb cb-angle-down icon_down"> <use xlink:href="#cb-angle-down" /></svg></h3>
+                </div><!-- /.box-header -->
+                <div id="detail_box__body" class="box-body accpanel" style="display: block;">
+                    <div class="form-horizontal">
+                        {# 会員グループID #}
+                        {% if CustomerGroup.id %}
+                        <div id="detail_box__id" class="form-group">
+                            <label class="col-sm-3 col-lg-2 control-label">会員グループID</label>
+                            <div class="col-sm-9 col-lg-10">{{ CustomerGroup.id }}</div>
+                        </div>
+                        {% endif %}
+                        {# 会員グループ名 #}
+                        <div id="detail_box__name" class="form-group">
+                            <label class="col-sm-3 col-lg-2 control-label">会員グループ名</label>
+                            <div class="col-sm-9 col-lg-10 input_name form-inline">
+                                {{ form_widget(form.name) }}
+                                {{ form_errors(form.name) }}
+                            </div>
+                        </div>
+                        {# 会員グループ名(カナ) #}
+                        <div id="detail_box__kana" class="form-group">
+                            <label class="col-sm-3 col-lg-2 control-label">会員グループ名(カナ)</label>
+                            <div class="col-sm-9 col-lg-10 input_name form-inline">
+                                {{ form_widget(form.kana) }}
+                                {{ form_errors(form.kana) }}
+                            </div>
+                        </div>
+                        {# 送付先住所：郵便番号 #}
+                        <div id="detail_box__send_to_address" class="form-group">
+                            <label class="col-sm-3 col-lg-2 control-label">送付先住所</label>
+                            <div id="detail_box__send_to_zip" class="col-sm-9 col-lg-10 input_zip form-inline">
+                                〒{{ form_widget(form.send_to_zip.send_to_zip01) }}-{{ form_widget(form.send_to_zip.send_to_zip02) }}
+                                {{ form_errors(form.send_to_zip) }}
+                                {{ form_errors(form.send_to_zip.send_to_zip01) }}
+                                {{ form_errors(form.send_to_zip.send_to_zip02) }}
+                                <span><button type="button" id="send_to_zip-search" class="btn btn-default btn-sm">郵便番号から自動入力</button></span>
+                            </div>
+                        </div>
+                        {# 送付先住所：都道府県 #}
+                        <div class="form-group">
+                            <div id="detail_box__send_to_pref" class="col-sm-offset-2 col-sm-9 col-lg-10 form-inline">
+                                {{ form_widget(form.send_to_address.send_to_pref) }}
+                                {{ form_errors(form.send_to_address.send_to_pref) }}
+                            </div>
+                        </div>
+                        {# 送付先住所：住所1 #}
+                        <div class="form-group">
+                            <div id="detail_box__send_to_addr01" class="col-sm-offset-2 col-sm-9 col-lg-10">
+                                {{ form_widget(form.send_to_address.send_to_addr01, { attr : { placeholder : '市区町村名（例：千代田区神田神保町）'}} ) }}
+                                {{ form_errors(form.send_to_address.send_to_addr01) }}
+                            </div>
+                        </div>
+                        {# 送付先住所：住所2 #}
+                        <div class="form-group">
+                            <div id="detail_box__send_to_addr02" class="col-sm-offset-2 col-sm-9 col-lg-10">
+                                {{ form_widget(form.send_to_address.send_to_addr02, { attr : { placeholder : '番地・ビル名（例：1-3-5）' }}) }}
+                                {{ form_errors(form.send_to_address.send_to_addr02) }}
+                            </div>
+                        </div>
+                        {# 送付先メールアドレス #}
+                        <div id="detail_box__send_to_email" class="form-group">
+                            <label class="col-sm-3 col-lg-2 control-label">送付先メールアドレス</label>
+                            <div class="col-sm-9 col-lg-10">
+                                {{ form_widget(form.send_to_email) }}
+                                {{ form_errors(form.send_to_email) }}
+                            </div>
+                        </div>
+                        {# 送付先電話番号 #}
+                        <div id="detail_box__send_to_tel" class="form-group">
+                            <label class="col-sm-3 col-lg-2 control-label">送付先電話番号</label>
+                            <div class="col-sm-9 col-lg-10 input_tel form-inline">
+                                {{ form_widget(form.send_to_tel.send_to_tel01) }}-{{ form_widget(form.send_to_tel.send_to_tel02) }}-{{ form_widget(form.send_to_tel.send_to_tel03) }}
+                                {{ form_errors(form.send_to_tel.send_to_tel01) }}
+                                {{ form_errors(form.send_to_tel.send_to_tel02) }}
+                                {{ form_errors(form.send_to_tel.send_to_tel03) }}
+                            </div>
+                        </div>
+                        {# 送付先FAX番号 #}
+                        <div id="detail_box__send_to_fox" class="form-group">
+                            <label class="col-sm-3 col-lg-2 control-label">送付先Fax番号</label>
+                            <div class="col-sm-9 col-lg-10 input_tel form-inline">
+                                {{ form_widget(form.send_to_fax.send_to_fax01) }}-{{ form_widget(form.send_to_fax.send_to_fax02) }}-{{ form_widget(form.send_to_fax.send_to_fax03) }}
+                                {{ form_errors(form.send_to_fax.send_to_fax01) }}
+                                {{ form_errors(form.send_to_fax.send_to_fax02) }}
+                                {{ form_errors(form.send_to_fax.send_to_fax03) }}
+                            </div>
+                        </div>
+                        {# 請求先名 #}
+                        <div id="detail_box__bill_to" class="form-group">
+                            <label class="col-sm-3 col-lg-2 control-label">請求先名称</label>
+                            <div class="col-sm-9 col-lg-10 input_name form-inline">
+                                {{ form_widget(form.bill_to) }}
+                                {{ form_errors(form.bill_to) }}
+                            </div>
+                        </div>
+                        {# 請求先住所：郵便番号 #}
+                        <div id="detail_box__bill_to_address" class="form-group">
+                            <label class="col-sm-3 col-lg-2 control-label">請求先住所</label>
+                            <div id="detail_box__bill_to_zip" class="col-sm-9 col-lg-10 input_zip form-inline">
+                                〒{{ form_widget(form.bill_to_zip.bill_to_zip01) }}-{{ form_widget(form.bill_to_zip.bill_to_zip02) }}
+                                {{ form_errors(form.bill_to_zip) }}
+                                {{ form_errors(form.bill_to_zip.bill_to_zip01) }}
+                                {{ form_errors(form.bill_to_zip.bill_to_zip02) }}
+                                <span><button type="button" id="bill_to_zip-search" class="btn btn-default btn-sm">郵便番号から自動入力</button></span>
+                            </div>
+                        </div>
+                        {# 請求先住所：都道府県 #}
+                        <div class="form-group">
+                            <div id="detail_box__bill_to_pref" class="col-sm-offset-2 col-sm-9 col-lg-10 form-inline">
+                                {{ form_widget(form.bill_to_address.bill_to_pref) }}
+                                {{ form_errors(form.bill_to_address.bill_to_pref) }}
+                            </div>
+                        </div>
+                        {# 請求先住所：住所1 #}
+                        <div class="form-group">
+                            <div id="detail_box__bill_to_addr01" class="col-sm-offset-2 col-sm-9 col-lg-10">
+                                {{ form_widget(form.bill_to_address.bill_to_addr01, { attr : { placeholder : '市区町村名（例：千代田区神田神保町）'}} ) }}
+                                {{ form_errors(form.bill_to_address.bill_to_addr01) }}
+                            </div>
+                        </div>
+                        {# 請求先住所：住所2 #}
+                        <div class="form-group">
+                            <div id="detail_box__bill_to_addr02" class="col-sm-offset-2 col-sm-9 col-lg-10">
+                                {{ form_widget(form.bill_to_address.bill_to_addr02, { attr : { placeholder : '番地・ビル名（例：1-3-5）' }}) }}
+                                {{ form_errors(form.bill_to_address.bill_to_addr02) }}
+                            </div>
+                        </div>
+                        {# 請求先メールアドレス #}
+                        <div id="detail_box__bill_to_email" class="form-group">
+                            <label class="col-sm-3 col-lg-2 control-label">請求先メールアドレス</label>
+                            <div class="col-sm-9 col-lg-10">
+                                {{ form_widget(form.bill_to_email) }}
+                                {{ form_errors(form.bill_to_email) }}
+                            </div>
+                        </div>
+                        {# 請求先電話番号 #}
+                        <div id="detail_box__bill_to_tel" class="form-group">
+                            <label class="col-sm-3 col-lg-2 control-label">請求先電話番号</label>
+                            <div class="col-sm-9 col-lg-10 input_tel form-inline">
+                                {{ form_widget(form.bill_to_tel.bill_to_tel01) }}-{{ form_widget(form.bill_to_tel.bill_to_tel02) }}-{{ form_widget(form.bill_to_tel.bill_to_tel03) }}
+                                {{ form_errors(form.bill_to_tel.bill_to_tel01) }}
+                                {{ form_errors(form.bill_to_tel.bill_to_tel02) }}
+                                {{ form_errors(form.bill_to_tel.bill_to_tel03) }}
+                            </div>
+                        </div>
+                        {# 請求先FAX番号 #}
+                        <div id="detail_box__bill_to_fox" class="form-group">
+                            <label class="col-sm-3 col-lg-2 control-label">請求先FAX番号</label>
+                            <div class="col-sm-9 col-lg-10 input_tel form-inline">
+                                {{ form_widget(form.bill_to_fax.bill_to_fax01) }}-{{ form_widget(form.bill_to_fax.bill_to_fax02) }}-{{ form_widget(form.bill_to_fax.bill_to_fax03) }}
+                                {{ form_errors(form.bill_to_fax.bill_to_fax01) }}
+                                {{ form_errors(form.bill_to_fax.bill_to_fax02) }}
+                                {{ form_errors(form.bill_to_fax.bill_to_fax03) }}
+                            </div>
+                        </div>
+                        <div class="extra-form">
+                            {% for f in form.getIterator %}
+                                {% if f.vars.name matches '[^plg*]' %}
+                                    {{ form_row(f) }}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div><!-- /.box-body -->
+            </div><!-- /.box -->
+            <div id="customer_box" class="box accordion">
+                <div id="customer_box__header" class="box-header toggle active">
+                    <h3 class="box-title">所属会員情報<svg class="cb cb-angle-down icon_down"> <use xlink:href="#cb-angle-down" /></svg></h3>
+                </div><!-- /.box-header -->
+                <div id="customer_info_box__body" class="box-body accpanel" style="display: block;">
+                    <div id="customer_info_list" class="order_list form-horizontal">
+                        <div class="btn_area">
+                            <ul>
+                                <li><a class="btn btn-default" data-toggle="modal" data-target="#searchCustomerModal">会員の追加</a></li>
+                            </ul>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <th>会員ID</th>
+                                    <th>お名前(カナ)</th>
+                                    <th>電話番号</th>
+                                    <th>メールアドレス</th>
+                                    <th>削除</th>
+                                </thead>
+                                <tbody id="group_customer_list">
+                                    {% for groupCustomeForm in form.Customers %}
+                                        <tr id="customer_list__item_detail--{{ groupCustomeForm.vars.value.id }}">
+                                            <td id="customer_info_list__id--{{ groupCustomeForm.vars.value.id }}" class="text-left">
+                                                {{ form_widget(groupCustomeForm.id) }}
+                                                {{ groupCustomeForm.vars.value.id }}
+                                            </td>
+                                            <td id="customer_info_list__name--{{ groupCustomeForm.vars.value.id }}" class="text-left">
+                                                {{ groupCustomeForm.vars.value.name01 }}{{ groupCustomeForm.vars.value.name02 }}({{ groupCustomeForm.vars.value.kana01 }}{{ groupCustomeForm.vars.value.kana02 }})
+                                            </td>
+                                            <td id="customer_info_list__tel--{{ groupCustomeForm.vars.value.id }}" class="text-left">
+                                                {% if groupCustomeForm.vars.value.tel01 and groupCustomeForm.vars.value.tel02 and groupCustomeForm.vars.value.tel03 %}
+                                                    {{ groupCustomeForm.vars.value.tel01 }}-{{ groupCustomeForm.vars.value.tel02 }}-{{ groupCustomeForm.vars.value.tel03 }}
+                                                {% endif %}
+                                            </td>
+                                            <td id="customer_info_list__email--{{ groupCustomeForm.vars.value.id }}" class="text-left">
+                                                {{ groupCustomeForm.vars.value.email }}
+                                            </td>
+                                            <td id="customer_info_list__button_customer_delete--{{ groupCustomeForm.vars.value.id }}" class="icon_edit">
+                                                <button type="button" class="btn btn-default btn-sm delete-item" onClick="deleteCustomer({{ groupCustomeForm.vars.value.id }});">削除</button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div><!-- /.box-body -->
+            </div><!-- /.box -->
+
+            <div id="detail_box__footer" class="row hidden-xs hidden-sm">
+                <div class="col-xs-10 col-xs-offset-1 col-sm-6 col-sm-offset-3 text-center btn_area">
+                    <p><a href="{{ url('admin_customer_group_page', { page_no : app.session.get('eccube.admin.customer.group.search.page_no')|default('1') } ) }}?resume=1">検索画面に戻る</a></p>
+                </div>
+            </div>
+
+        </div><!-- /.col -->
+
+        <div id="aside_column" class="col-md-3">
+            <div id="common_box" class="col_inner">
+                <div id="button_box" class="box no-header">
+                    <div id="button_box__body" class="box-body">
+                        <div id="button_box__insert_button" class="row text-center">
+                            <div class="col-sm-6 col-sm-offset-3 col-md-12 col-md-offset-0">
+                                <button class="btn btn-primary btn-block btn-lg" type="submit">会員グループ情報を登録</button>
+                            </div>
+                        </div>
+                    </div><!-- /.box-body -->
+                </div><!-- /.box -->
+            </div>
+        </div><!-- /.col -->
+    </form>
+</div>
+{% endblock %}
+
+{% block modal %}
+{# 会員検索モーダル #}
+<div class="modal fade" id="searchCustomerModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div id="search_customer_modal_box" class="modal-content">
+            <div id="search_customer_modal_box__header" class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span class="modal-close" aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">会員検索</h4>
+            </div>
+            <div id="search_customer_modal_box__body" class="modal-body">
+                <div id="search_customer_modal_box__id" class="form-group">
+                    {{ form_widget(searchCustomerModalForm.multi, { attr : { placeholder : '会員ID・メールアドレス・お名前', class : 'input_search' } } ) }}
+                </div>
+                <div class="extra-form form-group">
+                    {% for f in searchCustomerModalForm.getIterator %}
+                        {% if f.vars.name matches '[^plg*]' %}
+                            {{ form_label(f) }}
+                            {{ form_widget(f) }}
+                            {{ form_errors(f) }}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div id="search_customer_modal_box__button_search" class="form-group">
+                    <button type="button" id="searchCustomerModalButton" class="btn btn-primary">検索</button>
+                </div>
+                <div class="form-group" id="searchCustomerModalList">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

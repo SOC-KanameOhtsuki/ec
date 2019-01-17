@@ -1,0 +1,19 @@
+Eccube\Entity\Master\CustomerBasicInfoStatus:
+    type: entity
+    table: mtb_customer_basic_info_status
+    repositoryClass: Eccube\Repository\Master\CustomerBasicInfoStatusRepository
+    id:
+        id:
+            type: smallint
+            nullable: false
+            unsigned: false
+            id: true
+    fields:
+        name:
+            type: text
+            nullable: true
+        rank:
+            type: smallint
+            nullable: false
+            unsigned: false
+    lifecycleCallbacks: {  }

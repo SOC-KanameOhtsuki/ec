@@ -273,8 +273,29 @@ class ShoppingController extends AbstractController
             // 受注IDをセッションにセット
             $app['session']->set($this->sessionOrderKey, $Order->getId());
 
+            // 年会費、動画、寄付　購入者に対し購入内容の確認メールを送信            
+            $needDelivery = true;
+
+            $OrderDetails = $Order->getOrderDetails();
+            foreach ($OrderDetails as $OrderDetail) {
+                $Product = $OrderDetail->getProduct();
+                if ($Product == null) {
+                    continue;
+                }
+                $ProductCategories = $Product->getProductCategories();
+                if (isset($ProductCategories)) {
+                    foreach ($ProductCategories as $ProductCategory) {
+                        // 7 = 年会費, 6 = 映像, 2 = 寄付
+                        if ($ProductCategory->getCategoryId() == 2 || $ProductCategory->getCategoryId() == 7 || $ProductCategory->getCategoryId() == 6) {
+                            $needDelivery = false;
+                            break;
+                        }
+                    }
+                }
+            }
+
             // メール送信
-            $MailHistory = $app['eccube.service.shopping']->sendOrderMail($Order);
+            $MailHistory = $app['eccube.service.shopping']->sendOrderMail($Order, $needDelivery);
 
             $event = new EventArgs(
                 array(

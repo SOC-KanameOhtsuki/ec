@@ -111,6 +111,53 @@ class CategoryRepository extends EntityRepository
     }
 
     /**
+     * 通常カテゴリ一覧を取得する.
+     *
+     * 引数 $Parent を指定した場合は, 指定したカテゴリの子以下を取得する.
+     *
+     * @param \Eccube\Entity\Category|null $Parent 指定の親カテゴリ
+     * @param bool $flat trueの場合, 階層化されたカテゴリを一つの配列にまとめる
+     *
+     * @return \Eccube\Entity\Category[] カテゴリの配列
+     */
+    public function getGeneralList(Category $Parent = null, $flat = false)
+    {
+        $options = $this->app['config']['doctrine_cache'];
+        $lifetime = $options['result_cache']['lifetime'];
+
+        $qb = $this->createQueryBuilder('c1')
+            ->select('c1, c2, c3, c4, c5')
+            ->leftJoin('c1.Children', 'c2')
+            ->leftJoin('c2.Children', 'c3')
+            ->leftJoin('c3.Children', 'c4')
+            ->leftJoin('c4.Children', 'c5')
+            ->orderBy('c1.rank', 'DESC')
+            ->addOrderBy('c2.rank', 'DESC')
+            ->addOrderBy('c3.rank', 'DESC')
+            ->addOrderBy('c4.rank', 'DESC')
+            ->addOrderBy('c5.rank', 'DESC');
+
+        if ($Parent) {
+            $qb->where('c1.id <> 1 and c1.Parent = :Parent')->setParameter('Parent', $Parent);
+        } else {
+            $qb->where('c1.id <> 1 and c1.Parent IS NULL');
+        }
+        $Categories = $qb->getQuery()
+            ->useResultCache(true, $lifetime)
+            ->getResult();
+
+        if ($flat) {
+            $array = array();
+            foreach ($Categories as $Category) {
+                $array = array_merge($array, $Category->getSelfAndDescendants());
+            }
+            $Categories = $array;
+        }
+
+        return $Categories;
+    }
+
+    /**
      * カテゴリの順位を1上げる.
      *
      * @param  \Eccube\Entity\Category $Category カテゴリ

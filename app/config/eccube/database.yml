@@ -1,7 +1,7 @@
 database:
     driver: 'pdo_mysql'
     host: '127.0.0.1'
-    dbname: 'ec_trial_temp2'
+    dbname: 'ec_trial_temp'
     port: '3306'
     user: 'root'
     password : ''

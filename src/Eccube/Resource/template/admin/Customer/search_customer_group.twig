@@ -1,0 +1,87 @@
+<script>
+    $('.add-customer-group').on('click', function () {
+        $.ajax({
+            type: 'POST',
+            data: { 'id' : this.dataset.customerGroup },
+            url: '{{ url('admin_customer_search_customer_group_by_id') }}',
+            success: function(data) {
+                // 顧客グループ情報をフォームにセットする.
+                var add_customer_group_tr = "<tr>\n";
+                add_customer_group_tr += "\t" + '<td class="text-left">' + "\n";
+                add_customer_group_tr += "\t\t" + '<input id="admin_customer_belongs_group_id" type="hidden" name="admin_customer[belongs_group_id]" value="' + data['id'] + '">' + "\n";
+                add_customer_group_tr += "\t\t" + data['id'] + "\n";
+                add_customer_group_tr += "\t</td>\n";
+                add_customer_group_tr += "\t" + '<td class="text-left">' + "\n";
+                add_customer_group_tr += "\t\t" + data['name'] + "(" + data['kana'] + ")\n";
+                add_customer_group_tr += "\t</td>\n";
+                add_customer_group_tr += "\t" + '<td class="text-left">' + "\n";
+                add_customer_group_tr += "\t\t" + data['bill_to'] + "\n";
+                add_customer_group_tr += "\t</td>\n";
+                add_customer_group_tr += "\t" + '<td class="icon_edit">' + "\n";
+                add_customer_group_tr += "\t\t" + '<button type="button" class="btn btn-default btn-sm delete-item" onClick="deleteCustomerGroup();" >解除</button>' + "\n";
+                add_customer_group_tr += "\t</td>\n";
+                add_customer_group_tr += "</tr>\n";
+                $('#customer_group_list').append(add_customer_group_tr);
+                // モーダルを閉じる.
+                $('#searchCustomerGroupModal').modal('hide');
+            },
+            error: function() {
+                alert('search customer group(by id) failed.');
+            }
+        });
+    });
+
+    // 会員グループ検索
+    $('#customer_group_pagination a').on('click', function(event) {
+        if (!$(this).parent().is('.active')) {
+            var list = $('#searchCustomerGroupModalList');
+            list.children().remove();
+
+            $.ajax({
+                type: 'GET',
+                dataType: 'html',
+                url: $(this).attr('href'),
+                success: function(data) {
+                    $('#searchCustomerGroupModalList').html(data);
+                },
+                error: function() {
+                    alert('search customer group failed.');
+                }
+            });
+        }
+        event.preventDefault();
+    });
+</script>
+<div class="table-responsive">
+    <table class="table">
+        <thead >
+            <tr id="search_customer_group_modal_box__body_inner_header">
+                <th>会員グループID</th>
+                <th>会員グループ名</th>
+                <th>請求先名</th>
+                <th>選択</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for CustomerGroup in data %}
+                <tr>
+                    <td>
+                        {{ CustomerGroup.id }}
+                    </td>
+                    <td>
+                        {{ CustomerGroup.name }}
+                    </td>
+                    <td>
+                        {{ CustomerGroup.bill_to }}
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-default btn-sm add-customer-group" data-customer-group="{{ CustomerGroup.id }}">選択</button>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% if pagination.totalItemCount > 0 %}
+        {% include "pager.twig" with {'id': 'customer_group_pagination', 'pages': pagination.paginationData, 'routes': 'admin_customer_search_customer_group_html_page'} %}
+    {% endif %}
+</div>

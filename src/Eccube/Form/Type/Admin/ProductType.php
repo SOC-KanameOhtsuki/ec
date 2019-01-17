@@ -59,11 +59,15 @@ class ProductType extends AbstractType
         /**
          * @var ArrayCollection $arrCategory array of category
          */
-        $arrCategory = $this->app['eccube.repository.category']->getList(null, true);
+        $arrCategory = $this->app['eccube.repository.category']->getGeneralList(null, true);
 
         $builder
             // 商品規格情報
             ->add('class', 'admin_product_class', array(
+                'mapped' => false,
+            ))
+            // 年会費情報
+            ->add('membership', 'admin_product_membership', array(
                 'mapped' => false,
             ))
             // 基本情報
@@ -94,6 +98,21 @@ class ProductType extends AbstractType
                 'mapped' => false,
                 // Choices list (overdrive mapped)
                 'choices' => $arrCategory,
+            ))
+            ->add('product_file', 'file', array(
+                'label' => '商品ファイル',
+                'multiple' => true,
+                'required' => false,
+                'mapped' => false,
+            ))
+            ->add('Target', 'customer_type', array(
+                'required' => true,
+                'label' => '公開対象',
+                'multiple' => false,
+                'expanded' => false,
+                'constraints' => array(
+                    new Assert\NotBlank(),
+                ),
             ))
 
             // 詳細な説明
@@ -148,6 +167,28 @@ class ProductType extends AbstractType
                 'allow_delete' => true,
             ))
             ->add('delete_images', 'collection', array(
+                'type' => 'hidden',
+                'prototype' => true,
+                'mapped' => false,
+                'allow_add' => true,
+                'allow_delete' => true,
+            ))
+            // 商品ファイル
+            ->add('files', 'collection', array(
+                'type' => 'hidden',
+                'prototype' => true,
+                'mapped' => false,
+                'allow_add' => true,
+                'allow_delete' => true,
+            ))
+            ->add('add_files', 'collection', array(
+                'type' => 'hidden',
+                'prototype' => true,
+                'mapped' => false,
+                'allow_add' => true,
+                'allow_delete' => true,
+            ))
+            ->add('delete_files', 'collection', array(
                 'type' => 'hidden',
                 'prototype' => true,
                 'mapped' => false,

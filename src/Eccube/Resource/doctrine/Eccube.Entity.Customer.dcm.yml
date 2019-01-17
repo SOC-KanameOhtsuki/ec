@@ -87,6 +87,15 @@ Eccube\Entity\Customer:
         fax03:
             type: text
             nullable: true
+        mobilephone01:
+            type: text
+            nullable: true
+        mobilephone02:
+            type: text
+            nullable: true
+        mobilephone03:
+            type: text
+            nullable: true
         birth:
             type: datetime
             nullable: true
@@ -167,10 +176,25 @@ Eccube\Entity\Customer:
             joinColumn:
                 name: pref
                 referencedColumnName: id
+        CustomerGroup:
+            targetEntity: Eccube\Entity\CustomerGroup
+            joinColumn:
+                name: customer_group
+                referencedColumnName: customer_group_id
     oneToMany:
         CustomerFavoriteProducts:
             targetEntity: Eccube\Entity\CustomerFavoriteProduct
             mappedBy: Customer
+        CustomerImages:
+            targetEntity: Eccube\Entity\CustomerImage
+            mappedBy: Customer
+            orderBy:
+                rank: ASC
+        CustomerQrs:
+            targetEntity: Eccube\Entity\CustomerQr
+            mappedBy: Customer
+            orderBy:
+                rank: ASC
         CustomerAddresses:
             targetEntity: Eccube\Entity\CustomerAddress
             mappedBy: Customer
@@ -178,5 +202,15 @@ Eccube\Entity\Customer:
                 id: ASC
         Orders:
             targetEntity: Eccube\Entity\Order
+            mappedBy: Customer
+        AttendanceHistories:
+            targetEntity: Eccube\Entity\AttendanceHistory
+            mappedBy: Customer
+        MembershipBillingDetails:
+            targetEntity: Eccube\Entity\MembershipBillingDetail
+            mappedBy: Customer
+    oneToOne:
+        CustomerBasicInfo:
+            targetEntity: Eccube\Entity\CustomerBasicInfo
             mappedBy: Customer
     lifecycleCallbacks: {  }

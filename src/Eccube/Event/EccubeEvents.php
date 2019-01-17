@@ -82,6 +82,11 @@ final class EccubeEvents
 
 
     /**
+     * Admin/Content/FormPrintingController
+     */
+    const ADMIN_REGULAR_MEMBER_INDEX_SEARCH = 'admin.regular.member.index.search';
+
+    /**
      * Admin/Content/NewsController
      */
     // index
@@ -131,6 +136,8 @@ final class EccubeEvents
     // index
     const ADMIN_CUSTOMER_EDIT_INDEX_INITIALIZE = 'admin.customer.edit.index.initialize';
     const ADMIN_CUSTOMER_EDIT_INDEX_COMPLETE = 'admin.customer.edit.index.complete';
+    // addImage
+    const ADMIN_CUSTOMER_ADD_IMAGE_COMPLETE = 'admin.customer.add.image.complete';
 
 
     /**

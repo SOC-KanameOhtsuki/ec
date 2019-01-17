@@ -30,8 +30,15 @@
 {% block sub_title %}会員登録・編集{% endblock %}
 
 {% form_theme form 'Form/bootstrap_3_horizontal_layout.html.twig' %}
+{% form_theme searchCustomerGroupModalForm 'Form/bootstrap_3_horizontal_layout.html.twig' %}
 
 {% block javascript %}
+<script src="{{ app.config.admin_urlpath }}/assets/js/vendor/fileupload/vendor/jquery.ui.widget.js"></script>
+<script src="{{ app.config.admin_urlpath }}/assets/js/vendor/fileupload/jquery.iframe-transport.js"></script>
+<script src="{{ app.config.admin_urlpath }}/assets/js/vendor/fileupload/jquery.fileupload.js"></script>
+<script src="{{ app.config.admin_urlpath }}/assets/js/vendor/fileupload/jquery.fileupload-process.js"></script>
+<script src="{{ app.config.admin_urlpath }}/assets/js/vendor/fileupload/jquery.fileupload-validate.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
 <script src="//ajaxzip3.github.io/ajaxzip3.js" charset="UTF-8"></script>
 <script>
     $(function() {
@@ -39,6 +46,144 @@
             AjaxZip3.zip2addr('admin_customer[zip][zip01]', 'admin_customer[zip][zip02]', 'admin_customer[address][pref]', 'admin_customer[address][addr01]');
         });
     });
+    $("#thumb").sortable({
+        cursor: 'move',
+        opacity: 0.7,
+        placeholder: 'ui-state-highlight',
+        update: function (event, ui) {
+            updateRank();
+        }
+    });
+    var proto_img = ''
+            + '<li class="ui-state-default">'
+            + '<img src="__path__" />'
+            + '<a class="delete-image">'
+            + '<svg class="cb cb-close">'
+            + '<use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#cb-close"></use>'
+            + '</svg>'
+            + '</a>'
+            + '</li>';
+    var proto_add = '{{ form_widget(form.add_images.vars.prototype) }}';
+    var proto_del = '{{ form_widget(form.delete_images.vars.prototype) }}';
+    {% for image in form.images %}
+    var $img = $(proto_img.replace(/__path__/g, '{{ app.config.customer_image_save_urlpath }}/{{ image.vars.value }}'));
+    var $widget = $('{{ form_widget(image) }}');
+    $widget.val('{{ image.vars.value }}');
+    $("#thumb").append($img.append($widget));
+    {% endfor %}
+    {% for add_image in form.add_images %}
+    var $img = $(proto_img.replace(/__path__/g, '{{ app.config.image_temp_urlpath }}/{{ add_image.vars.value }}'));
+    var $widget = $('{{ form_widget(add_image) }}');
+    $widget.val('{{ add_image.vars.value }}');
+    $("#thumb").append($img.append($widget));
+    {% endfor %}
+    {% for delete_image in form.delete_images %}
+    $("#thumb").append('{{ form_widget(delete_image) }}');
+    {% endfor %}
+    var hideSvg = function () {
+        if ($("#thumb li").length > 0) {
+            $("#icon_no_image").css("display", "none");
+        } else {
+            $("#icon_no_image").css("display", "");
+        }
+    };
+    var updateRank = function () {
+        $("#thumb li").each(function (index) {
+            $(this).find(".rank_images").remove();
+            filename = $(this).find("input[type='hidden']").val();
+            $rank = $('<input type="hidden" class="rank_images" name="rank_images[]" />');
+            $rank.val(filename + '//' + parseInt(index + 1));
+            $(this).append($rank);
+        });
+    }
+    hideSvg();
+    updateRank();
+    // 画像削除時
+    var count_del = 0;
+    $("#thumb").on("click", ".delete-image", function () {
+        var $new_delete_image = $(proto_del.replace(/__name__/g, count_del));
+        var src = $(this).prev().attr('src')
+                .replace('{{ app.config.image_temp_urlpath }}/', '')
+                .replace('{{ app.config.customer_image_save_urlpath }}/', '');
+        $new_delete_image.val(src);
+        $("#thumb").append($new_delete_image);
+        $(this).parent("li").remove();
+        hideSvg();
+        updateRank();
+        count_del++;
+    });
+    var count_add = {{ form.add_images|length|default(0) }};
+    $('#{{ form.customer_image.vars.id }}').fileupload({
+        url: "{{ url('admin_customer_image_add') }}",
+        type: "post",
+        sequentialUploads: true,
+        dataType: 'json',
+        done: function (e, data) {
+            $('#progress').hide();
+            $.each(data.result.files, function (index, file) {
+                var path = '{{ app.config.image_temp_urlpath }}/' + file;
+                var $img = $(proto_img.replace(/__path__/g, path));
+                var $new_img = $(proto_add.replace(/__name__/g, count_add));
+                $new_img.val(file);
+                $child = $img.append($new_img);
+                $('#thumb').append($child);
+                count_add++;
+            });
+            hideSvg();
+            updateRank();
+        },
+        fail: function (e, data) {
+            alert('アップロードに失敗しました。');
+        },
+        always: function (e, data) {
+            $('#progress').hide();
+            $('#progress .progress-bar').width('0%');
+        },
+        start: function (e, data) {
+            $('#progress').show();
+        },
+        acceptFileTypes: /(\.|\/)(gif|jpe?g|png)$/i,
+        maxFileSize: {{ app.config.max_customer_upload_size }},
+        maxNumberOfFiles: 10,
+        progressall: function (e, data) {
+            var progress = parseInt(data.loaded / data.total * 100, 10);
+            $('#progress .progress-bar').css(
+                    'width',
+                    progress + '%'
+            );
+        },
+        processalways: function (e, data) {
+            if (data.files.error) {
+                alert("画像ファイルサイズが大きいか画像ファイルではありません。");
+            }
+        }
+    });
+    // 画像アップロード
+    $('#file_upload').on('click', function () {
+        $('#{{ form.customer_image.vars.id }}').click();
+    });
+    // 会員グループ検索
+    $('#searchCustomerGroupModalButton').on('click', function() {
+        var list = $('#searchCustomerGroupModalList');
+        list.children().remove();
+
+        $.ajax({
+            type: 'POST',
+            dataType: 'html',
+            data: { 'search_word' : $('#admin_search_customer_group_multi').val() },
+            url: '{{ url('admin_customer_search_customer_group_html') }}',
+            success: function(data) {
+                // モーダルに結果を書き出し.
+                $('#searchCustomerGroupModalList').html(data);
+            },
+            error: function() {
+                alert('search customer group failed.');
+            }
+        });
+    });
+    function deleteCustomerGroup() {
+        $('#customer_group_list').empty();
+    }
 </script>
 {% endblock javascript %}
 
@@ -53,10 +198,10 @@
                 </div><!-- /.box-header -->
                 <div id="detail_box__body" class="box-body accpanel" style="display: block;">
                     <div class="form-horizontal">
-                        {# 会員ID #}
+                        {# 会員番号 #}
                         {% if Customer.id %}
                         <div id="detail_box__id" class="form-group">
-                            <label class="col-sm-3 col-lg-2 control-label">会員ID</label>
+                            <label class="col-sm-3 col-lg-2 control-label">会員番号</label>
                             <div class="col-sm-9 col-lg-10">{{ Customer.id }}</div>
                         </div>
                         {% endif %}
@@ -80,12 +225,33 @@
                                 {{ form_errors(form.kana.kana02) }}
                             </div>
                         </div>
-                        {# 会社名 #}
-                        <div id="detail_box__company_name" class="form-group">
-                            {{ form_label(form.company_name) }}
-                            <div class="col-sm-9 col-lg-10">
-                                {{ form_widget(form.company_name) }}
-                                {{ form_errors(form.company_name) }}
+                        {# プロフィール画像 #}
+                        <div id="detail_box__image" class="form-group">
+                            <label class="col-sm-2 control-label" for="admin_customer_customer_image">
+                                {{ form.customer_image.vars.label }}<br>
+                                <span class="small">最大400px×400px推奨</span>
+                                <span class="small">※{{ app.config.max_customer_upload_size }}Byteまで</span>
+                            </label>
+                            <div id="detail_files_box" class="col-sm-9 col-lg-10">
+                                <div class="photo_files" id="drag-drop-area">
+                                    <svg id="icon_no_image" class="cb cb-photo no-image"> <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#cb-photo"></use></svg>
+                                    <ul id="thumb" class="clearfix"></ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group marB30">
+                            <div id="detail_box__file_upload" class="col-sm-offset-2 col-sm-9 col-lg-10 ">
+
+                                <div id="progress" class="progress progress-striped active" style="display:none;">
+                                    <div class="progress-bar progress-bar-info"></div>
+                                </div>
+
+                                {{ form_widget(form.customer_image, { attr : { accept : 'image/*', style : 'display:none;' } }) }}
+                                {{ form_errors(form.customer_image) }}
+                                <a id="file_upload" class="with-icon">
+                                    <svg class="cb cb-plus"> <use xlink:href="#cb-plus" /></svg>ファイルをアップロード
+                                </a>
+
                             </div>
                         </div>
                         {# 住所：郵便番号 #}
@@ -148,6 +314,94 @@
                                 {{ form_errors(form.fax.fax03) }}
                             </div>
                         </div>
+                        {# 携帯番号 #}
+                        <div id="detail_box__fox" class="form-group">
+                            {{ form_label(form.mobilephone) }}
+                            <div class="col-sm-9 col-lg-10 input_tel form-inline">
+                                {{ form_widget(form.mobilephone.mobilephone01) }}-{{ form_widget(form.mobilephone.mobilephone02) }}-{{ form_widget(form.mobilephone.mobilephone03) }}
+                                {{ form_errors(form.mobilephone.mobilephone01) }}
+                                {{ form_errors(form.mobilephone.mobilephone02) }}
+                                {{ form_errors(form.mobilephone.mobilephone03) }}
+                            </div>
+                        </div>
+                        {# 生年月日 #}
+                        <div id="detail_box__birth" class="form-group">
+                            {{ form_label(form.birth) }}
+                            <div class="col-sm-9 col-lg-10">
+                                <div class="form-inline">
+                                    {{ form_widget(form.birth) }}
+                                    {{ form_errors(form.birth) }}
+                                </div>
+                            </div>
+                        </div>
+                        {# 性別 #}
+                        <div id="detail_box__sex" class="form-group">
+                            {{ form_label(form.sex) }}
+                            <div class="col-sm-9 col-lg-10">
+                                {{ form_widget(form.sex) }}
+                                {{ form_errors(form.sex) }}
+                            </div>
+                        </div>
+                        {# 勤務先名 #}
+                        <div id="detail_box__office_name" class="form-group">
+                            {{ form_label(form.office_name) }}
+                            <div class="col-sm-9 col-lg-10 input_name form-inline">
+                                {{ form_widget(form.office_name) }}
+                                {{ form_errors(form.office_name) }}
+                            </div>
+                        </div>
+                        {# 勤務先住所：郵便番号 #}
+                        <div id="detail_box__address" class="form-group">
+                            {{ form_label(form.office_address) }}
+                            <div id="detail_box__office_zip" class="col-sm-9 col-lg-10 input_zip form-inline">
+                                〒{{ form_widget(form.office_zip.office_zip01) }}-{{ form_widget(form.office_zip.office_zip02) }}
+                                {{ form_errors(form.office_zip) }}
+                                {{ form_errors(form.office_zip.office_zip01) }}
+                                {{ form_errors(form.office_zip.office_zip02) }}
+                                <span><button type="button" id="zip-search" class="btn btn-default btn-sm">郵便番号から自動入力</button></span>
+                            </div>
+                        </div>
+                        {# 勤務先住所：都道府県 #}
+                        <div class="form-group">
+                            <div id="detail_box__office_pref" class="col-sm-offset-2 col-sm-9 col-lg-10 form-inline">
+                                {{ form_widget(form.office_address.pref) }}
+                                {{ form_errors(form.office_address.pref) }}
+                            </div>
+                        </div>
+                        {# 勤務先住所：住所1 #}
+                        <div class="form-group">
+                            <div id="detail_box__office_addr01" class="col-sm-offset-2 col-sm-9 col-lg-10">
+                                {{ form_widget(form.office_address.addr01, { attr : { placeholder : '市区町村名（例：千代田区神田神保町）'}} ) }}
+                                {{ form_errors(form.office_address.addr01) }}
+                            </div>
+                        </div>
+                        {# 勤務先住所：住所2 #}
+                        <div class="form-group">
+                            <div id="detail_box__office_addr02" class="col-sm-offset-2 col-sm-9 col-lg-10">
+                                {{ form_widget(form.office_address.addr02, { attr : { placeholder : '番地・ビル名（例：1-3-5）' }}) }}
+                                {{ form_errors(form.office_address.addr02) }}
+                            </div>
+                        </div>
+                        {# 勤務先電話番号 #}
+                        <div id="detail_box__office_tel" class="form-group">
+                            {{ form_label(form.office_tel) }}
+                            <div class="col-sm-9 col-lg-10 input_tel form-inline">
+                                {{ form_widget(form.office_tel.office_tel01) }}-{{ form_widget(form.office_tel.office_tel02) }}-{{ form_widget(form.office_tel.office_tel03) }}
+                                {{ form_errors(form.office_tel.office_tel01) }}
+                                {{ form_errors(form.office_tel.office_tel02) }}
+                                {{ form_errors(form.office_tel.office_tel03) }}
+                            </div>
+                        </div>
+                        {# 勤務先FAX番号 #}
+                        <div id="detail_box__fox" class="form-group">
+                            {{ form_label(form.office_fax) }}
+                            <div class="col-sm-9 col-lg-10 input_tel form-inline">
+                                {{ form_widget(form.office_fax.office_fax01) }}-{{ form_widget(form.office_fax.office_fax02) }}-{{ form_widget(form.office_fax.office_fax03) }}
+                                {{ form_errors(form.office_fax.office_fax01) }}
+                                {{ form_errors(form.office_fax.office_fax02) }}
+                                {{ form_errors(form.office_fax.office_fax03) }}
+                            </div>
+                        </div>
                         {# パスワード #}
                         <div id="detail_box__password_first" class="form-group">
                             {{ form_label(form.password.first) }}
@@ -163,32 +417,6 @@
                                 {{ form_errors(form.password.second) }}
                             </div>
                         </div>
-                        {# 性別 #}
-                        <div id="detail_box__sex" class="form-group">
-                            {{ form_label(form.sex) }}
-                            <div class="col-sm-9 col-lg-10">
-                                {{ form_widget(form.sex) }}
-                                {{ form_errors(form.sex) }}
-                            </div>
-                        </div>
-                        {# 職業 #}
-                        <div id="detail_box__job" class="form-group">
-                            {{ form_label(form.job) }}
-                            <div class="col-sm-9 col-lg-10">
-                                {{ form_widget(form.job) }}
-                                {{ form_errors(form.job) }}
-                            </div>
-                        </div>
-                        {# 生年月日 #}
-                        <div id="detail_box__birth" class="form-group">
-                            {{ form_label(form.birth) }}
-                            <div class="col-sm-9 col-lg-10">
-                                <div class="form-inline">
-                                    {{ form_widget(form.birth) }}
-                                    {{ form_errors(form.birth) }}
-                                </div>
-                            </div>
-                        </div>
                         <div class="extra-form">
                             {% for f in form.getIterator %}
                                 {% if f.vars.name matches '[^plg*]' %}
@@ -196,6 +424,162 @@
                                 {% endif %}
                             {% endfor %}
                         </div>
+                    </div>
+                </div><!-- /.box-body -->
+            </div><!-- /.box -->
+            <div id="detail_box" class="box accordion">
+                <div id="detail_box__header" class="box-header toggle active">
+                    <h3 class="box-title">会員基本情報<svg class="cb cb-angle-down icon_down"> <use xlink:href="#cb-angle-down" /></svg></h3>
+                </div><!-- /.box-header -->
+                <div id="detail_box__body" class="box-body accpanel" style="display: block;">
+                    <div class="form-horizontal">
+                        {# 会員ID #}
+                        <div id="detail_box__customer_number" class="form-group">
+                            {{ form_label(form.basic_info.customer_number) }}
+                            <div class="col-sm-9 col-lg-10 input_name form-inline">
+                                {{ form_widget(form.basic_info.customer_number) }}
+                                {{ form_errors(form.basic_info.customer_number) }}
+                            </div>
+                        </div>
+                        {# 旧会員ID #}
+                        <div id="detail_box__customer_number_old" class="form-group">
+                            {{ form_label(form.basic_info.customer_number_old) }}
+                            <div class="col-sm-9 col-lg-10 input_name form-inline">
+                                {{ form_widget(form.basic_info.customer_number_old) }}
+                                {{ form_errors(form.basic_info.customer_number_old) }}
+                            </div>
+                        </div>
+                        {# PINコード #}
+                        <div id="detail_box__customer_pin_code" class="form-group">
+                            {{ form_label(form.basic_info.customer_pin_code) }}
+                            <div class="col-sm-9 col-lg-10">
+                                {{ form_widget(form.basic_info.customer_pin_code) }}
+                                {{ form_errors(form.basic_info.customer_pin_code) }}
+                            </div>
+                        </div>
+                        {# 正会員資格取得日 #}
+                        <div id="detail_box__regular_member_promoted" class="form-group">
+                            {{ form_label(form.basic_info.regular_member_promoted) }}
+                            <div class="col-sm-9 col-lg-10">
+                                {{ form_widget(form.basic_info.regular_member_promoted) }}
+                                {{ form_errors(form.basic_info.regular_member_promoted) }}
+                            </div>
+                        </div>
+                        {# 正会員資格満了日 #}
+                        <div id="detail_box__membership_expired" class="form-group">
+                            {{ form_label(form.basic_info.membership_expired) }}
+                            <div class="col-sm-9 col-lg-10">
+                                {{ form_widget(form.basic_info.membership_expired) }}
+                                {{ form_errors(form.basic_info.membership_expired) }}
+                            </div>
+                        </div>
+                        {# 最終支払会費年度 #}
+                        <div id="detail_box__last_pay_membership_year" class="form-group">
+                            {{ form_label(form.basic_info.last_pay_membership_year) }}
+                            <div class="col-sm-9 col-lg-10">
+                                {{ form_widget(form.basic_info.last_pay_membership_year) }}
+                                {{ form_errors(form.basic_info.last_pay_membership_year) }}
+                            </div>
+                        </div>
+                        {# 資格 #}
+                        <div id="detail_box__qualification" class="form-group">
+                            {{ form_label(form.basic_info.qualification) }}
+                            <div class="col-sm-9 col-lg-10">
+                                {{ form_widget(form.basic_info.qualification) }}
+                                {{ form_errors(form.basic_info.qualification) }}
+                            </div>
+                        </div>
+                        {# インストラクタ #}
+                        <div id="detail_box__basic_info_instructor_type" class="form-group">
+                            {{ form_label(form.basic_info.instructor_type) }}
+                            <div class="col-sm-9 col-lg-10">
+                                {{ form_widget(form.basic_info.instructor_type) }}
+                                {{ form_errors(form.basic_info.instructor_type) }}
+                            </div>
+                        </div>
+                        {# サポータ #}
+                        <div id="detail_box__basic_info_supporter_type" class="form-group">
+                            {{ form_label(form.basic_info.supporter_type) }}
+                            <div class="col-sm-9 col-lg-10">
+                                {{ form_widget(form.basic_info.supporter_type) }}
+                                {{ form_errors(form.basic_info.supporter_type) }}
+                            </div>
+                        </div>
+                        {# 機関紙お届け #}
+                        <div id="detail_box__basic_info_nobulletin" class="form-group">
+                            {{ form_label(form.basic_info.nobulletin) }}
+                            <div class="col-sm-9 col-lg-10">
+                                {{ form_widget(form.basic_info.nobulletin) }}
+                                {{ form_errors(form.basic_info.nobulletin) }}
+                            </div>
+                        </div>
+                        {# 振興局 #}
+                        <div id="detail_box__basic_info_bureau" class="form-group">
+                            {{ form_label(form.basic_info.bureau) }}
+                            <div class="col-sm-9 col-lg-10">
+                                {{ form_widget(form.basic_info.bureau) }}
+                                {{ form_errors(form.basic_info.bureau) }}
+                            </div>
+                        </div>
+                        {# 年会費免除 #}
+                        <div id="detail_box__basic_info_membership_exemption" class="form-group">
+                            {{ form_label(form.basic_info.membership_exemption) }}
+                            <div class="col-sm-9 col-lg-10">
+                                {{ form_widget(form.basic_info.membership_exemption) }}
+                                {{ form_errors(form.basic_info.membership_exemption) }}
+                            </div>
+                        </div>
+                        {# ステータス #}
+                        <div id="detail_box__basic_info_status" class="form-group">
+                            {{ form_label(form.basic_info.status) }}
+                            <div class="col-sm-9 col-lg-10">
+                                {{ form_widget(form.basic_info.status) }}
+                                {{ form_errors(form.basic_info.status) }}
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- /.box-body -->
+            </div><!-- /.box -->
+            <div id="detail_box" class="box accordion">
+                <div id="detail_box__header" class="box-header toggle active">
+                    <h3 class="box-title">会員グループ情報<svg class="cb cb-angle-down icon_down"> <use xlink:href="#cb-angle-down" /></svg></h3>
+                    <div id="customer_info_list__button_search" class="btn_area">
+                    </div>
+                </div><!-- /.box-header -->
+                <div id="detail_box__body" class="box-body accpanel" style="display: block;">
+                    <div class="form-horizontal">
+                        <ul>
+                            <li><a class="btn btn-default" data-toggle="modal" data-target="#searchCustomerGroupModal">会員グループ検索</a></li>
+                        </ul>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <th>会員グループID</th>
+                                <th>会員グループ名</th>
+                                <th>請求先名</th>
+                                <th>解除</th>
+                            </thead>
+                            <tbody id="customer_group_list">
+                                {% if CustomerGroup.id %}
+                                <tr>
+                                    <td class="text-left">
+                                        <input type="hidden" id="admin_customer_belongs_group_id" name="admin_customer[belongs_group_id]" value="{{ CustomerGroup.id }}">
+                                        {{ CustomerGroup.id }}
+                                    </td>
+                                    <td class="text-left">
+                                        {{ CustomerGroup.name }}({{ CustomerGroup.kana }})
+                                    </td>
+                                    <td class="text-left">
+                                        {{ CustomerGroup.bill_to }}
+                                    </td>
+                                    <td class="icon_edit">
+                                        <button type="button" class="btn btn-default btn-sm delete-item" onClick="deleteCustomerGroup();">解除</button>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
                     </div>
                 </div><!-- /.box-body -->
             </div><!-- /.box -->
@@ -261,6 +645,17 @@
 
         <div id="aside_column" class="col-md-3">
             <div id="common_box" class="col_inner">
+                {# 会員ID QRコード #}
+                {% if QrCode %}
+                <div id="qrcode_box" class="box">
+                    <div id="qrcode_box__header" class="box-header">
+                        <h3 class="box-title">会員ID　QRコード</h3>
+                    </div><!-- /.box-header -->
+                    <div id="qrcode_box__qrcode" class="box-body">
+                        <img src="{{ app.config.customer_image_save_urlpath }}/{{ QrCode.file_name }}" />
+                    </div>
+                </div>
+                {% endif %}
                 <div id="button_box" class="box no-header">
                     <div id="button_box__body" class="box-body">
                         <div class="row">
@@ -292,5 +687,37 @@
             </div>
         </div><!-- /.col -->
     </form>
+</div>
+{% endblock %}
+{% block modal %}
+{# 会員グループ検索モーダル #}
+<div class="modal fade" id="searchCustomerGroupModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div id="search_customer_group_modal_box" class="modal-content">
+            <div id="search_customer_group_modal_box__header" class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span class="modal-close" aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">会員グループ検索</h4>
+            </div>
+            <div id="search_customer_group_modal_box__body" class="modal-body">
+                <div id="search_customer_group_modal_box__id" class="form-group">
+                    {{ form_widget(searchCustomerGroupModalForm.multi, { attr : { placeholder : '会員グループID・会員グループ名・送付先住所・請求先住所・請求先名', class : 'input_search' } } ) }}
+                </div>
+                <div class="extra-form form-group">
+                    {% for f in searchCustomerGroupModalForm.getIterator %}
+                        {% if f.vars.name matches '[^plg*]' %}
+                            {{ form_label(f) }}
+                            {{ form_widget(f) }}
+                            {{ form_errors(f) }}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div id="search_customer_group_modal_box__button_search" class="form-group">
+                    <button type="button" id="searchCustomerGroupModalButton" class="btn btn-primary">検索</button>
+                </div>
+                <div class="form-group" id="searchCustomerGroupModalList">
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

@@ -851,6 +851,14 @@ class Product extends \Eccube\Entity\AbstractEntity
         return false;
     }
 
+    public function getIsTraining()
+    {
+        if (count($this->ProductClasses) > 0) {
+            return ($this->ProductClasses[0]->getProductType()->getId() == 4);
+        } else {
+            return false;
+        }
+    }
 
     /**
      * Add CustomerFavoriteProducts
@@ -1021,4 +1029,131 @@ class Product extends \Eccube\Entity\AbstractEntity
     }
 
 
+    /**
+     * @var \Doctrine\Common\Collections\Collection
+     */
+    private $ProductData;
+
+
+    /**
+     * Add ProductData
+     *
+     * @param \Eccube\Entity\ProductData $productData
+     * @return Product
+     */
+    public function addProductDatum(\Eccube\Entity\ProductData $productData)
+    {
+        $this->ProductData[] = $productData;
+
+        return $this;
+    }
+
+    /**
+     * Remove ProductData
+     *
+     * @param \Eccube\Entity\ProductData $productData
+     */
+    public function removeProductDatum(\Eccube\Entity\ProductData $productData)
+    {
+        $this->ProductData->removeElement($productData);
+    }
+
+    /**
+     * Get ProductData
+     *
+     * @return \Doctrine\Common\Collections\Collection 
+     */
+    public function getProductData()
+    {
+        return $this->ProductData;
+    }
+
+    /**
+     * @var \Eccube\Entity\ProductTraining
+     */
+    private $ProductTraining;
+
+    /**
+     * Set ProductTraining
+     *
+     * @param \Eccube\Entity\ProductTraining $productTraining
+     * @return Product
+     */
+    public function setProductTraining(\Eccube\Entity\ProductTraining $productTraining = null)
+    {
+        $this->ProductTraining = $productTraining;
+
+        return $this;
+    }
+
+    /**
+     * Get ProductTraining
+     *
+     * @return \Eccube\Entity\ProductTraining 
+     */
+    public function getProductTraining()
+    {
+        return $this->ProductTraining;
+    }
+
+    public function hasProductTraining()
+    {
+        return !is_null($this->ProductTraining);
+    }
+
+    /**
+     * @var \Eccube\Entity\Master\CustomerType
+     */
+    private $Target;
+
+    /**
+     * Set Target
+     *
+     * @param \Eccube\Entity\Master\CustomerType $target
+     * @return Product
+     */
+    public function setTarget(\Eccube\Entity\Master\CustomerType $target = null)
+    {
+        $this->Target = $target;
+
+        return $this;
+    }
+
+    /**
+     * Get Target
+     *
+     * @return \Eccube\Entity\Master\CustomerType 
+     */
+    public function getTarget()
+    {
+        return $this->Target;
+    }
+    /**
+     * @var \Eccube\Entity\ProductMembership
+     */
+    private $ProductMembership;
+
+
+    /**
+     * Set ProductMembership
+     *
+     * @param \Eccube\Entity\ProductMembership $productMembership
+     * @return Product
+     */
+    public function setProductMembership(\Eccube\Entity\ProductMembership $productMembership = null)
+    {
+        $this->ProductMembership = $productMembership;
+
+        return $this;
+    }
+
+    /**
+     * Get ProductMembership
+     *
+     * @return \Eccube\Entity\ProductMembership 
+     */
+    public function getProductMembership()
+    {
+        return $this->ProductMembership;
+    }
 }

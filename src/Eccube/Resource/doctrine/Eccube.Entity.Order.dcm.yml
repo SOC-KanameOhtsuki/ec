@@ -175,12 +175,25 @@ Eccube\Entity\Order:
             options:
                 default: '0'
     manyToOne:
+        GroupOrder:
+            targetEntity: Eccube\Entity\GroupOrder
+            inversedBy: GroupOrderDetails
+            joinColumn:
+                name: group_order_id
+                referencedColumnName: group_order_id
+                nullable: false
         Customer:
             targetEntity: Eccube\Entity\Customer
             inversedBy: Orders
             joinColumn:
                 name: customer_id
                 referencedColumnName: customer_id
+        CustomerGroup:
+            targetEntity: Eccube\Entity\CustomerGroup
+            inversedBy: Orders
+            joinColumn:
+                name: customer_group_id
+                referencedColumnName: customer_group_id
         Country:
             targetEntity: Eccube\Entity\Master\Country
             joinColumn:

@@ -1,0 +1,51 @@
+Eccube\Entity\MembershipBilling:
+    type: entity
+    table: dtb_membership_billing
+    repositoryClass: Eccube\Repository\MembershipBillingRepository
+    indexes:
+        # requires a length on MySQL
+        # dtb_customer_email_idx:
+        #     columns:
+        #         - email
+        dtb_customer_create_date_idx:
+            columns:
+                - create_date
+        dtb_customer_update_date_idx:
+            columns:
+                - update_date
+        dtb_product_membership_idx:
+            columns:
+                - product_membership
+                - status
+    id:
+        id:
+            type: integer
+            nullable: false
+            unsigned: false
+            id: true
+            column: membership_billing_id
+            generator:
+                strategy: AUTO
+    fields:
+        create_date:
+            type: datetime
+            nullable: false
+        update_date:
+            type: datetime
+            nullable: false
+    manyToOne:
+        Status:
+            targetEntity: Eccube\Entity\Master\MembershipBillingStatus
+            joinColumn:
+                name: status
+                referencedColumnName: id
+        ProductMembership:
+            targetEntity: Eccube\Entity\ProductMembership
+            joinColumn:
+                name: product_membership
+                referencedColumnName: product_membership_id
+    oneToMany:
+        MembershipBillingDetail:
+            targetEntity: Eccube\Entity\MembershipBillingDetail
+            mappedBy: MembershipBilling
+    lifecycleCallbacks: {  }

@@ -1,0 +1,537 @@
+{#
+This file is Customized File
+#}
+{% extends 'default_frame.twig' %}
+
+{% set menus = ['training', 'training_product', 'training_edit'] %}
+
+{% block title %}受講管理／受講マスタ{% endblock %}
+{% block sub_title %}マスタ編集{% endblock %}
+
+{% form_theme form 'Form/bootstrap_3_horizontal_layout.html.twig' %}
+
+{% block stylesheet %}
+<link rel="stylesheet" href="{{ app.config.admin_urlpath }}/assets/css/fileupload/jquery.fileupload.css">
+<link rel="stylesheet" href="{{ app.config.admin_urlpath }}/assets/css/fileupload/jquery.fileupload-ui.css">
+<link rel="stylesheet" href="{{ app.config.admin_urlpath }}/assets/css/bootstrap-datetimepicker.min.css">
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+<style>
+    .ui-state-highlight {
+        height: 148px;
+        border: dashed 1px #ccc;
+        background: #fff;
+    }
+</style>
+{% endblock stylesheet %}
+
+{% block javascript %}
+<script src="{{ app.config.admin_urlpath }}/assets/js/vendor/fileupload/vendor/jquery.ui.widget.js"></script>
+<script src="{{ app.config.admin_urlpath }}/assets/js/vendor/fileupload/jquery.iframe-transport.js"></script>
+<script src="{{ app.config.admin_urlpath }}/assets/js/vendor/fileupload/jquery.fileupload.js"></script>
+<script src="{{ app.config.admin_urlpath }}/assets/js/vendor/fileupload/jquery.fileupload-process.js"></script>
+<script src="{{ app.config.admin_urlpath }}/assets/js/vendor/fileupload/jquery.fileupload-validate.js"></script>
+<script src="{{ app.config.admin_urlpath }}/assets/js/vendor/moment.min.js"></script>
+<script src="{{ app.config.admin_urlpath }}/assets/js/vendor/moment-ja.js"></script>
+<script src="{{ app.config.admin_urlpath }}/assets/js/vendor/bootstrap-datetimepicker.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+<script src="//ajaxzip3.github.io/ajaxzip3.js" charset="UTF-8"></script>
+<script>
+    var mapReView = function () {
+        var address_query = '';
+        var prev_val = $('#admin_training_product_training_address_pref option:selected').val();
+        var pref = $('#admin_training_product_training_address_pref option:selected').text();
+        var addr01 = $('#admin_training_product_training_address_addr01').val();
+        var addr02 = $('#admin_training_product_training_address_addr02').val();
+        if (prev_val || addr01 || addr02) {
+            address_query = address_query + pref + addr01 + addr02;
+        }
+        if (address_query) {
+            $("#map").attr("src", "https://maps.google.co.jp/maps?output=embed&q=" + address_query);
+        } else {
+            $("#map").attr("src", "/NoMap.html");
+        }
+    };
+    $(function() {
+        $("#thumb").sortable({
+            cursor: 'move',
+            opacity: 0.7,
+            placeholder: 'ui-state-highlight',
+            update: function (event, ui) {
+                updateRank();
+            }
+        });
+        var proto_img = ''
+                + '<li class="ui-state-default">'
+                + '<img src="__path__" />'
+                + '<a class="delete-image">'
+                + '<svg class="cb cb-close">'
+                + '<use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#cb-close"></use>'
+                + '</svg>'
+                + '</a>'
+                + '</li>';
+        var proto_add = '{{ form_widget(form.add_images.vars.prototype) }}';
+        var proto_del = '{{ form_widget(form.delete_images.vars.prototype) }}';
+        {% for image in form.images %}
+        var $img = $(proto_img.replace(/__path__/g, '{{ app.config.image_save_urlpath }}/{{ image.vars.value }}'));
+        var $widget = $('{{ form_widget(image) }}');
+        $widget.val('{{ image.vars.value }}');
+        $("#thumb").append($img.append($widget));
+        {% endfor %}
+        {% for add_image in form.add_images %}
+        var $img = $(proto_img.replace(/__path__/g, '{{ app.config.image_temp_urlpath }}/{{ add_image.vars.value }}'));
+        var $widget = $('{{ form_widget(add_image) }}');
+        $widget.val('{{ add_image.vars.value }}');
+        $("#thumb").append($img.append($widget));
+        {% endfor %}
+        {% for delete_image in form.delete_images %}
+        $("#thumb").append('{{ form_widget(delete_image) }}');
+        {% endfor %}
+        var hideSvg = function () {
+            if ($("#thumb li").length > 0) {
+                $("#icon_no_image").css("display", "none");
+            } else {
+                $("#icon_no_image").css("display", "");
+            }
+        };
+        var updateRank = function () {
+            $("#thumb li").each(function (index) {
+                $(this).find(".rank_images").remove();
+                filename = $(this).find("input[type='hidden']").val();
+                $rank = $('<input type="hidden" class="rank_images" name="rank_images[]" />');
+                $rank.val(filename + '//' + parseInt(index + 1));
+                $(this).append($rank);
+            });
+        }
+        hideSvg();
+        updateRank();
+        // 画像削除時
+        var count_del = 0;
+        $("#thumb").on("click", ".delete-image", function () {
+            var $new_delete_image = $(proto_del.replace(/__name__/g, count_del));
+            var src = $(this).prev().attr('src')
+                    .replace('{{ app.config.image_temp_urlpath }}/', '')
+                    .replace('{{ app.config.image_save_urlpath }}/', '');
+            $new_delete_image.val(src);
+            $("#thumb").append($new_delete_image);
+            $(this).parent("li").remove();
+            hideSvg();
+            updateRank();
+            count_del++;
+        });
+        var count_add = {{ form.add_images|length|default(0) }};
+        $('#{{ form.product_image.vars.id }}').fileupload({
+            url: "{{ url('admin_training_image_add') }}",
+            type: "post",
+            sequentialUploads: true,
+            dataType: 'json',
+            done: function (e, data) {
+                $('#progress').hide();
+                $.each(data.result.files, function (index, file) {
+                    var path = '{{ app.config.image_temp_urlpath }}/' + file;
+                    var $img = $(proto_img.replace(/__path__/g, path));
+                    var $new_img = $(proto_add.replace(/__name__/g, count_add));
+                    $new_img.val(file);
+                    $child = $img.append($new_img);
+                    $('#thumb').append($child);
+                    count_add++;
+                });
+                hideSvg();
+                updateRank();
+            },
+            fail: function (e, data) {
+                alert('アップロードに失敗しました。');
+            },
+            always: function (e, data) {
+                $('#progress').hide();
+                $('#progress .progress-bar').width('0%');
+            },
+            start: function (e, data) {
+                $('#progress').show();
+            },
+            acceptFileTypes: /(\.|\/)(gif|jpe?g|png)$/i,
+            maxFileSize: 10000000,
+            maxNumberOfFiles: 10,
+            progressall: function (e, data) {
+                var progress = parseInt(data.loaded / data.total * 100, 10);
+                $('#progress .progress-bar').css(
+                        'width',
+                        progress + '%'
+                );
+            },
+            processalways: function (e, data) {
+                if (data.files.error) {
+                    alert("画像ファイルサイズが大きいか画像ファイルではありません。");
+                }
+            }
+        });
+        // 画像アップロード
+        $('#file_upload').on('click', function () {
+            $('#{{ form.product_image.vars.id }}').click();
+        });
+        $("#admin_training_product_training_training_date_start").datetimepicker({
+            locale: 'ja',
+            format : 'YYYY/MM/DD HH:mm'
+        });
+        $("#admin_training_product_training_training_date_end").datetimepicker({
+            locale: 'ja',
+            format : 'YYYY/MM/DD HH:mm'
+        });
+        $("#admin_training_product_training_accept_limit_date").datetimepicker({
+            locale: 'ja',
+            format : 'YYYY/MM/DD HH:mm'
+        });
+        $('#zip-search').click(function() {
+            AjaxZip3.zip2addr('admin_training[product_training][zip][zip01]', 'admin_training[product_training][zip][zip02]', 'admin_training[product_training][address][pref]', 'admin_training[product_training][address][addr01]');
+        });
+        $('#admin_training_product_training_address_pref').change(function() {
+            mapReView();
+        });
+        $('#admin_training_product_training_address_addr01').change(function() {
+            mapReView();
+        });
+        $('#admin_training_product_training_address_addr02').change(function() {
+            mapReView();
+        });
+        $('#admin_training_product_training_address_pref').focusout(function() {
+            mapReView();
+        });
+        $('#admin_training_product_training_address_addr01').focusout(function() {
+            mapReView();
+        });
+        $('#admin_training_product_training_address_addr02').focusout(function() {
+            mapReView();
+        });
+    });
+    $(window).load(function () {
+        mapReView();
+    });
+</script>
+{% endblock javascript %}
+
+{% block main %}
+        <div class="row" id="aside_wrap">
+            <form role="form" name="form1" id="form1" method="post" action="" novalidate enctype="multipart/form-data">
+            {{ form_widget(form._token) }}
+                <div id="detail_wrap" class="col-md-9">
+                    <div id="detail_box" class="box form-horizontal">
+                        <div id="detail_box__header" class="box-header toggle">
+                            <h3 class="box-title">講習/研修/講演会情報</h3>
+                        </div><!-- /.box-header -->
+                        <div id="detail_box__body" class="box-body">
+                            {# 講習会種別 #}
+                            <div id="detail_box__training_type" class="form-group">
+                                {{ form_label(form.product_training.TrainingType) }}
+                                <div id="detail_box_training_type" class="col-sm-6">
+                                    {{ form_widget(form.product_training.TrainingType) }}
+                                    {{ form_errors(form.product_training.TrainingType) }}
+                                </div>
+                            </div>
+                            {# 開始日付 #}
+                            <div id="detail_box__training_date_start" class="form-group">
+                                {{ form_label(form.product_training.training_date_start) }}
+                                <div id="detail_box__training_date_start" class="col-sm-4">
+                                    {{ form_widget(form.product_training.training_date_start) }}
+                                    {{ form_errors(form.product_training.training_date_start) }}
+                                </div>
+                            </div>
+                            {# 終了日付 #}
+                            <div id="detail_box__training_date_end" class="form-group">
+                                {{ form_label(form.product_training.training_date_end) }}
+                                <div id="detail_box__training_date_end" class="col-sm-4">
+                                    {{ form_widget(form.product_training.training_date_end) }}
+                                    {{ form_errors(form.product_training.training_date_end) }}
+                                </div>
+                            </div>
+                            {# 会場 #}
+                            <div id="detail_box__place" class="form-group">
+                                {{ form_label(form.product_training.place) }}
+                                <div id="detail_box__place" class="col-sm-3 col-lg-10">
+                                    {{ form_widget(form.product_training.place) }}
+                                    {{ form_errors(form.product_training.place) }}
+                                </div>
+                            </div>
+                            {# 住所：郵便番号 #}
+                            <div id="detail_box__address" class="form-group">
+                                {{ form_label(form.product_training.address) }}
+                                <div id="detail_box__zip" class="col-sm-9 col-lg-10 input_zip form-inline">
+                                    〒{{ form_widget(form.product_training.zip.zip01) }}-{{ form_widget(form.product_training.zip.zip02) }}
+                                    {{ form_errors(form.product_training.zip) }}
+                                    {{ form_errors(form.product_training.zip.zip01) }}
+                                    {{ form_errors(form.product_training.zip.zip02) }}
+                                    <span><button type="button" id="zip-search" class="btn btn-default btn-sm">郵便番号から自動入力</button></span>
+                                </div>
+                            </div>
+                            {# 住所：都道府県 #}
+                            <div class="form-group">
+                                <div id="detail_box__pref" class="col-sm-offset-2 col-sm-9 col-lg-10 form-inline">
+                                    {{ form_widget(form.product_training.address.pref) }}
+                                    {{ form_errors(form.product_training.address.pref) }}
+                                </div>
+                            </div>
+                            {# 住所：住所1 #}
+                            <div class="form-group">
+                                <div id="detail_box__addr01" class="col-sm-offset-2 col-sm-9 col-lg-10">
+                                    {{ form_widget(form.product_training.address.addr01, { attr : { placeholder : '市区町村名（例：千代田区神田神保町）'}} ) }}
+                                    {{ form_errors(form.product_training.address.addr01) }}
+                                </div>
+                            </div>
+                            {# 住所：住所2 #}
+                            <div class="form-group">
+                                <div id="detail_box__addr02" class="col-sm-offset-2 col-sm-9 col-lg-10">
+                                    {{ form_widget(form.product_training.address.addr02, { attr : { placeholder : '番地・ビル名（例：1-3-5）' }}) }}
+                                    {{ form_errors(form.product_training.address.addr02) }}
+                                </div>
+                            </div>
+                            {# 対象 #}
+                            <div id="detail_box__target" class="form-group">
+                                {{ form_label(form.product_training.target) }}
+                                <div id="detail_box__target" class="col-sm-3 col-lg-10">
+                                    {{ form_widget(form.product_training.target) }}
+                                    {{ form_errors(form.product_training.target) }}
+                                </div>
+                            </div>
+                            {# 目的 #}
+                            <div id="detail_box__purpose" class="form-group">
+                                {{ form_label(form.product_training.purpose) }}
+                                <div id="detail_box__purpose" class="col-sm-9 col-lg-10">
+                                    {{ form_widget(form.product_training.purpose) }}
+                                    {{ form_errors(form.product_training.purpose) }}
+                                </div>
+                            </div>
+                            {# 内容 #}
+                            <div id="detail_description_box" class="form-group">
+                                {{ form_label(form.description_detail) }}
+                                <div id="detail_description_box__detail" class="col-sm-9 col-lg-10">
+                                    {{ form_widget(form.description_detail) }}
+                                    {{ form_errors(form.description_detail) }}
+                                </div>
+                            </div>
+
+                            {# 受講料 #}
+                            <div id="detail_box__price" class="form-group">
+                                <label class="col-sm-3 col-lg-2 control-label">受講料</label>
+                                <div id="detail_box__price02" class="col-sm-3 col-lg-3">
+                                    {{ form_widget(form.class.price02) }}
+                                    {{ form_errors(form.class.price02) }}
+                                </div>
+                            </div>
+                            {# 定員 #}
+                            <div id="detail_box__stock" class="form-group">
+                                <label class="col-sm-3 col-lg-2 control-label">定員</label>
+                                <div class="col-sm-9 col-lg-10">
+                                    <div class="row">
+                                        <div id="detail_box__unlimited" class="col-xs-12 form-inline">
+                                            {{ form_widget(form.class.stock) }}
+                                            {{ form_errors(form.class.stock) }}
+                                            {{ form_widget(form.class.stock_unlimited) }}
+                                            {{ form_errors(form.class.stock_unlimited) }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# 持ち物 #}
+                            <div id="detail_box__item" class="form-group">
+                                {{ form_label(form.product_training.item) }}
+                                <div id="detail_box__item" class="col-sm-3 col-lg-10">
+                                    {{ form_widget(form.product_training.item) }}
+                                    {{ form_errors(form.product_training.item) }}
+                                </div>
+                            </div>
+
+                            {# 協力 #}
+                            <div id="detail_box__collaborators" class="form-group">
+                                {{ form_label(form.product_training.collaborators) }}
+                                <div id="detail_box__collaborators" class="col-sm-3 col-lg-10">
+                                    {{ form_widget(form.product_training.collaborators) }}
+                                    {{ form_errors(form.product_training.collaborators) }}
+                                </div>
+                            </div>
+
+                            {# 地域 #}
+                            <div id="detail_box__area" class="form-group">
+                                {{ form_label(form.product_training.area) }}
+                                <div id="detail_box__area" class="col-sm-3 col-lg-10">
+                                    {{ form_widget(form.product_training.area) }}
+                                    {{ form_errors(form.product_training.area) }}
+                                </div>
+                            </div>
+
+                            {# 応募締切 #}
+                            <div id="detail_box__accept_limit_date" class="form-group">
+                                {{ form_label(form.product_training.accept_limit_date) }}
+                                <div id="detail_box__accept_limit_date" class="col-sm-4">
+                                    {{ form_widget(form.product_training.accept_limit_date) }}
+                                    {{ form_errors(form.product_training.accept_limit_date) }}
+                                </div>
+                            </div>
+
+                            {# 会場地図 #}
+                            <div id="detail_box__map" class="form-group">
+                                <label class="col-sm-3 col-lg-2 control-label">会場地図</label>
+                                <iframe src="/NoMap.html" id="map" width="500" height="300">
+                                </iframe>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="detail_box" class="box form-horizontal">
+                        <div id="detail_box__header" class="box-header toggle">
+                            <h3 class="box-title">商品共通情報</h3>
+                        </div><!-- /.box-header -->
+                        <div id="detail_box__body" class="box-body">
+                            {# 商品ID #}
+                            {% if Product.id %}
+                                <div id="detail_box__id" class="form-group">
+                                    <label class="col-sm-3 col-lg-2 control-label">商品ID</label>
+                                    <div class="col-sm-9 col-lg-10 padT07">{{ Product.id }}</div>
+                                </div>
+                            {% endif %}
+                            {# 商品名 #}
+                            {{ form_row(form.name) }}
+                            <div id="detail_tag_box" class="form-group">
+                                {{ form_label(form.Tag) }}
+                                <div class="col-sm-9 col-lg-10">
+                                    <div class="accordion marT05">
+                                        <a id="detail_tags_box__toggle" class="toggle with-icon"><svg class="cb cb-plus icon_plus"> <use xlink:href="#cb-plus" /></svg>{{ 'Tag'|trans }}を選択</a>
+                                        <div id="detail_tags_box__list" class="accpanel padT08">
+                                            {{ form_widget(form.Tag) }}
+                                            {{ form_errors(form.Tag) }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="detail_box__image" class="form-group">
+                                <label class="col-sm-2 control-label" for="admin_training_product_image">
+                                    {{ form.product_image.vars.label }}<br>
+                                    <span class="small">620px以上推奨</span>
+                                </label>
+                                <div id="detail_files_box" class="col-sm-9 col-lg-10">
+                                    <div class="photo_files" id="drag-drop-area">
+                                        <svg id="icon_no_image" class="cb cb-photo no-image"> <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#cb-photo"></use></svg>
+                                        <ul id="thumb" class="clearfix"></ul>
+                                    </div>
+                                </div>
+                            </div>
+                            {# 商品画像 #}
+                            <div class="form-group marB30">
+                                <div id="detail_box__file_upload" class="col-sm-offset-2 col-sm-9 col-lg-10 ">
+
+                                    <div id="progress" class="progress progress-striped active" style="display:none;">
+                                        <div class="progress-bar progress-bar-info"></div>
+                                    </div>
+
+                                    {{ form_widget(form.product_image, { attr : { accept : 'image/*', style : 'display:none;' } }) }}
+                                    {{ form_errors(form.product_image) }}
+                                    <a id="file_upload" class="with-icon">
+                                        <svg class="cb cb-plus"> <use xlink:href="#cb-plus" /></svg>ファイルをアップロード
+                                    </a>
+
+                                </div>
+                            </div>
+                            {# 公開対象 #}
+                            <div id="detail_box__target" class="form-group">
+                                {{ form_label(form.Target) }}
+                                <div class="col-sm-9 col-lg-10">
+                                    {{ form_widget(form.Target) }}
+                                    {{ form_errors(form.Target) }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="free_box" class="box accordion">
+                        <div id="free_box__body_toggle" class="box-header toggle">
+                            <h3 class="box-title">フリーエリア<svg class="cb cb-angle-down icon_down"> <use xlink:href="#cb-angle-down" /></svg></h3>
+                        </div><!-- /.box-header -->
+                        <div id="free_box__body" class="box-body accpanel">
+                            {{ form_widget(form.free_area, {id: 'wysiwyg-area'}) }}
+                            {{ form_errors(form.free_area) }}
+                        </div>
+                    </div>
+                    <div id="detail_box__footer" class="row hidden-xs hidden-sm">
+                        <div class="col-xs-10 col-xs-offset-1 col-sm-6 col-sm-offset-3 text-center btn_area">
+                            <p><a href="{{ url('admin_training_page', { page_no : app.session.get('eccube.admin.training_product.search.page_no')|default('1') } ) }}?resume=1">検索画面に戻る</a></p>
+                        </div>
+                    </div>
+                </div><!-- /.col -->
+                <div class="col-md-3" id="aside_column">
+                    <div id="common_box" class="col_inner">
+                        <div id="common_button_box" class="box no-header">
+                            <div id="common_button_box__body" class="box-body">
+                                <div id="common_button_box__status" class="row">
+                                    <div class="col-xs-12">
+                                        <div class="form-group">
+                                            {{ form_widget(form.Status) }}
+                                            {{ form_errors(form.Status) }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="common_button_box__insert_button" class="row text-center">
+                                    <div class="col-sm-6 col-sm-offset-3 col-md-12 col-md-offset-0">
+                                        <button type="submit" class="btn btn-primary btn-block btn-lg prevention-btn prevention-mask" >講習/研修/講演会を登録</button>
+                                    </div>
+                                </div>
+                                <div id="common_button_box__operation_button" class="row text-center with-border">
+                                    <div class="col-sm-6 col-sm-offset-3 col-md-12 col-md-offset-0">
+                                        <ul class="col-3">
+                                            {% if id is null %}
+                                                <li>
+                                                    <button class="btn btn-default btn-block btn-sm" disabled>
+                                                        確認
+                                                    </button>
+                                                </li>
+                                                <li>
+                                                    <button class="btn btn-default btn-block btn-sm" disabled>
+                                                        複製
+                                                    </button>
+                                                </li>
+                                                <li>
+                                                    <button class="btn btn-default btn-block btn-sm" disabled>
+                                                        削除
+                                                    </button>
+                                                </li>
+                                            {% else %}
+                                                <li>
+                                                    <a class="btn btn-default btn-block btn-sm" href="{{ url('admin_training_display', {'id' : id}) }}" target="_blank">
+                                                        確認
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="btn btn-default btn-block btn-sm" href="{{ url('admin_training_copy', {'id' : Product.id}) }}"  {{ csrf_token_for_anchor() }} data-method="post" data-message="この講習/研修/講演会情報を複製してもよろしいですか？">
+                                                        複製
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                     <a class="btn btn-default btn-block btn-sm" href="{{ url('admin_training_delete', {'id' : Product.id}) }}" {{ csrf_token_for_anchor() }} data-method="delete" data-message="この講習/研修/講演会情報を削除してもよろしいですか？">
+                                                        削除
+                                                    </a>
+                                                </li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div><!-- /.box-body -->
+                        </div><!-- /.box -->
+
+                        <div id="common_date_info_box" class="box no-header">
+                            <div id="common_date_info_box__body" class="box-body update-area">
+                                <p><svg class="cb cb-clock"> <use xlink:href="#cb-clock" /></svg>登録日：{{ Product.create_date|date_format }}</p>
+                                <p><svg class="cb cb-clock"> <use xlink:href="#cb-clock" /></svg>更新日：{{ Product.update_date|date_format }}</p>
+                            </div>
+                        </div><!-- /.box -->
+
+                        <div id="common_shop_note_box" class="box">
+                            <div id="common_shop_note_box__header" class="box-header">
+                                <h3 class="box-title">ショップ用メモ欄</h3>
+                            </div><!-- /.box-header -->
+                            <div id="common_shop_note_box__body" class="box-body">
+                                {{ form_widget(form.note) }}
+                                {{ form_errors(form.note) }}
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- /.col -->
+            </form>
+        </div>
+
+{% endblock %}

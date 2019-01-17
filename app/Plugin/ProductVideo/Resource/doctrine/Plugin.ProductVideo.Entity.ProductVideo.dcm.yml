@@ -1,0 +1,35 @@
+Plugin\ProductVideo\Entity\ProductVideo:
+    type: entity
+    table: plg_product_video
+    repositoryClass: Plugin\ProductVideo\Repository\ProductVideoRepository
+    id:
+        id:
+            type: integer
+            nullable: false
+            id: true
+            column: product_video_id
+            generator:
+                strategy: AUTO
+            options:
+                unsigned: true
+    fields:
+        product_id:
+            type: integer
+            nullable: false
+            unsigned: false
+        Embed_main:
+            type: text
+            nullable: true
+        Embed_preview:
+            type: text
+            nullable: true
+    manyToOne:
+        Product:
+            targetEntity: Eccube\Entity\Product
+            joinColumn:
+                name: product_id
+                referencedColumnName: product_id
+                nullable: false
+                options:
+                  unsigned: true
+    lifecycleCallbacks: {  }

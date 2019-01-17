@@ -1,0 +1,30 @@
+{#
+
+#}
+{% set favorite = BaseInfo.option_favorite_product %}
+<nav id="navi_list_box" class="local_nav {% if favorite == 1 %}favorite{% endif %}">
+    <ul id="navi_list">
+{% if app['mobile_detect'].isMobile %}
+        <li class="{% if mypageno|default('') == 'index'  %}active{% endif %}"    ><a href="{{ url('mypage') }}">ご注文履歴</a></li>
+        <li class="{% if mypageno|default('') == 'favorite' %}active{% endif %}"  ><a href="{{ url('mypage_favorite') }}">お気に入り一覧</a></li>
+        <li class="{% if mypageno|default('') == 'change'   %}active{% endif %}"  ><a href="{{ url('plugin_ProductVideo_history') }}">購入動画</a></li>
+        <li class="{% if mypageno|default('') == 'change'   %}active{% endif %}"  ><a href="{{ url('mypage_change') }}">会員情報編集</a></li>
+        <li class="{% if mypageno|default('') == 'delivery' %}active{% endif %}"  ><a href="{{ url('mypage_delivery') }}">お届け先編集</a></li>
+        <li class="{% if mypageno|default('') == 'withdraw' %}active{% endif %}"  ><a href="{{ url('mypage_withdraw') }}">退会手続き</a></li>
+{% else %}
+        <li class="{% if mypageno|default('') == 'index'  %}active{% endif %}"    style="width: 17%;"><a href="{{ url('mypage') }}">ご注文履歴</a></li>
+        <li class="{% if mypageno|default('') == 'favorite' %}active{% endif %}"  style="width: 17%;"><a href="{{ url('mypage_favorite') }}">お気に入り一覧</a></li>
+        <li class="{% if mypageno|default('') == 'change'   %}active{% endif %}"  style="width: 17%;"><a href="{{ url('plugin_ProductVideo_history') }}">購入動画</a></li>
+        <li class="{% if mypageno|default('') == 'change'   %}active{% endif %}"  style="width: 17%;"><a href="{{ url('mypage_change') }}">会員情報編集</a></li>
+        <li class="{% if mypageno|default('') == 'delivery' %}active{% endif %}"  style="width: 17%;"><a href="{{ url('mypage_delivery') }}">お届け先編集</a></li>
+        <li class="{% if mypageno|default('') == 'withdraw' %}active{% endif %}"  style="width: 15%;"><a href="{{ url('mypage_withdraw') }}">退会手続き</a></li>
+{% endif %}
+    </ul>
+
+</nav>
+<div id="welcome_message" class="message">
+    <p>
+        ようこそ ／ {{ app.user.name01 }} {{ app.user.name02 }} 様
+    </p>
+</div>
+

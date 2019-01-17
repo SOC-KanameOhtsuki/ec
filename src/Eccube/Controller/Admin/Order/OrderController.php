@@ -31,6 +31,7 @@ use Eccube\Entity\Master\CsvType;
 use Eccube\Event\EccubeEvents;
 use Eccube\Event\EventArgs;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class OrderController extends AbstractController
@@ -145,9 +146,9 @@ class OrderController extends AbstractController
                         $page_no,
                         $page_count
                     );
-                        }
-                    }
-                        }
+                }
+            }
+        }
 
         return $app->render('Order/index.twig', array(
             'searchForm' => $searchForm->createView(),
@@ -159,6 +160,210 @@ class OrderController extends AbstractController
             'active' => $active,
         ));
 
+    }
+
+    public function indexGroup(Application $app, Request $request, $page_no = null)
+    {
+        $session = $request->getSession();
+
+        $builder = $app['form.factory']
+            ->createBuilder('admin_search_group_order');
+
+        $searchForm = $builder->getForm();
+
+        $pagination = array();
+
+        $disps = $app['eccube.repository.master.disp']->findAll();
+        $pageMaxis = $app['eccube.repository.master.page_max']->findAll();
+
+        // 表示件数は順番で取得する、1.SESSION 2.設定ファイル
+        $page_count = $session->get('eccube.admin.group.order.search.page_count', $app['config']['default_page_count']);
+
+        $page_count_param = $request->get('page_count');
+        // 表示件数はURLパラメターから取得する
+        if($page_count_param && is_numeric($page_count_param)){
+            foreach($pageMaxis as $pageMax){
+                if($page_count_param == $pageMax->getName()){
+                    $page_count = $pageMax->getName();
+                    // 表示件数入力値正し場合はSESSIONに保存する
+                    $session->set('eccube.admin.group.order.search.page_count', $page_count);
+                    break;
+                }
+            }
+        }
+
+        $active = false;
+
+        if ('POST' === $request->getMethod()) {
+            $searchForm->handleRequest($request);
+            if ($searchForm->isValid()) {
+                $searchData = $searchForm->getData();
+
+                // paginator
+                $qb = $app['eccube.repository.group_order']->getQueryBuilderBySearchDataForAdmin($searchData);
+
+                $page_no = 1;
+                $pagination = $app['paginator']()->paginate(
+                    $qb,
+                    $page_no,
+                    $page_count
+                );
+
+                // sessionに検索条件を保持.
+                $viewData = \Eccube\Util\FormUtil::getViewData($searchForm);
+                $session->set('eccube.admin.group.order.search', $viewData);
+                $session->set('eccube.admin.group.order.search.page_no', $page_no);
+            }
+        } else {
+            if (is_null($page_no) && $request->get('resume') != Constant::ENABLED) {
+                // sessionを削除
+                $session->remove('eccube.admin.group.order.search');
+                $session->remove('eccube.admin.group.order.search.page_no');
+                $session->remove('eccube.admin.group.order.search.page_count');
+            } else {
+                // pagingなどの処理
+                if (is_null($page_no)) {
+                    $page_no = intval($session->get('eccube.admin.group.order.search.page_no'));
+                } else {
+                    $session->set('eccube.admin.group.order.search.page_no', $page_no);
+                }
+                $viewData = $session->get('eccube.admin.group.order.search');
+                if (!is_null($viewData)) {
+                    // sessionに保持されている検索条件を復元.
+                    $searchData = \Eccube\Util\FormUtil::submitAndGetData($searchForm, $viewData);
+                }
+                if (!is_null($searchData)) {
+                    // 表示件数
+                    $pcount = $request->get('page_count');
+
+                    $page_count = empty($pcount) ? $page_count : $pcount;
+
+                    $qb = $app['eccube.repository.group_order']->getQueryBuilderBySearchDataForAdmin($searchData);
+
+                    $event = new EventArgs(
+                        array(
+                            'form' => $searchForm,
+                            'qb' => $qb,
+                        ),
+                        $request
+                    );
+                    $app['eccube.event.dispatcher']->dispatch(EccubeEvents::ADMIN_ORDER_INDEX_SEARCH, $event);
+
+                    $pagination = $app['paginator']()->paginate(
+                        $qb,
+                        $page_no,
+                        $page_count
+                    );
+                }
+            }
+        }
+
+        return $app->render('Order/index_group.twig', array(
+            'searchForm' => $searchForm->createView(),
+            'pagination' => $pagination,
+            'disps' => $disps,
+            'pageMaxis' => $pageMaxis,
+            'page_no' => $page_no,
+            'page_count' => $page_count,
+            'active' => $active,
+        ));
+    }
+
+    public function indexMembershipBilling(Application $app, Request $request, $page_no = null)
+    {
+        $session = $request->getSession();
+
+        $builder = $app['form.factory']
+            ->createBuilder('admin_search_membership_billing');
+
+        $searchForm = $builder->getForm();
+
+        $pagination = array();
+
+        $disps = $app['eccube.repository.master.disp']->findAll();
+        $pageMaxis = $app['eccube.repository.master.page_max']->findAll();
+
+        // 表示件数は順番で取得する、1.SESSION 2.設定ファイル
+        $page_count = $session->get('eccube.admin.membership.billing.search.page_count', $app['config']['default_page_count']);
+
+        $page_count_param = $request->get('page_count');
+        // 表示件数はURLパラメターから取得する
+        if($page_count_param && is_numeric($page_count_param)){
+            foreach($pageMaxis as $pageMax){
+                if($page_count_param == $pageMax->getName()){
+                    $page_count = $pageMax->getName();
+                    // 表示件数入力値正し場合はSESSIONに保存する
+                    $session->set('eccube.admin.membership.billing.search.page_count', $page_count);
+                    break;
+                }
+            }
+        }
+
+        $active = false;
+        if ('POST' === $request->getMethod()) {
+            $searchForm->handleRequest($request);
+            if ($searchForm->isValid()) {
+                $searchData = $searchForm->getData();
+
+                // paginator
+                $qb = $app['eccube.repository.membership_billing']->getQueryBuilderBySearchDataForAdmin($searchData);
+
+                $page_no = 1;
+                $pagination = $app['paginator']()->paginate(
+                    $qb,
+                    $page_no,
+                    $page_count
+                );
+
+                // sessionに検索条件を保持.
+                $viewData = \Eccube\Util\FormUtil::getViewData($searchForm);
+                $session->set('eccube.admin.membership.billing.search', $viewData);
+                $session->set('eccube.admin.membership.billing.search.page_no', $page_no);
+            }
+        } else {
+            if (is_null($page_no) && $request->get('resume') != Constant::ENABLED) {
+                // sessionを削除
+                $session->remove('eccube.admin.membership.billing.search');
+                $session->remove('eccube.admin.membership.billing.search.page_no');
+                $session->remove('eccube.admin.membership.billing.search.page_count');
+            } else {
+                // pagingなどの処理
+                if (is_null($page_no)) {
+                    $page_no = intval($session->get('eccube.admin.membership.billing.search.page_no'));
+                } else {
+                    $session->set('eccube.admin.membership.billing.search.page_no', $page_no);
+                }
+                $viewData = $session->get('eccube.admin.group.order.search');
+                if (!is_null($viewData)) {
+                    // sessionに保持されている検索条件を復元.
+                    $searchData = \Eccube\Util\FormUtil::submitAndGetData($searchForm, $viewData);
+                } else {
+                    $searchData = array();
+                }
+                // 表示件数
+                $pcount = $request->get('page_count');
+
+                $page_count = empty($pcount) ? $page_count : $pcount;
+
+                $qb = $app['eccube.repository.membership_billing']->getQueryBuilderBySearchDataForAdmin($searchData);
+
+                $pagination = $app['paginator']()->paginate(
+                    $qb,
+                    $page_no,
+                    $page_count
+                );
+            }
+        }
+
+        return $app->render('Order/index_menbership_billing.twig', array(
+            'searchForm' => $searchForm->createView(),
+            'pagination' => $pagination,
+            'disps' => $disps,
+            'pageMaxis' => $pageMaxis,
+            'page_no' => $page_no,
+            'page_count' => $page_count,
+            'active' => $active,
+        ));
     }
 
     public function delete(Application $app, Request $request, $id)
@@ -377,6 +582,314 @@ class OrderController extends AbstractController
 
         log_info('配送CSV出力ファイル名', array($filename));
 
+        return $response;
+    }
+
+
+    /**
+     * グループ請求書選択の出力.
+     *
+     * @param Application $app
+     * @param Request $request
+     * @return StreamedResponse
+     */
+    public function exportInvoiceSelect(Application $app, Request $request)
+    {
+        // タイムアウトを無効にする.
+        set_time_limit(0);
+
+        // sql loggerを無効にする.
+        $em = $app['orm.em'];
+        $em->getConfiguration()->setSQLLogger(null);
+
+        $response = new StreamedResponse();
+        $response->setCallback(function () use ($app, $request) {
+
+            // CSV種別を元に初期化.
+            $app['eccube.service.csv.export']->initCsvType(CsvType::CSV_TYPE_SHIPPING);
+
+            // ヘッダ行の出力.
+            $app['eccube.service.csv.export']->exportHeader();
+
+            // 受注データ検索用のクエリビルダを取得.
+            $qb = $app['eccube.service.csv.export']
+                ->getOrderQueryBuilder($request);
+
+            // データ行の出力.
+            $app['eccube.service.csv.export']->setExportQueryBuilder($qb);
+            $app['eccube.service.csv.export']->exportData(function ($entity, $csvService) use ($app, $request) {
+
+                $Csvs = $csvService->getCsvs();
+
+                /** @var $Order \Eccube\Entity\Order */
+                $Order = $entity;
+                /** @var $Shippings \Eccube\Entity\Shipping[] */
+                $Shippings = $Order->getShippings();
+
+                foreach ($Shippings as $Shipping) {
+                    /** @var $ShipmentItems \Eccube\Entity\ShipmentItem */
+                    $ShipmentItems = $Shipping->getShipmentItems();
+                    foreach ($ShipmentItems as $ShipmentItem) {
+                        $ExportCsvRow = new \Eccube\Entity\ExportCsvRow();
+
+                        // CSV出力項目と合致するデータを取得.
+                        foreach ($Csvs as $Csv) {
+                            // 受注データを検索.
+                            $ExportCsvRow->setData($csvService->getData($Csv, $Order));
+                            if ($ExportCsvRow->isDataNull()) {
+                                // 配送情報を検索.
+                                $ExportCsvRow->setData($csvService->getData($Csv, $Shipping));
+                            }
+                            if ($ExportCsvRow->isDataNull()) {
+                                // 配送商品を検索.
+                                $ExportCsvRow->setData($csvService->getData($Csv, $ShipmentItem));
+                            }
+
+                            $event = new EventArgs(
+                                array(
+                                    'csvService' => $csvService,
+                                    'Csv' => $Csv,
+                                    'ShipmentItem' => $ShipmentItem,
+                                    'ExportCsvRow' => $ExportCsvRow,
+                                ),
+                                $request
+                            );
+                            $app['eccube.event.dispatcher']->dispatch(EccubeEvents::ADMIN_ORDER_CSV_EXPORT_SHIPPING, $event);
+
+                            $ExportCsvRow->pushData();
+                        }
+                        //$row[] = number_format(memory_get_usage(true));
+                        // 出力.
+                        $csvService->fputcsv($ExportCsvRow->getRow());
+                    }
+                }
+            });
+        });
+
+        $now = new \DateTime();
+        $filename = 'shipping_' . $now->format('YmdHis') . '.csv';
+        $response->headers->set('Content-Type', 'application/octet-stream');
+        $response->headers->set('Content-Disposition', 'attachment; filename=' . $filename);
+        $response->send();
+
+        log_info('配送CSV出力ファイル名', array($filename));
+
+        return $response;
+    }
+
+
+    /**
+     * グループ請求書全件の出力.
+     *
+     * @param Application $app
+     * @param Request $request
+     * @return StreamedResponse
+     */
+    public function exportInvoiceAll(Application $app, Request $request)
+    {
+        $session = $request->getSession();
+        $viewData = $session->get('eccube.admin.group.order.search');
+        if (is_null($viewData)) {
+            $app->addError('請求書出力に失敗しました', 'admin');
+            log_info('The Order cannot found!');
+            return $app->redirect($app->url('admin_group_order'));
+        }
+        $builder = $app['form.factory']
+            ->createBuilder('admin_search_group_order');
+        $searchForm = $builder->getForm();
+        // sessionに保持されている検索条件を復元.
+        $searchData = \Eccube\Util\FormUtil::submitAndGetData($searchForm, $viewData);
+
+        // タイムアウトを無効にする.
+        set_time_limit(0);
+
+        // sql loggerを無効にする.
+        $em = $app['orm.em'];
+        $em->getConfiguration()->setSQLLogger(null);
+
+        // サービスの取得
+        /* @var InvoicePdfService $service */
+        $service = $app['eccube.service.invoice_pdf'];
+
+        // 受注情報取得
+        $groupOrders = $app['eccube.repository.group_order']->getOrderQueryBuilderBySearchDataForAdmin($searchData)
+                ->getQuery()
+                ->getResult();
+
+        // 受注情報からPDFを作成する
+        $status = $service->makeGroupPdf($groupOrders);
+
+        // 異常終了した場合の処理
+        if (!$status) {
+            $app->addError('admin.delevery_pdf.download.failure', 'admin');
+            log_info('Unable to create pdf files! Process have problems!');
+            return $app->redirect($app->url('admin_group_order'));
+        }
+
+        // ダウンロードする
+        $response = new Response(
+            $service->outputPdf(),
+            200,
+            array('content-type' => 'application/pdf')
+        );
+
+        // レスポンスヘッダーにContent-Dispositionをセットし、ファイル名を指定
+        $response->headers->set('Content-Disposition', 'attachment; filename="'.$service->getPdfFileName().'"');
+        log_info('InvoicePdf download success!', array());
+        return $response;
+    }
+
+
+    /**
+     * グループ請求納品書選択出力.
+     *
+     * @param Application $app
+     * @param Request $request
+     * @return StreamedResponse
+     */
+    public function exportDeliverySelect(Application $app, Request $request)
+    {
+        // タイムアウトを無効にする.
+        set_time_limit(0);
+
+        // sql loggerを無効にする.
+        $em = $app['orm.em'];
+        $em->getConfiguration()->setSQLLogger(null);
+
+        $response = new StreamedResponse();
+        $response->setCallback(function () use ($app, $request) {
+
+            // CSV種別を元に初期化.
+            $app['eccube.service.csv.export']->initCsvType(CsvType::CSV_TYPE_SHIPPING);
+
+            // ヘッダ行の出力.
+            $app['eccube.service.csv.export']->exportHeader();
+
+            // 受注データ検索用のクエリビルダを取得.
+            $qb = $app['eccube.service.csv.export']
+                ->getOrderQueryBuilder($request);
+
+            // データ行の出力.
+            $app['eccube.service.csv.export']->setExportQueryBuilder($qb);
+            $app['eccube.service.csv.export']->exportData(function ($entity, $csvService) use ($app, $request) {
+
+                $Csvs = $csvService->getCsvs();
+
+                /** @var $Order \Eccube\Entity\Order */
+                $Order = $entity;
+                /** @var $Shippings \Eccube\Entity\Shipping[] */
+                $Shippings = $Order->getShippings();
+
+                foreach ($Shippings as $Shipping) {
+                    /** @var $ShipmentItems \Eccube\Entity\ShipmentItem */
+                    $ShipmentItems = $Shipping->getShipmentItems();
+                    foreach ($ShipmentItems as $ShipmentItem) {
+                        $ExportCsvRow = new \Eccube\Entity\ExportCsvRow();
+
+                        // CSV出力項目と合致するデータを取得.
+                        foreach ($Csvs as $Csv) {
+                            // 受注データを検索.
+                            $ExportCsvRow->setData($csvService->getData($Csv, $Order));
+                            if ($ExportCsvRow->isDataNull()) {
+                                // 配送情報を検索.
+                                $ExportCsvRow->setData($csvService->getData($Csv, $Shipping));
+                            }
+                            if ($ExportCsvRow->isDataNull()) {
+                                // 配送商品を検索.
+                                $ExportCsvRow->setData($csvService->getData($Csv, $ShipmentItem));
+                            }
+
+                            $event = new EventArgs(
+                                array(
+                                    'csvService' => $csvService,
+                                    'Csv' => $Csv,
+                                    'ShipmentItem' => $ShipmentItem,
+                                    'ExportCsvRow' => $ExportCsvRow,
+                                ),
+                                $request
+                            );
+                            $app['eccube.event.dispatcher']->dispatch(EccubeEvents::ADMIN_ORDER_CSV_EXPORT_SHIPPING, $event);
+
+                            $ExportCsvRow->pushData();
+                        }
+                        //$row[] = number_format(memory_get_usage(true));
+                        // 出力.
+                        $csvService->fputcsv($ExportCsvRow->getRow());
+                    }
+                }
+            });
+        });
+
+        $now = new \DateTime();
+        $filename = 'shipping_' . $now->format('YmdHis') . '.csv';
+        $response->headers->set('Content-Type', 'application/octet-stream');
+        $response->headers->set('Content-Disposition', 'attachment; filename=' . $filename);
+        $response->send();
+
+        log_info('配送CSV出力ファイル名', array($filename));
+
+        return $response;
+    }
+
+
+    /**
+     * グループ請求納品書全件出力.
+     *
+     * @param Application $app
+     * @param Request $request
+     * @return StreamedResponse
+     */
+    public function exportDeliveryAll(Application $app, Request $request)
+    {
+        $session = $request->getSession();
+        $viewData = $session->get('eccube.admin.group.order.search');
+        if (is_null($viewData)) {
+            $app->addError('納品書出力に失敗しました', 'admin');
+            log_info('The Order cannot found!');
+            return $app->redirect($app->url('admin_group_order'));
+        }
+        $builder = $app['form.factory']
+            ->createBuilder('admin_search_group_order');
+        $searchForm = $builder->getForm();
+        // sessionに保持されている検索条件を復元.
+        $searchData = \Eccube\Util\FormUtil::submitAndGetData($searchForm, $viewData);
+
+        // タイムアウトを無効にする.
+        set_time_limit(0);
+
+        // sql loggerを無効にする.
+        $em = $app['orm.em'];
+        $em->getConfiguration()->setSQLLogger(null);
+
+        // サービスの取得
+        /* @var DeliveryPdfService $service */
+        $service = $app['eccube.service.delivery_pdf'];
+
+        // 受注情報取得
+        $groupOrders = $app['eccube.repository.group_order']->getOrderQueryBuilderBySearchDataForAdmin($searchData)
+                ->getQuery()
+                ->getResult();
+
+        // 受注情報からPDFを作成する
+        $status = $service->makeGroupPdf($groupOrders);
+
+        // 異常終了した場合の処理
+        if (!$status) {
+            $app->addError('admin.delevery_pdf.download.failure', 'admin');
+            log_info('Unable to create pdf files! Process have problems!');
+            return $app->redirect($app->url('admin_group_order'));
+        }
+
+        // ダウンロードする
+        $response = new Response(
+            $service->outputPdf(),
+            200,
+            array('content-type' => 'application/pdf')
+        );
+
+        // レスポンスヘッダーにContent-Dispositionをセットし、ファイル名を指定
+        $response->headers->set('Content-Disposition', 'attachment; filename="'.$service->getPdfFileName().'"');
+        log_info('DeliveryPdf download success!');
         return $response;
     }
 }

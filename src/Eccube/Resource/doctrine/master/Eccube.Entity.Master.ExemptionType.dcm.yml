@@ -1,0 +1,19 @@
+Eccube\Entity\Master\ExemptionType:
+    type: entity
+    table: mtb_exemption_type
+    repositoryClass: Eccube\Repository\Master\DispRepository
+    id:
+        id:
+            type: smallint
+            nullable: false
+            unsigned: false
+            id: true
+    fields:
+        name:
+            type: text
+            nullable: true
+        rank:
+            type: smallint
+            nullable: false
+            unsigned: false
+    lifecycleCallbacks: {  }

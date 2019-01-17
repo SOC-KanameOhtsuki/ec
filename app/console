@@ -43,5 +43,6 @@ $console->add(new Eccube\Command\RouterCommand());
 $console->add(new Eccube\Command\CacheClearCommand());
 $console->add(new Eccube\Command\PluginCommand());
 $console->add(new Eccube\Command\ConfigCommand());
+$console->add(new Eccube\Command\MembershipBillingCommand());
 
 $console->run();

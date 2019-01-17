@@ -65,11 +65,12 @@ class ProductRepository extends EntityRepository
         // Product
         try {
             $qb = $this->createQueryBuilder('p');
-            $qb->addSelect(array('pc', 'cc1', 'cc2', 'pi', 'ps'))
+            $qb->addSelect(array('pc', 'cc1', 'cc2', 'pi', 'ps', 'pt'))
                 ->innerJoin('p.ProductClasses', 'pc')
                 ->leftJoin('pc.ClassCategory1', 'cc1')
                 ->leftJoin('pc.ClassCategory2', 'cc2')
                 ->leftJoin('p.ProductImage', 'pi')
+                ->leftJoin('p.ProductTraining', 'pt')
                 ->innerJoin('pc.ProductStock', 'ps')
                 ->where('p.id = :id')
                 ->orderBy('cc1.rank', 'DESC')
@@ -86,6 +87,46 @@ class ProductRepository extends EntityRepository
         }
 
         return $product;
+    }
+
+    /**
+     * get Training Products.
+     *
+     * @param  integer $training_type_id
+     * @return \Eccube\Entity\Product[]
+     *
+     * @throws NotFoundHttpException
+     */
+    public function getProductTrainingList($training_type_id)
+    {
+        // Products
+        try {
+            $qb = $this->createQueryBuilder('p');
+            $qb->addSelect(array('pc', 'ps', 'pt'))
+                ->innerJoin('p.ProductClasses', 'pc')
+                ->leftJoin('p.ProductTraining', 'pt')
+                ->innerJoin('pt.TrainingType', 'tt')
+                ->innerJoin('pc.ProductStock', 'ps')
+                ->orderBy('tt.rank', 'ASC')
+                ->addOrderBy('pt.training_date_start', 'DESC');
+            if (!is_null($training_type_id)) {
+                $qb->where('tt.id = :id')
+                    ->setParameters(array(
+                        'id' => $training_type_id))
+                    ->andWhere('p.Status = 1');
+            } else {
+                $qb->where('tt.id IS NULL')
+                    ->andWhere('p.Status = 1');
+            }
+
+            $products = $qb
+                ->getQuery()
+                ->getResult();
+        } catch (NoResultException $e) {
+            throw new NotFoundHttpException();
+        }
+
+        return $products;
     }
 
     /**
@@ -289,6 +330,307 @@ class ProductRepository extends EntityRepository
     /**
      * get query builder.
      *
+     * @param  array $searchData
+     * @return \Doctrine\ORM\QueryBuilder
+     */
+    public function getQueryBuilderBySearchTrainingDataForAdmin($searchData)
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->innerJoin('p.ProductTraining', 'pt')
+            ->innerJoin('pt.TrainingType', 'tt')
+            ->innerJoin('p.ProductClasses', 'pc')
+            ->innerJoin('p.ProductCategories', 'pct')
+            ->innerJoin('pct.Category', 'c')
+            ->andWhere('pct.Category = 1');
+
+        // multi
+        if (isset($searchData['multi']) && Str::isNotBlank($searchData['multi'])) {
+            //スペース除去
+            $clean_key_multi = preg_replace('/\s+|[　]+/u', '', $searchData['multi']);
+            $id = preg_match('/^\d+$/', $clean_key_multi) ? $clean_key_multi : null;
+            $qb
+                ->andWhere('p.id = :product_id OR p.name LIKE :name OR pt.place LIKE :place')
+                ->setParameter('product_id', $id)
+                ->setParameter('name', '%' . $clean_key_multi . '%')
+                ->setParameter('place', '%' . $clean_key_multi . '%');
+        }
+
+        // id
+        if (isset($searchData['id']) && Str::isNotBlank($searchData['id'])) {
+            $id = preg_match('/^\d+$/', $searchData['id']) ? $searchData['id'] : null;
+            $qb
+                ->andWhere('p.id = :id OR p.name LIKE :likeid OR pc.code LIKE :likeid')
+                ->setParameter('id', $id)
+                ->setParameter('likeid', '%' . $searchData['id'] . '%');
+        }
+
+        // name
+        if (!empty($searchData['name']) && $searchData['name']) {
+            $keywords = preg_split('/[\s　]+/u', $searchData['name'], -1, PREG_SPLIT_NO_EMPTY);
+            foreach ($keywords as $keyword) {
+                $qb
+                    ->andWhere('p.name LIKE :name')
+                    ->setParameter('name', '%' . $keyword . '%');
+            }
+        }
+
+        // place
+        if (!empty($searchData['place']) && $searchData['place']) {
+            $keywords = preg_split('/[\s　]+/u', $searchData['place'], -1, PREG_SPLIT_NO_EMPTY);
+            foreach ($keywords as $keyword) {
+                $qb
+                    ->andWhere('pt.place LIKE :place')
+                    ->setParameter('place', '%' . $keyword . '%');
+            }
+        }
+
+        // Pref
+        if (!empty($searchData['pref']) && $searchData['pref']) {
+            $qb
+                ->andWhere('pt.Pref = :pref')
+                ->setParameter('pref', $searchData['pref']->getId());
+        }
+
+        // training_date
+        if (!empty($searchData['training_date_from']) && $searchData['training_date_from']) {
+            $date = $searchData['training_date_from']
+                ->format('Y-m-d H:i:s');
+            $qb
+                ->andWhere('pt.training_date_start >= :training_date_from')
+                ->setParameter('training_date_from', $date);
+        }
+
+        if (!empty($searchData['training_date_to']) && $searchData['training_date_to']) {
+            $date = clone $searchData['training_date_to'];
+            $date = $date
+                ->format('Y-m-d H:i:s');
+            $qb
+                ->andWhere('pt.training_date_start < :training_date_to')
+                ->setParameter('training_date_to', $date);
+        }
+
+        // status
+        if (!empty($searchData['status']) && $searchData['status']->toArray()) {
+            $qb
+                ->andWhere($qb->expr()->in('p.Status', ':Status'))
+                ->setParameter('Status', $searchData['status']->toArray());
+        }
+
+        // link_status
+        if (isset($searchData['link_status'])) {
+            $qb
+                ->andWhere($qb->expr()->in('p.Status', ':Status'))
+                ->setParameter('Status', $searchData['link_status']);
+        }
+
+        // stock status
+        if (isset($searchData['stock_status'])) {
+            $qb
+                ->andWhere('pc.stock_unlimited = :StockUnlimited AND pc.stock = 0')
+                ->setParameter('StockUnlimited', $searchData['stock_status']);
+        }
+
+        // crate_date
+        if (!empty($searchData['create_date_start']) && $searchData['create_date_start']) {
+            $date = $searchData['create_date_start']
+                ->format('Y-m-d H:i:s');
+            $qb
+                ->andWhere('p.create_date >= :create_date_start')
+                ->setParameter('create_date_start', $date);
+        }
+
+        if (!empty($searchData['create_date_end']) && $searchData['create_date_end']) {
+            $date = clone $searchData['create_date_end'];
+            $date = $date
+                ->modify('+1 days')
+                ->format('Y-m-d H:i:s');
+            $qb
+                ->andWhere('p.create_date < :create_date_end')
+                ->setParameter('create_date_end', $date);
+        }
+
+        // update_date
+        if (!empty($searchData['update_date_start']) && $searchData['update_date_start']) {
+            $date = $searchData['update_date_start']
+                ->format('Y-m-d H:i:s');
+            $qb
+                ->andWhere('p.update_date >= :update_date_start')
+                ->setParameter('update_date_start', $date);
+        }
+        if (!empty($searchData['update_date_end']) && $searchData['update_date_end']) {
+            $date = clone $searchData['update_date_end'];
+            $date = $date
+                ->modify('+1 days')
+                ->format('Y-m-d H:i:s');
+            $qb
+                ->andWhere('p.update_date < :update_date_end')
+                ->setParameter('update_date_end', $date);
+        }
+
+        // Order By
+        $qb
+            ->orderBy('tt.rank', 'ASC')
+            ->addOrderBy('pt.training_date_start', 'DESC')
+            ->addOrderBy('p.update_date', 'DESC');
+
+        return $qb;
+    }
+
+    /**
+     * get query builder.
+     *
+     * @param  array $searchData
+     * @return \Doctrine\ORM\QueryBuilder
+     */
+    public function getQueryBuilderBySearchOrderedTrainingDataForAdmin($searchData)
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->innerJoin('p.ProductTraining', 'pt')
+            ->innerJoin('pt.TrainingType', 'tt')
+            ->innerJoin('p.ProductClasses', 'pc')
+            ->innerJoin('p.ProductCategories', 'pct')
+            ->innerJoin('pct.Category', 'c')
+            ->innerJoin('Eccube\Entity\OrderDetail', 'od', 'WITH', 'od.Product = p.id')
+            ->innerJoin('od.Order', 'o')
+            ->andWhere('o.del_flg = 0')
+            ->andWhere('pct.Category = 1');
+
+        // multi
+        if (isset($searchData['multi']) && Str::isNotBlank($searchData['multi'])) {
+            //スペース除去
+            $clean_key_multi = preg_replace('/\s+|[　]+/u', '', $searchData['multi']);
+            $id = preg_match('/^\d+$/', $clean_key_multi) ? $clean_key_multi : null;
+            $qb
+                ->andWhere('p.id = :product_id OR p.name LIKE :name OR pt.place LIKE :place')
+                ->setParameter('product_id', $id)
+                ->setParameter('name', '%' . $clean_key_multi . '%')
+                ->setParameter('place', '%' . $clean_key_multi . '%');
+        }
+
+        // id
+        if (isset($searchData['id']) && Str::isNotBlank($searchData['id'])) {
+            $id = preg_match('/^\d+$/', $searchData['id']) ? $searchData['id'] : null;
+            $qb
+                ->andWhere('p.id = :id OR p.name LIKE :likeid OR pc.code LIKE :likeid')
+                ->setParameter('id', $id)
+                ->setParameter('likeid', '%' . $searchData['id'] . '%');
+        }
+
+        // name
+        if (!empty($searchData['name']) && $searchData['name']) {
+            $keywords = preg_split('/[\s　]+/u', $searchData['name'], -1, PREG_SPLIT_NO_EMPTY);
+            foreach ($keywords as $keyword) {
+                $qb
+                    ->andWhere('p.name LIKE :name')
+                    ->setParameter('name', '%' . $keyword . '%');
+            }
+        }
+
+        // place
+        if (!empty($searchData['place']) && $searchData['place']) {
+            $keywords = preg_split('/[\s　]+/u', $searchData['place'], -1, PREG_SPLIT_NO_EMPTY);
+            foreach ($keywords as $keyword) {
+                $qb
+                    ->andWhere('pt.place LIKE :place')
+                    ->setParameter('place', '%' . $keyword . '%');
+            }
+        }
+
+        // Pref
+        if (!empty($searchData['pref']) && $searchData['pref']) {
+            $qb
+                ->andWhere('pt.Pref = :pref')
+                ->setParameter('pref', $searchData['pref']->getId());
+        }
+
+        // training_date
+        if (!empty($searchData['training_date_from']) && $searchData['training_date_from']) {
+            $date = $searchData['training_date_from']
+                ->format('Y-m-d H:i:s');
+            $qb
+                ->andWhere('pt.training_date_start >= :training_date_from')
+                ->setParameter('training_date_from', $date);
+        }
+
+        if (!empty($searchData['training_date_to']) && $searchData['training_date_to']) {
+            $date = clone $searchData['training_date_to'];
+            $date = $date
+                ->format('Y-m-d H:i:s');
+            $qb
+                ->andWhere('pt.training_date_start < :training_date_to')
+                ->setParameter('training_date_to', $date);
+        }
+
+        // status
+        if (!empty($searchData['status']) && $searchData['status']->toArray()) {
+            $qb
+                ->andWhere($qb->expr()->in('p.Status', ':Status'))
+                ->setParameter('Status', $searchData['status']->toArray());
+        }
+
+        // link_status
+        if (isset($searchData['link_status'])) {
+            $qb
+                ->andWhere($qb->expr()->in('p.Status', ':Status'))
+                ->setParameter('Status', $searchData['link_status']);
+        }
+
+        // stock status
+        if (isset($searchData['stock_status'])) {
+            $qb
+                ->andWhere('pc.stock_unlimited = :StockUnlimited AND pc.stock = 0')
+                ->setParameter('StockUnlimited', $searchData['stock_status']);
+        }
+
+        // crate_date
+        if (!empty($searchData['create_date_start']) && $searchData['create_date_start']) {
+            $date = $searchData['create_date_start']
+                ->format('Y-m-d H:i:s');
+            $qb
+                ->andWhere('p.create_date >= :create_date_start')
+                ->setParameter('create_date_start', $date);
+        }
+
+        if (!empty($searchData['create_date_end']) && $searchData['create_date_end']) {
+            $date = clone $searchData['create_date_end'];
+            $date = $date
+                ->modify('+1 days')
+                ->format('Y-m-d H:i:s');
+            $qb
+                ->andWhere('p.create_date < :create_date_end')
+                ->setParameter('create_date_end', $date);
+        }
+
+        // update_date
+        if (!empty($searchData['update_date_start']) && $searchData['update_date_start']) {
+            $date = $searchData['update_date_start']
+                ->format('Y-m-d H:i:s');
+            $qb
+                ->andWhere('p.update_date >= :update_date_start')
+                ->setParameter('update_date_start', $date);
+        }
+        if (!empty($searchData['update_date_end']) && $searchData['update_date_end']) {
+            $date = clone $searchData['update_date_end'];
+            $date = $date
+                ->modify('+1 days')
+                ->format('Y-m-d H:i:s');
+            $qb
+                ->andWhere('p.update_date < :update_date_end')
+                ->setParameter('update_date_end', $date);
+        }
+
+        // Order By
+        $qb
+            ->orderBy('tt.rank', 'ASC')
+            ->addOrderBy('pt.training_date_start', 'DESC')
+            ->addOrderBy('p.update_date', 'DESC');
+
+        return $qb;
+    }
+
+    /**
+     * get query builder.
+     *
      * @param $Customer
      * @return \Doctrine\ORM\QueryBuilder
      * @see CustomerFavoriteProductRepository::getQueryBuilderByCustomer()
@@ -304,6 +646,27 @@ class ProductRepository extends EntityRepository
         // Order By
         // XXX Paginater を使用した場合に PostgreSQL で正しくソートできない
         $qb->addOrderBy('cfp.create_date', 'DESC');
+
+        return $qb;
+    }
+
+    /**
+     * get query builder.
+     *
+     * @param  array $searchData
+     * @return \Doctrine\ORM\QueryBuilder
+     */
+    public function getProductQueryBuilderByMembershipId($MembershipId)
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->innerJoin('p.ProductClasses', 'pc')
+            ->innerJoin('p.ProductMembership', 'pm')
+            ->where('pm.id = :MembershipId')
+            ->setParameter('MembershipId', $MembershipId);
+
+        // Order By
+        // XXX Paginater を使用した場合に PostgreSQL で正しくソートできない
+        $qb->addOrderBy('p.id', 'DESC');
 
         return $qb;
     }

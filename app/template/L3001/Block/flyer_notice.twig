@@ -1,0 +1,53 @@
+<script type="text/javascript">
+    $(function(){
+        $(".newslist").each(function(){
+            var listLenght = $(this).find("dl").length;
+            if(listLenght>5){
+                $(this).find("dl:gt(4)").each(function(){$(this).hide();});
+                $(this).append('<p class="news_more"><a id="news_readmore">» もっと見る</a></p>');
+                var dispNum = 5;
+                $(this).find("#news_readmore").click(function(){
+                    dispNum +=5;
+                    $(this).parents(".newslist").find("dl:lt("+dispNum+")").show(500);
+                    if (dispNum>=listLenght) {
+                        $(this).hide();
+                    }
+                })
+            }
+        });
+    });
+</script>
+<div id="news_area" class="row">
+    <div class="category_header col-xs-12">
+        <h2 class="heading01">お知らせ<span class="glyphicon glyphicon-download" aria-hidden="true"></span></h2>
+    </div>
+    <div class="accordion col-xs-12">
+        <div class="newslist">
+            {% for Flyer in FlyerList %}
+				<span style="margin-left:20rem;text-align: left;font-size:120%;"><a href="{{ url('flyer_download', {'id': Flyer.id}) }}">{{ Flyer.link_label}}</a></span>
+                <span style="margin-left:20rem;margin-right:2rem;font-size:90%;float: right;">
+                    <a href="{{ url('flyer_download', {'id': Flyer.id}) }}"><svg class="cb cb-eye"><use xlink:href="#cb-eye" /></svg></a>
+                </span>                       
+
+                <dl>
+                    <dt>
+                        <span class="date" style="width:17rem;">
+                            {{ Flyer.disp_from|date("Y/m/d") }}~ {{ Flyer.disp_to|date("Y/m/d") }}
+                        </span>
+
+                        <span style="width:34rem;font-size:110%;">{{Flyer.ProductTraining.Product.name}}</span>
+                    </dt>
+
+                    {% if Flyer.description %}
+                        <dd>{{ Flyer.description |raw|nl2br}}
+
+                        </dd>
+                    {% endif %}
+                </dl>
+            {% endfor %}
+           {% if FlyerList |length == 0 %}
+            現在、ご案内できるチラシはありませんを表示
+            {% endif %}
+        </div><!--/newslist-->
+    </div><!--/accordion-->
+</div><!--/news_area-->

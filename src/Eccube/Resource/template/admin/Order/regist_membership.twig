@@ -1,0 +1,51 @@
+{#
+ This file is Customized File
+#}
+{% extends 'default_frame.twig' %}
+
+{% set menus = ['order', 'order_regist', 'order_membership_order_regist'] %}
+
+{% block title %}受注管理{% endblock %}
+{% block sub_title %}年会費一括受注登録{% endblock %}
+
+{% form_theme form 'Form/bootstrap_3_horizontal_layout.html.twig' %}
+
+{% block javascript %}
+<script src="//ajaxzip3.github.io/ajaxzip3.js" charset="UTF-8"></script>
+{% endblock javascript %}
+
+{% block main %}
+<div class="row" id="aside_wrap">
+    <form name="form1" method="post" action="?">
+    <input type="hidden" name="modal" value="">
+    {{ form_widget(form._token) }}
+        <div id="detail_wrap" class="col-md-12">
+            <div class="col_inner">
+                <div id="number_info_box" class="box no-header">
+                    <div id="number_info_box__body" class="box-body">
+                        <div class="row">
+                            <div id="number_info_box__order_status" class="col-sm-4">
+                                <h4>対象年度</span></h4>
+                                <div class="form-group">
+                                    {{ form_widget(form.MembershipYear) }}
+                                    {{ form_errors(form.MembershipYear) }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="small text-danger">現在の登録済み会員情報、および、年会費受注状態に基づき受注を作成します</div>
+                    </div><!-- /.box-body -->
+                </div><!-- /.box -->
+            </div>
+            <div id="detail__insert_button" class="row btn_area">
+                <p class="col-xs-8 col-xs-offset-2 col-sm-4 col-sm-offset-4 text-center">
+                    <button type="submit" class="btn btn-primary btn-block btn-lg" name="mode" value="register">受注情報作成を実行</button>
+                </p>
+                <!-- /.col -->
+            </div>
+        </div><!-- /.col -->
+    </form>
+</div>
+{% endblock %}
+
+{% block modal %}
+{% endblock %}

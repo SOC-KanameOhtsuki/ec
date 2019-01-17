@@ -1,0 +1,8 @@
+name: ビデオ商品
+code: ProductVideo
+version: 0.1.1
+event: ProductVideoEvent
+service:
+    - ProductVideoServiceProvider
+orm.path:
+    - /Resource/doctrine

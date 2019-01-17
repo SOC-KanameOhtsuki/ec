@@ -101,8 +101,16 @@ class EntryController extends AbstractController
                     $CustomerAddress
                         ->setFromCustomer($Customer);
 
+                    $CustomerBasicInfo = new \Eccube\Entity\CustomerBasicInfo();
+                    $CustomerBasicInfo->setCustomer($Customer)
+                                        ->setStatus($app['eccube.repository.customer_basic_info_status']->find($app['config']['initialize_customer_basicinfo_status']))
+                                        ->setExemptionType($app['eccube.repository.master.exemption_type_type']->find($app['config']['initialize_exemption_type']))
+                                        ->setInstructorType($app['eccube.repository.master.instructor_type']->find($app['config']['initialize_instructor_type']))
+                                        ->setSupporterType($app['eccube.repository.master.supporter_type']->find($app['config']['initialize_supporter_type']));
+
                     $app['orm.em']->persist($Customer);
                     $app['orm.em']->persist($CustomerAddress);
+                    $app['orm.em']->persist($CustomerBasicInfo);
                     $app['orm.em']->flush();
 
                     log_info('会員登録完了');

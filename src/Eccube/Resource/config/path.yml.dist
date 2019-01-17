@@ -4,6 +4,8 @@ admin_dir: ${ADMIN_ROUTE}/ # admin_route
 tpl: ${ROOT_PUBLIC_URLPATH}/user_data/packages/default/ # front_urlpath
 admin_tpl: ${ROOT_PUBLIC_URLPATH}/user_data/packages/admin/ # admin_urlpath
 image_path: ${ROOT_PUBLIC_URLPATH}/upload/save_image/ # image_save_urlpath
+customer_image_path: ${ROOT_PUBLIC_URLPATH}/upload/customer_image/ # customer_image_save_urlpath
+questionnaire_attachment_path: ${ROOT_PUBLIC_URLPATH}/upload/questionnaire_attachment/ # questionnaire_attachment_save_urlpath
 
 # base valiables
 root_dir: ${ROOT_DIR}
@@ -21,6 +23,19 @@ public_path_realdir: ${ROOT_DIR}/html
 # realdir::image
 image_save_realdir: ${ROOT_DIR}/html/upload/save_image
 image_temp_realdir: ${ROOT_DIR}/html/upload/temp_image
+
+# realdir::customer_image
+customer_image_save_realdir: ${ROOT_DIR}/html/upload/customer_image
+
+# realdir::product_image
+product_image_save_realdir: ${ROOT_DIR}/html/upload/product_image
+
+# realdir::product_file
+product_file_save_realdir: ${ROOT_DIR}/html/upload/product_file
+
+# realdir::questionnaire_attachment
+questionnaire_attachment_save_realdir: ${ROOT_DIR}/html/upload/questionnaire_attachment
+file_temp_realdir: ${ROOT_DIR}/html/upload/temp_file
 
 # realdir::user_data
 user_data_realdir: ${ROOT_DIR}/html/user_data
@@ -51,5 +66,11 @@ admin_urlpath: ${ROOT_PUBLIC_URLPATH}/template/admin
 front_urlpath: ${ROOT_PUBLIC_URLPATH}/template/${TEMPLATE_CODE}
 image_save_urlpath: ${ROOT_PUBLIC_URLPATH}/upload/save_image
 image_temp_urlpath: ${ROOT_PUBLIC_URLPATH}/upload/temp_image
+customer_image_save_urlpath: ${ROOT_PUBLIC_URLPATH}/upload/customer_image
+product_image_save_urlpath: ${ROOT_PUBLIC_URLPATH}/upload/product_image
+product_file_save_urlpath: ${ROOT_PUBLIC_URLPATH}/upload/product_file
+questionnaire_attachment_save_urlpath: ${ROOT_PUBLIC_URLPATH}/upload/questionnaire_attachment
+file_temp_urlpath: ${ROOT_PUBLIC_URLPATH}/upload/temp_file
 user_data_urlpath: ${ROOT_PUBLIC_URLPATH}/user_data
 plugin_urlpath: ${ROOT_PUBLIC_URLPATH}/plugin
+qr_code_get_url: http://153.126.136.244/qr-code/qr_img.php?d=

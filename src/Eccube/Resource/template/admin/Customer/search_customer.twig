@@ -1,0 +1,101 @@
+<script>
+    $('.add-customer').on('click', function () {
+        $.ajax({
+            type: 'POST',
+            data: { 'id' : this.dataset.customer },
+            url: '{{ url('admin_customer_group_search_customer_by_id') }}',
+            success: function(data) {
+                // 顧客情報をフォームにセットする.
+                if ($('#customer_list__item_detail--' + data['id']).length) {
+                    alert('この会員はすでに追加済みです');
+                } else {
+                    var idx = $('input[id^="admin_customer_group_Customers_"]').length;
+                    var add_customer_tr = '<tr id="customer_list__item_detail--' + data['id'] + '">' + "\n";
+                    add_customer_tr += "\t" + '<td id="customer_info_list__id--' + data['id'] + '" class="text-left">' + "\n";
+                    add_customer_tr += "\t\t" + '<input id="admin_customer_group_Customers_' + idx + '_id" type="hidden" name="admin_customer_group[Customers][' + idx + '][id]" value="' + data['id'] + '">' + "\n";
+                    add_customer_tr += "\t\t" + data['id'] + "\n";
+                    add_customer_tr += "\t</td>\n";
+                    add_customer_tr += "\t" + '<td id="customer_info_list__name--' + data['id'] + '" class="text-left">' + "\n";
+                    add_customer_tr += "\t\t" + data['name01'] + data['name02'] + "(" + data['kana01'] + data['kana02'] + ")\n";
+                    add_customer_tr += "\t</td>\n";
+                    add_customer_tr += "\t" + '<td id="customer_info_list__tel--' + data['id'] + '" class="text-left">' + "\n";
+                    if ((0 < data['tel01'].length) && (0 < data['tel02'].length) && (0 < data['tel03'].length)) {
+                        add_customer_tr += "\t\t" + data['tel01'] + "-" + data['tel02'] + "-" + data['tel03'] + "\n";
+                    }
+                    add_customer_tr += "\t</td>\n";
+                    add_customer_tr += "\t" + '<td id="customer_info_list__email--' + data['id'] + '" class="text-left">' + "\n";
+                    add_customer_tr += "\t\t" + data['email'] + "\n";
+                    add_customer_tr += "\t</td>\n";
+                    add_customer_tr += "\t" + '<td id="customer_info_list__button_customer_delete--' + data['id'] + '" class="icon_edit">' + "\n";
+                    add_customer_tr += "\t\t" + '<button type="button" class="btn btn-default btn-sm delete-item" onClick="deleteCustomer(' + data['id'] + ');" >削除</button>' + "\n";
+                    add_customer_tr += "\t</td>\n";
+                    add_customer_tr += "</tr>\n";
+                    $('#group_customer_list').append(add_customer_tr);
+                }
+                // モーダルを閉じる.
+                $('#searchCustomerModal').modal('hide');
+            },
+            error: function() {
+                alert('search customer(by id) failed.');
+            }
+        });
+    });
+
+    // 会員検索
+    $('#customer_pagination a').on('click', function(event) {
+        if (!$(this).parent().is('.active')) {
+            var list = $('#searchCustomerModalList');
+            list.children().remove();
+
+            $.ajax({
+                type: 'GET',
+                dataType: 'html',
+                url: $(this).attr('href'),
+                success: function(data) {
+                    $('#searchCustomerModalList').html(data);
+                },
+                error: function() {
+                    alert('search customer failed.');
+                }
+            });
+        }
+        event.preventDefault();
+    });
+</script>
+<div class="table-responsive">
+    <table class="table">
+        <thead >
+            <tr id="search_customer_modal_box__body_inner_header">
+                <th>会員ID</th>
+                <th>お名前(カナ)</th>
+                <th>電話番号</th>
+                <th>メールアドレス</th>
+                <th>追加</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for Customer in data %}
+                <tr>
+                    <td>
+                        {{ Customer.id }}
+                    </td>
+                    <td>
+                        {{ Customer.name }}
+                    </td>
+                    <td>
+                        {{ Customer.tel }}
+                    </td>
+                    <td>
+                        {{ Customer.email }}
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-default btn-sm add-customer" data-customer="{{ Customer.id }}">追加</button>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% if pagination.totalItemCount > 0 %}
+        {% include "pager.twig" with {'id': 'customer_pagination', 'pages': pagination.paginationData, 'routes': 'admin_customer_group_search_customer_html_page'} %}
+    {% endif %}
+</div>

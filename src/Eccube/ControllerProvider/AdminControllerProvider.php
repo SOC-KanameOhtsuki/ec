@@ -61,6 +61,7 @@ class AdminControllerProvider implements ControllerProviderInterface
         $c->post('/product/product/{id}/copy', '\Eccube\Controller\Admin\Product\ProductController::copy')->assert('id', '\d+')->bind('admin_product_product_copy');
         $c->post('/product/product/class/edit/{id}', '\Eccube\Controller\Admin\Product\ProductClassController::edit')->assert('id', '\d+')->bind('admin_product_product_class_edit');
         $c->post('/product/product/image/add', '\Eccube\Controller\Admin\Product\ProductController::addImage')->bind('admin_product_image_add');
+        $c->post('/product/product/file/add', '\Eccube\Controller\Admin\Product\ProductController::addFile')->bind('admin_product_file_add');
 
         $c->match('/product/category', '\Eccube\Controller\Admin\Product\CategoryController::index')->bind('admin_product_category');
         $c->match('/product/category/export', '\Eccube\Controller\Admin\Product\CategoryController::export')->bind('admin_product_category_export');
@@ -89,8 +90,24 @@ class AdminControllerProvider implements ControllerProviderInterface
         $c->match('/customer/export', '\Eccube\Controller\Admin\Customer\CustomerController::export')->bind('admin_customer_export');
         $c->match('/customer/new', '\Eccube\Controller\Admin\Customer\CustomerEditController::index')->bind('admin_customer_new');
         $c->match('/customer/{id}/edit', '\Eccube\Controller\Admin\Customer\CustomerEditController::index')->assert('id', '\d+')->bind('admin_customer_edit');
+        $c->match('/customer/{id}/annual_fee', '\Eccube\Controller\Admin\Customer\CustomerController::annualFeeReport')->assert('id', '\d+')->bind('admin_customer_annual_fee_report');
         $c->delete('/customer/{id}/delete', '\Eccube\Controller\Admin\Customer\CustomerController::delete')->assert('id', '\d+')->bind('admin_customer_delete');
         $c->put('/customer/{id}/resend', '\Eccube\Controller\Admin\Customer\CustomerController::resend')->assert('id', '\d+')->bind('admin_customer_resend');
+        $c->post('/customer/customer/image/add', '\Eccube\Controller\Admin\Customer\CustomerEditController::addImage')->bind('admin_customer_image_add');
+        $c->post('/customer/search/group/html', '\Eccube\Controller\Admin\Customer\CustomerEditController::searchCustomerGroupHtml')->bind('admin_customer_search_customer_group_html');
+        $c->match('/customer/search/group/html/page/{page_no}', '\Eccube\Controller\Admin\CustomerCustomerEditController::searchCustomerGroupHtml')->assert('page_no', '\d+')->bind('admin_customer_search_customer_group_html_page');
+        $c->post('/customer/search/group/id', '\Eccube\Controller\Admin\Customer\CustomerEditController::searchCustomerGroupById')->bind('admin_customer_search_customer_group_by_id');
+        $c->match('/customer/group', '\Eccube\Controller\Admin\Customer\CustomerGroupController::index')->bind('admin_customer_group');
+        $c->match('/customer/group/page/{page_no}', '\Eccube\Controller\Admin\Customer\CustomerGroupController::index')->assert('page_no', '\d+')->bind('admin_customer_group_page');
+        $c->match('/customer/group/new', '\Eccube\Controller\Admin\Customer\CustomerGroupEditController::index')->bind('admin_customer_group_new');
+        $c->match('/customer/group/{id}/edit', '\Eccube\Controller\Admin\Customer\CustomerGroupEditController::index')->assert('id', '\d+')->bind('admin_customer_group_edit');
+        $c->delete('/customer/group/{id}/delete', '\Eccube\Controller\Admin\Customer\CustomerGroupController::delete')->assert('id', '\d+')->bind('admin_customer_group_delete');
+        $c->post('/customer/group/search/customer/html', '\Eccube\Controller\Admin\Customer\CustomerGroupEditController::searchCustomerHtml')->bind('admin_customer_group_search_customer_html');
+        $c->match('/customer/group/search/customer/html/page/{page_no}', '\Eccube\Controller\Admin\Customer\CustomerGroupEditController::searchCustomerHtml')->assert('page_no', '\d+')->bind('admin_customer_group_search_customer_html_page');
+        $c->post('/customer/group/search/customer/id', '\Eccube\Controller\Admin\Customer\CustomerGroupEditController::searchCustomerById')->bind('admin_customer_group_search_customer_by_id');
+        $c->match('/customer/membership', '\Eccube\Controller\Admin\Customer\CustomerMembershipController::index')->bind('admin_customer_membership_payment_list');
+        $c->match('/customer/membership/page/{page_no}', '\Eccube\Controller\Admin\Customer\CustomerMembershipController::index')->bind('admin_customer_membership_payment_list_page');
+        $c->match('/customer/membership/{id}/detail', '\Eccube\Controller\Admin\Customer\CustomerMembershipController::detail')->assert('id', '\d+')->bind('admin_customer_membership_payment_detail');
 
         // order
         $c->match('/order', '\Eccube\Controller\Admin\Order\OrderController::index')->bind('admin_order');
@@ -98,6 +115,25 @@ class AdminControllerProvider implements ControllerProviderInterface
         $c->match('/order/new', '\Eccube\Controller\Admin\Order\EditController::index')->bind('admin_order_new');
         $c->match('/order/{id}/edit', '\Eccube\Controller\Admin\Order\EditController::index')->assert('id', '\d+')->bind('admin_order_edit');
         $c->delete('/order/{id}/delete', '\Eccube\Controller\Admin\Order\OrderController::delete')->assert('id', '\d+')->bind('admin_order_delete');
+        $c->match('/order/group/', '\Eccube\Controller\Admin\Order\OrderController::indexGroup')->bind('admin_group_order');
+        $c->match('/order/group/{page_no}', '\Eccube\Controller\Admin\Order\OrderController::indexGroup')->assert('page_no', '\d+')->bind('admin_group_order_page');
+        $c->match('/order/group/new', '\Eccube\Controller\Admin\Order\EditController::groupEdit')->bind('admin_group_order_new');
+        $c->match('/order/group/{id}/edit', '\Eccube\Controller\Admin\Order\EditController::groupEdit')->assert('id', '\d+')->bind('admin_group_order_edit');
+        $c->delete('/order/group/{id}/delete', '\Eccube\Controller\Admin\Order\OrderController::deleteGroup')->assert('id', '\d+')->bind('admin_group_order_delete');
+        $c->match('/order/group/export/invoice_select', '\Eccube\Controller\Admin\Order\OrderController::exportInvoiceSelect')->bind('admin_order_group_select_invoice_export');
+        $c->match('/order/group/export/invoice_all', '\Eccube\Controller\Admin\Order\OrderController::exportInvoiceAll')->bind('admin_order_group_all_invoice_export');
+        $c->match('/order/group/export/delivery_select', '\Eccube\Controller\Admin\Order\OrderController::exportDeliverySelect')->bind('admin_order_group_select_delivery_export');
+        $c->match('/order/group/export/delivery_all', '\Eccube\Controller\Admin\Order\OrderController::exportDeliveryAll')->bind('admin_order_group_all_delivery_export');
+        $c->match('/order/membership', '\Eccube\Controller\Admin\Order\OrderController::indexMembershipBilling')->bind('admin_membership_order');
+        $c->match('/order/membership/{page_no}', '\Eccube\Controller\Admin\Order\OrderController::indexMembershipBilling')->assert('page_no', '\d+')->bind('admin_membership_order_page');
+        $c->match('/order/membership/{id}/detail', '\Eccube\Controller\Admin\Order\OrderController::indexMembershipBillingDetail')->assert('id', '\d+')->bind('admin_membership_order_detail');
+        $c->match('/order/membership/{id}/detail/{page_no}', '\Eccube\Controller\Admin\Order\OrderController::indexMembershipBillingDetail')->assert('id', '\d+')->assert('page_no', '\d+')->bind('admin_membership_order_detail_page');
+        $c->match('/order/membership/regist', '\Eccube\Controller\Admin\Order\EditController::registMembership')->bind('admin_membership_order_regist');
+        $c->post('/order/search/group/html', '\Eccube\Controller\Admin\Order\EditController::searchCustomerGroupHtml')->bind('admin_order_search_group_html');
+        $c->match('/order/search/group/html/page/{page_no}', '\Eccube\Controller\Admin\Order\EditController::searchCustomerGroupHtml')->assert('page_no', '\d+')->bind('admin_order_search_group_html_page');
+        $c->post('/order/search/customer_by_group/id', '\Eccube\Controller\Admin\Order\EditController::searchCustomerByGroupId')->bind('admin_order_search_customer_by_group_id');
+        $c->post('/order/search/customer_group/id', '\Eccube\Controller\Admin\Order\EditController::searchCustomerGroupByGroupId')->bind('admin_order_search_customer_group_by_group_id');
+        $c->delete('/order/group/{id}/delete', '\Eccube\Controller\Admin\Order\OrderController::groupDelete')->assert('id', '\d+')->bind('admin_order_group_delete');
         $c->match('/order/export/order', '\Eccube\Controller\Admin\Order\OrderController::exportOrder')->bind('admin_order_export_order');
         $c->match('/order/export/shipping', '\Eccube\Controller\Admin\Order\OrderController::exportShipping')->bind('admin_order_export_shipping');
         $c->post('/order/search/customer', '\Eccube\Controller\Admin\Order\EditController::searchCustomer')->bind('admin_order_search_customer');
@@ -113,8 +149,85 @@ class AdminControllerProvider implements ControllerProviderInterface
         $c->match('/order/mail_complete', '\Eccube\Controller\Admin\Order\MailController::complete')->bind('admin_order_mail_complete');
         $c->match('/order/mail/view', '\Eccube\Controller\Admin\Order\MailController::view')->bind('admin_order_mail_view');
 
+        // questionnaire
+        $c->match('/questionnaire', '\Eccube\Controller\Admin\Questionnaire\QuestionnaireController::index')->bind('admin_questionnaire');
+        $c->match('/questionnaire/page/{page_no}', '\Eccube\Controller\Admin\Questionnaire\QuestionnaireController::index')->assert('page_no', '\d+')->bind('admin_questionnaire_page');
+        $c->match('/questionnaire/new', '\Eccube\Controller\Admin\Questionnaire\QuestionnaireController::edit')->bind('admin_questionnaire_new');
+        $c->match('/questionnaire/{id}/edit', '\Eccube\Controller\Admin\Questionnaire\QuestionnaireController::edit')->assert('id', '\d+')->bind('admin_questionnaire_edit');
+        $c->match('/questionnaire/{id}/display', '\Eccube\Controller\Admin\Product\ProductController::display')->assert('id', '\d+')->bind('admin_product_product_display');
+        $c->delete('/questionnaire/{id}/delete', '\Eccube\Controller\Admin\Questionnaire\QuestionnaireController::delete')->assert('id', '\d+')->bind('admin_questionnaire_delete');
+        $c->post('/questionnaire/{id}/copy', '\Eccube\Controller\Admin\Questionnaire\QuestionnaireController::copy')->assert('id', '\d+')->bind('admin_questionnaire_copy');
+        $c->post('/questionnaire/attachment/add', '\Eccube\Controller\Admin\Questionnaire\QuestionnaireController::addAttachment')->bind('admin_questionnaire_attachment_add');
+
+        // training
+        $c->match('/training/type', '\Eccube\Controller\Admin\Training\TrainingController::indexType')->bind('admin_training_type');
+        $c->match('/training/type/new', '\Eccube\Controller\Admin\Training\TrainingController::editType')->bind('admin_training_type_new');
+        $c->match('/training/type/{id}/edit', '\Eccube\Controller\Admin\Training\TrainingController::editType')->assert('id', '\d+')->bind('admin_training_type_edit');
+        $c->match('/training/type/page/{page_no}', '\Eccube\Controller\Admin\Training\TrainingController::indexType')->assert('page_no', '\d+')->bind('admin_training_type_page');
+        $c->match('/training/product', '\Eccube\Controller\Admin\Training\TrainingController::indexProduct')->bind('admin_training');
+        $c->match('/training/product/new', '\Eccube\Controller\Admin\Training\TrainingController::editProduct')->bind('admin_training_new');
+        $c->match('/training/product/{id}/edit', '\Eccube\Controller\Admin\Training\TrainingController::editProduct')->assert('id', '\d+')->bind('admin_training_edit');
+        $c->match('/training/product/page/{page_no}', '\Eccube\Controller\Admin\Training\TrainingController::indexProduct')->assert('page_no', '\d+')->bind('admin_training_page');
+        $c->post('/training/product/image/add', '\Eccube\Controller\Admin\Training\TrainingController::addImage')->bind('admin_training_image_add');
+        $c->match('/training/product/{id}/display', '\Eccube\Controller\Admin\Training\TrainingController::display')->assert('id', '\d+')->bind('admin_training_display');
+        $c->delete('/training/product/{id}/delete', '\Eccube\Controller\Admin\Training\TrainingController::delete')->assert('id', '\d+')->bind('admin_training_delete');
+        $c->post('/training/product/{id}/copy', '\Eccube\Controller\Admin\Training\TrainingController::copy')->assert('id', '\d+')->bind('admin_training_copy');
+        $c->match('/training/product_by_student', '\Eccube\Controller\Admin\Training\TrainingController::indexProductByStudent')->bind('admin_pruduct_by_student');
+        $c->match('/training/product_by_student/page/{page_no}', '\Eccube\Controller\Admin\Training\TrainingController::indexProductByStudent')->assert('page_no', '\d+')->bind('admin_pruduct_by_student_page');
+        $c->match('/training/student/{id}', '\Eccube\Controller\Admin\Training\TrainingController::indexStudent')->assert('id', '\d+')->bind('admin_student');
+        $c->match('/training/student/{id}/page/{page_no}', '\Eccube\Controller\Admin\Training\TrainingController::indexStudent')->assert('id', '\d+')->assert('page_no', '\d+')->bind('admin_student_page');
+        $c->match('/training/csv/member_list/{id}', '\Eccube\Controller\Admin\Training\TrainingController::outCsvMemberList')->assert('id', '\d+')->bind('admin_training_printing_member_list');
+        $c->match('/training/printing/fax_accept/{id}', '\Eccube\Controller\Admin\Training\TrainingController::printFaxAccept')->assert('id', '\d+')->bind('admin_training_printing_fax_accept');
+        $c->match('/training/printing/payment_confirm/{id}', '\Eccube\Controller\Admin\Training\TrainingController::printPaymentConfirm')->assert('id', '\d+')->bind('admin_training_printing_payment_confirm');
+        $c->match('/training/printing/registration_confirm/{id}', '\Eccube\Controller\Admin\Training\TrainingController::printRegistrationConfirm')->assert('id', '\d+')->bind('admin_training_printing_registration_confirm');
+        $c->match('/training/printing/name_tag/{id}', '\Eccube\Controller\Admin\Training\TrainingController::printNameTag')->assert('id', '\d+')->bind('admin_training_printing_name_tag');
+        $c->match('/training/printing/certification/{id}', '\Eccube\Controller\Admin\Training\TrainingController::printCertification')->assert('id', '\d+')->bind('admin_training_printing_certification');
+        $c->match('/training/printing/mail_label/{id}', '\Eccube\Controller\Admin\Training\TrainingController::printMailLabel')->assert('id', '\d+')->bind('admin_training_printing_mail_label');
+        $c->match('/training/printing/certification_sendding_note/{id}', '\Eccube\Controller\Admin\Training\TrainingController::printCertificationSenddingNote')->assert('id', '\d+')->bind('admin_training_printing_certification_sendding_note');
+        $c->post('/training/student/bulk_deny', '\Eccube\Controller\Admin\Training\TrainingController::bulkDeny')->bind('admin_training_bulk_deny');
+        $c->post('/training/student/deny_reason', '\Eccube\Controller\Admin\Training\TrainingController::setDenyReason')->bind('admin_training_deny_reason');
+        $c->post('/training/student/bulk_certified', '\Eccube\Controller\Admin\Training\TrainingController::bulkCertified')->bind('admin_training_bulk_certified');
+        $c->match('/training/flyer', '\Eccube\Controller\Admin\Training\TrainingController::indexFlyer')->bind('admin_training_flyer');
+        $c->match('/training/flyer/page/{page_no}', '\Eccube\Controller\Admin\Training\TrainingController::indexFlyer')->assert('page_no', '\d+')->bind('admin_training_flyer_page');
+        $c->post('/training/search/training/html', '\Eccube\Controller\Admin\Training\TrainingController::searchTrainingHtml')->bind('admin_flyer_search_training_html');
+        $c->match('/training/search/training/html/page/{page_no}', '\Eccube\Controller\Admin\Training\TrainingController::searchTrainingHtml')->assert('page_no', '\d+')->bind('admin_flyer_search_training_html_page');
+        $c->post('/training/search/training/id', '\Eccube\Controller\Admin\Training\TrainingController::searchTrainingById')->bind('admin_flyer_search_training_by_training_id');
+        $c->match('/training/flyer/new', '\Eccube\Controller\Admin\Training\TrainingController::editFlyer')->bind('admin_training_flyer_new');
+        $c->match('/training/flyer/{id}/edit', '\Eccube\Controller\Admin\Training\TrainingController::editFlyer')->assert('id', '\d+')->bind('admin_training_flyer_edit');
+        $c->match('/training/flyer/{id}/display', '\Eccube\Controller\Admin\Training\TrainingController::displayFlyer')->assert('id', '\d+')->bind('admin_training_flyer_display');
+        $c->delete('/training/flyer/{id}/delete', '\Eccube\Controller\Admin\Training\TrainingController::deleteFlyer')->assert('id', '\d+')->bind('admin_training_flyer_delete');
+
+        // form_printing
+        $c->match('/form_printing/payment', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::payment')->bind('admin_form_printing_payment');
+        $c->match('/form_printing/payment/page/{page_no}', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::payment')->assert('page_no', '\d+')->bind('admin_form_printing_payment_page');
+        $c->match('/form_printing/payment_all_download', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::paymentAllExport')->bind('admin_payment_all_export');
+        $c->match('/form_printing/payment_select_download', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::paymentSelectExport')->bind('admin_payment_select_export');
+        $c->match('/form_printing/payment_all_csv_download', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::paymentAllCsvExport')->bind('admin_all_csv_export');
+        $c->match('/form_printing/payment_select_csv_download', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::paymentSelectCsvExport')->bind('admin_select_csv_export');
+        $c->match('/form_printing/invoice', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::invoice')->bind('admin_form_printing_invoice');
+        $c->match('/form_printing/invoice/page/{page_no}', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::invoice')->assert('page_no', '\d+')->bind('admin_form_printing_invoice_page');
+        $c->match('/form_printing/invoice_all_download', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::invoiceAllExport')->bind('admin_invoice_all_export');
+        $c->match('/form_printing/invoice_select_download', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::invoiceSelectExport')->bind('admin_invoice_select_export');
+        $c->match('/form_printing/delivery', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::delivery')->bind('admin_form_printing_delivery');
+        $c->match('/form_printing/delivery/page/{page_no}', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::delivery')->assert('page_no', '\d+')->bind('admin_form_printing_delivery_page');
+        $c->match('/form_printing/delivery_all_download', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::deliveryAllExport')->bind('admin_delivery_all_export');
+        $c->match('/form_printing/delivery_select_download', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::deliverySelectExport')->bind('admin_delivery_select_export');
+        $c->match('/form_printing/business_card', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::businessCard')->bind('admin_form_printing_business_card');
+        $c->match('/form_printing/business_card/page/{page_no}', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::businessCard')->bind('admin_form_printing_business_card_page');
+        $c->match('/form_printing/business_card_all_download', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::businessCardAllExport')->bind('admin_business_card_list_all_export');
+        $c->match('/form_printing/business_card_select_download', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::businessCardSelectExport')->bind('admin_business_card_list_select_export');
+        $c->match('/form_printing/certification', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::certification')->bind('admin_form_printing_certification');
+        $c->match('/form_printing/certification/page/{page_no}', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::certification')->bind('admin_form_printing_certification_page');
+        $c->match('/form_printing/certification_all_download', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::certificationAllExport')->bind('admin_certification_all_export');
+        $c->match('/form_printing/certification_select_download', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::certificationSelectExport')->bind('admin_certification_select_export');
+        $c->match('/form_printing/regular_member_list', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::regularMemberList')->bind('admin_form_printing_regular_member_list');
+        $c->match('/form_printing/regular_member_list/page/{page_no}', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::regularMemberList')->bind('admin_form_printing_regular_member_list_page');
+        $c->match('/form_printing/regular_member_list_all_download', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::regularMemberListAllExport')->bind('admin_regular_member_all_export');
+        $c->match('/form_printing/regular_member_list_select_download', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::regularMemberListSelectExport')->bind('admin_regular_member_select_export');
+
         // content
         // deprecated /content/ 3.1 delete. use /content/news
+
         $c->match('/content', '\Eccube\Controller\Admin\Content\ContentsController::index')->bind('admin_content');
         $c->match('/content/new', '\Eccube\Controller\Admin\Content\ContentsController::edit')->bind('admin_content_new');
         $c->match('/content/{id}/edit', '\Eccube\Controller\Admin\Content\ContentsController::edit')->assert('id', '\d+')->bind('admin_content_edit');
@@ -125,7 +238,7 @@ class AdminControllerProvider implements ControllerProviderInterface
         $c->match('/content/news', '\Eccube\Controller\Admin\Content\NewsController::index')->bind('admin_content_news');
         $c->match('/content/news/new', '\Eccube\Controller\Admin\Content\NewsController::edit')->bind('admin_content_news_new');
         $c->match('/content/news/{id}/edit', '\Eccube\Controller\Admin\Content\NewsController::edit')->assert('id', '\d+')->bind('admin_content_news_edit');
-        $c->delete('/content/news/{id}/delete', '\Eccube\Controller\Admin\Content\NewsController::delete')->assert('id', '\d+')->bind('admin_content_news_delete');
+        $c->delete('/content/news/{id}/delete', '\Eccube\Controller\Admin\Content\NewsController::delete')->assert('id', '\d+')->bind('admin_content_delete');
         $c->put('/content/news/{id}/up', '\Eccube\Controller\Admin\Content\NewsController::up')->assert('id', '\d+')->bind('admin_content_news_up');
         $c->put('/content/news/{id}/down', '\Eccube\Controller\Admin\Content\NewsController::down')->assert('id', '\d+')->bind('admin_content_news_down');
 

@@ -14,8 +14,10 @@ Kana01: セイ
 Kana02: メイ
 Zip: 郵便番号
 Address: 住所
+Office address: 勤務先住所
 Tel: 電話番号
 Fax: FAX番号
+Mobilephone: 携帯番号
 Email: メールアドレス
 Password: パスワード
 Job: 職業
@@ -135,6 +137,9 @@ admin.customer.save.failed: 会員情報を保存できませんでした。
 admin.customer.delete.complete: 会員情報を削除しました。
 admin.customer.resend.complete: 仮会員登録メールを送信しました。
 
+admin.customer_group.save.complete: 会員グループ情報を保存しました。
+admin.customer_group.save.failed: 会員グループ情報を保存できませんでした。
+
 admin.news.up.complete: 新着情報を上へ移動しました。
 admin.news.up.error: 新着情報を上へ移動できませんでした。
 admin.news.down.complete: 新着情報を下へ移動しました。
@@ -202,3 +207,16 @@ normal_price_title: 通常価格    # 未使用
 sale_price_title: 販売価格
 form.address1.help: '市区町村名 (例：千代田区神田神保町)'
 form.address2.help: '番地・ビル名 (例：1-3-5)'
+
+admin.payment_pdf.parameter.notfound: 出力対象がありません。
+admin.invoice_pdf.parameter.notfound: 出力対象がありません。
+admin.delevery_pdf.parameter.notfound: 出力対象がありません。
+admin.business_card_pdf.parameter.notfound: 出力対象がありません。
+admin.certification_pdf.parameter.notfound: 出力対象がありません。
+admin.regular_member_list_pdf.parameter.notfound: 出力対象がありません。
+admin.payment_pdf.download.failure: ダウンロード失敗!
+admin.invoice_pdf.download.failure: ダウンロード失敗!
+admin.delevery_pdf.download.failure: ダウンロード失敗!
+admin.business_card_pdf.download.failure: ダウンロード失敗!
+admin.certification_pdf.failure: ダウンロード失敗!
+admin.regular_member_list_pdf.download.failure: ダウンロード失敗!

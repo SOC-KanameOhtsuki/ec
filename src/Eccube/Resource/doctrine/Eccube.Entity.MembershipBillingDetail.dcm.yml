@@ -1,0 +1,65 @@
+Eccube\Entity\MembershipBillingDetail:
+    type: entity
+    table: dtb_membership_billing_detail
+    repositoryClass: Eccube\Repository\MembershipBillingDetailRepository
+    indexes:
+        # requires a length on MySQL
+        # dtb_customer_email_idx:
+        #     columns:
+        #         - email
+        dtb_customer_create_date_idx:
+            columns:
+                - create_date
+        dtb_customer_update_date_idx:
+            columns:
+                - update_date
+        dtb_membership_billing_idx:
+            columns:
+                - membership_billing
+        dtb_membership_billing_idx2:
+            columns:
+                - membership_billing
+                - status
+    id:
+        id:
+            type: integer
+            nullable: false
+            unsigned: false
+            id: true
+            column: membership_billing_detail_id
+            generator:
+                strategy: AUTO
+    fields:
+        info:
+            type: text
+            nullable: tue
+        create_date:
+            type: datetime
+            nullable: false
+        update_date:
+            type: datetime
+            nullable: false
+    manyToOne:
+        Status:
+            targetEntity: Eccube\Entity\Master\MembershipBillingDetailStatus
+            joinColumn:
+                name: status
+                referencedColumnName: id
+        Customer:
+            targetEntity: Eccube\Entity\Customer
+            joinColumn:
+                name: customer
+                referencedColumnName: customer_id
+        MembershipBilling:
+            targetEntity: Eccube\Entity\MembershipBilling
+            joinColumn:
+                name: membership_billing
+                referencedColumnName: membership_billing_id
+        Order:
+            targetEntity: Eccube\Entity\Order
+            inversedBy: MembershipBillingDetail
+            joinColumn:
+                name: order_id
+                referencedColumnName: order_id
+                nullable: false
+    lifecycleCallbacks: {  }

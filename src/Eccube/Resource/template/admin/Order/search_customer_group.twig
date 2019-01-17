@@ -1,0 +1,118 @@
+<script>
+    $('.select-customer-group').on('click', function () {
+        $.ajax({
+            type: 'POST',
+            data: { 'id' : this.dataset.customerGroup },
+            url: '{{ url('admin_order_search_customer_by_group_id') }}',
+            success: function(data) {
+                $('#customer_list').empty();
+                // 顧客グループ情報をフォームにセットする.
+                idx = 0;
+                for (let customer of data) {
+                    var add_customer_tr = "<tr>\n";
+                    add_customer_tr += "\t" + '<td class="text-left">' + "\n";
+                    add_customer_tr += "\t\t" + '<input type="checkbox" id="check-' + customer['id']  + '" data-id="' + customer['id']  + '" name="order[CustomerIds][' + idx  + ']" value="' + customer['id'] + '">' + "\n";
+                    add_customer_tr += "\t</td>\n";
+                    add_customer_tr += "\t" + '<td class="text-left">' + "\n";
+                    add_customer_tr += "\t\t" + customer['id'] + "\n";
+                    add_customer_tr += "\t</td>\n";
+                    add_customer_tr += "\t" + '<td class="text-left">' + "\n";
+                    add_customer_tr += "\t\t" + customer['name01'] + customer['name02'] + "(" + customer['kana01']  + customer['kana02'] + ")\n";
+                    add_customer_tr += "\t</td>\n";
+                    add_customer_tr += "\t" + '<td class="text-left">' + "\n";
+                    if ((0 < customer['tel01'].length) && (0 < customer['tel02'].length) && (0 < customer['tel03'].length)) {
+                        add_customer_tr += "\t\t" + customer['tel01'] + "-" + customer['tel02'] + "-" + customer['tel03'] + "\n";
+                    }
+                    add_customer_tr += "\t</td>\n";
+                    add_customer_tr += "\t" + '<td class="text-left">' + "\n";
+                    add_customer_tr += "\t\t" + customer['email'] + "\n";
+                    add_customer_tr += "\t</td>\n";
+                    add_customer_tr += "</tr>\n";
+                    $('#customer_list').append(add_customer_tr);
+                    ++idx;
+                }
+            },
+            error: function() {
+                alert('search customer (by group id) failed.');
+            }
+        });
+        $.ajax({
+            type: 'POST',
+            data: { 'id' : this.dataset.customerGroup },
+            url: '{{ url('admin_order_search_customer_group_by_group_id') }}',
+            success: function(data) {
+                // グループの送付先情報をフォームにセットする.
+                $('#customer_list').append('<input type="hidden" name="order[CustomerGroupId]" value="' + data.id + '">');
+                $("#order_Shippings_0_company_name").val(data.bill_to);
+                $("#order_Shippings_0_address_pref").val(data.send_to_pref);
+                $("#order_Shippings_0_zip_zip01").val(data.send_to_zip01);
+                $("#order_Shippings_0_zip_zip02").val(data.send_to_zip02);
+                $("#order_Shippings_0_tel_tel01").val(data.send_to_tel01);
+                $("#order_Shippings_0_tel_tel02").val(data.send_to_tel02);
+                $("#order_Shippings_0_tel_tel03").val(data.send_to_tel03);
+                $("#order_Shippings_0_fax_fax01").val(data.send_to_fax01);
+                $("#order_Shippings_0_fax_fax02").val(data.send_to_fax02);
+                $("#order_Shippings_0_fax_fax03").val(data.send_to_fax03);
+                // モーダルを閉じる.
+                $('#searchCustomerGroupModal').modal('hide');
+            },
+            error: function() {
+                alert('search customer group (by group id) failed.');
+            }
+        });
+    });
+
+    // 会員グループ検索
+    $('#customer_group_pagination a').on('click', function(event) {
+        if (!$(this).parent().is('.active')) {
+            var list = $('#searchCustomerGroupModalList');
+            list.children().remove();
+
+            $.ajax({
+                type: 'GET',
+                dataType: 'html',
+                url: $(this).attr('href'),
+                success: function(data) {
+                    $('#searchCustomerGroupModalList').html(data);
+                },
+                error: function() {
+                    alert('search customer group failed.');
+                }
+            });
+        }
+        event.preventDefault();
+    });
+</script>
+<div class="table-responsive">
+    <table class="table">
+        <thead >
+            <tr id="search_customer_group_modal_box__body_inner_header">
+                <th>会員グループID</th>
+                <th>会員グループ名</th>
+                <th>請求先名</th>
+                <th>選択</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for CustomerGroup in data %}
+                <tr>
+                    <td>
+                        {{ CustomerGroup.id }}
+                    </td>
+                    <td>
+                        {{ CustomerGroup.name }}
+                    </td>
+                    <td>
+                        {{ CustomerGroup.bill_to }}
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-default btn-sm select-customer-group" data-customer-group="{{ CustomerGroup.id }}">選択</button>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% if pagination.totalItemCount > 0 %}
+        {% include "pager.twig" with {'id': 'customer_group_pagination', 'pages': pagination.paginationData, 'routes': 'admin_order_search_group_html_page'} %}
+    {% endif %}
+</div>

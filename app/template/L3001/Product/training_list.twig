@@ -1,0 +1,131 @@
+{#
+This file is Customized file
+#}
+{% extends 'default_frame.twig' %}
+
+{% set body_class = 'product_page' %}
+
+{% block javascript %}
+{% endblock %}
+
+{% block main %}
+    {% if 0 < tainingCnt %}
+        <form name="form1" id="form1" method="get" action="?">
+            {{ form_widget(search_form) }}
+        </form>
+        <div class="row">
+            <h1 class="page-heading">講習会一覧</h1>
+        </div><!--/row-->
+        <div id="result_info_box" class="row">
+            <form name="page_navi_top" id="page_navi_top" action="?">
+                <table width="920" cellpadding="0" cellspacing="0">
+                    <tbody>
+                        <tr>
+                            <td valign="top" align="center">
+                                <table cellpadding="0" cellspacing="0" width="100%" class="font10">
+                                    <tbody>
+                                        <tr>
+                                            <td align="center">
+                                                <table class="font10" bgcolor="#EAF1F7">
+                                                    <tbody>
+                                                        {% for headerInfo in headerInfos %}
+                                                        <tr>
+                                                            <td align="center"><b>｜</b></td>
+                                                            {% if 0 < headerInfo.0.ProductsCount %}
+                                                                <td><a href=#training{{ headerInfo.0.id }}>{{ headerInfo.0.name }}</a></td>
+                                                            {% else %}
+                                                                <td><font color=#aaaaaa>{{ headerInfo.0.name }}</font></td>
+                                                            {% endif %}
+                                                            <td align=center><b>｜</b></td>
+                                                            {% if headerInfo.1 %}
+                                                                {% if 0 < headerInfo.1.ProductsCount %}
+                                                                    <td><a href=#training{{ headerInfo.1.id }}>{{ headerInfo.1.name }}</a></td>
+                                                                {% else %}
+                                                                    <td><font color=#aaaaaa>{{ headerInfo.1.name }}</font></td>
+                                                                {% endif %}
+                                                            {% endif %}
+                                                        </tr>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </td>
+                                            <td align="right">
+                                                <table cellpadding="0" cellspacing="0" class="font10" bgcolor="#FCEEDF">
+                                                    <tbody>
+                                                        <tr>
+                                                            <td colspan="2" align="center" bgcolor="#F9DBBA">定員の記号</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>◎</td>
+                                                            <td>：充分余裕が有ります </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>○</td>
+                                                            <td>：少し余裕が有ります</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>△</td>
+                                                            <td>：残りわずかです</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Ｘ</td>
+                                                            <td>：定員に満たしています</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <br>
+                    <br>
+                    {% for form in forms %}
+                        {% if 0 < form.ProductsCount %}
+                        <table width="900" cellpadding="1" cellspacing="3">
+                            <tbody>
+                                <tr>
+                                    <td id="training{{ form.TrainingType.id }}">{{ form.TrainingType.name }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <table class="font10" width="900" cellspacing="1" cellpadding="3" bgcolor="#717EAA" style="border-collapse: separate;border-spacing: 1px 1px;">
+                            <tbody class="callink">
+                                <tr>
+                                    <td nowrap="" bgcolor="#D8DEEC" align="center">地域</td>
+                                    <td nowrap="" bgcolor="#D8DEEC" align="center">日付</td>
+                                    <td nowrap="" bgcolor="#D8DEEC" align="center">会場</td>
+                                    <td nowrap="" bgcolor="#D8DEEC" align="center">定員</td>
+                                </tr>
+                                {% for product in form['Product'] %}
+                                <tr onmouseover="setPointer(this, '#F9F1DA', '#ffffff')" onmouseout="setPointer(this, '#ffffff', '#ffffff')" bgcolor="#ffffff">
+                                    <td valign="top" nowrap="" bgcolor="#ffffff" align="center">{{ product.ProductTraining.addr01 }}</td>
+                                    <td nowrap="" bgcolor="#ffffff"><a href="{{ url('product_detail', {'id': product.id}) }}">{{ form['Training_Date'][product.id] }}</a></td>
+                                    <td width="100%" bgcolor="#ffffff"><a href="{{ url('product_detail', {'id': product.id}) }}">{{ product.ProductTraining.place }}（{{ product.ProductTraining.addr01 }}{{ product.ProductTraining.addr02 }}）</a></td>
+                                    {% if product.ProductClasses.0.stock < 1 %}
+                                        <td bgcolor="#ffffff" align="center">×</td>
+                                    {% elseif product.ProductClasses.0.stock < 50 %}
+                                        <td bgcolor="#ffffff" align="center">△</td>
+                                    {% elseif product.ProductClasses.0.stock < 100 %}
+                                        <td bgcolor="#ffffff" align="center">○</td>
+                                    {% else %}
+                                        <td bgcolor="#ffffff" align="center">◎</td>
+                                    {% endif %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        <br>
+                        <br>
+                        {% endif %}
+                    </table>
+                    {% endfor %}
+                </table>
+            </form>
+        </div>
+    {% else %}
+        <p class="errormsg text-danger">現在、有効な講習会情報は存在しません。</p>
+    {% endif %}
+{% endblock %}

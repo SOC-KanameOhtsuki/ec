@@ -1,0 +1,42 @@
+Eccube\Entity\QuestionnaireDetailChoice:
+    type: entity
+    table: dtb_questionnaire_detail_choice
+    repositoryClass: Eccube\Repository\QuestionnaireDetailChoiceRepository
+    id:
+        id:
+            type: integer
+            nullable: false
+            unsigned: false
+            id: true
+            column: questionnaire_detail_choice_id
+            generator:
+                strategy: AUTO
+    fields:
+        chice_name:
+            type: text
+            nullable: false
+        chice_description:
+            type: text
+            nullable: false
+        rank:
+            type: integer
+            nullable: false
+            unsigned: false
+        create_date:
+            type: datetime
+            nullable: false
+    manyToOne:
+        QuestionnaireDetail:
+            targetEntity: Eccube\Entity\QuestionnaireDetail
+            inversedBy: QuestionnaireDetailChoice
+            joinColumn:
+                name: questionnaire_detail_id
+                referencedColumnName: questionnaire_detail_id
+                nullable: false
+        Creator:
+            targetEntity: Eccube\Entity\Member
+            joinColumn:
+                name: creator_id
+                referencedColumnName: member_id
+                nullable: false
+    lifecycleCallbacks: {  }

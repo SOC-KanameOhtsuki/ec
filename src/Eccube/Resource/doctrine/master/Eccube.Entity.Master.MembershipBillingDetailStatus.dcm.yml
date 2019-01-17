@@ -1,0 +1,19 @@
+Eccube\Entity\Master\MembershipBillingDetailStatus:
+    type: entity
+    table: mtb_membership_billing_detail_status
+    repositoryClass: Eccube\Repository\Master\MembershipBillingDetailStatusRepository
+    id:
+        id:
+            type: smallint
+            nullable: false
+            unsigned: false
+            id: true
+    fields:
+        name:
+            type: text
+            nullable: true
+        rank:
+            type: smallint
+            nullable: false
+            unsigned: false
+    lifecycleCallbacks: {  }

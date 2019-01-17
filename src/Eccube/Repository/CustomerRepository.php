@@ -308,6 +308,269 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
         return $qb;
     }
 
+    public function getQueryBuilderBySearchRegularMemberData($searchData)
+    {
+        $qb = $this->createQueryBuilder('c')
+            ->select('c')
+            ->leftJoin('c.CustomerBasicInfo', 'bc')
+            ->andWhere('bc.Status = 1')
+            ->andWhere('c.Status = 2')
+            ->andWhere('c.del_flg = 0');
+
+        if (isset($searchData['multi']) && Str::isNotBlank($searchData['multi'])) {
+            //スペース除去
+            $clean_key_multi = preg_replace('/\s+|[　]+/u', '', $searchData['multi']);
+            $id = preg_match('/^\d+$/', $clean_key_multi) ? $clean_key_multi : null;
+            $qb
+                ->andWhere('c.id = :customer_id OR CONCAT(c.name01, c.name02) LIKE :name OR CONCAT(c.kana01, c.kana02) LIKE :kana OR c.email LIKE :email')
+                ->setParameter('customer_id', $id)
+                ->setParameter('name', '%' . $clean_key_multi . '%')
+                ->setParameter('kana', '%' . $clean_key_multi . '%')
+                ->setParameter('email', '%' . $clean_key_multi . '%');
+        }
+
+        // Pref
+        if (!empty($searchData['pref']) && $searchData['pref']) {
+            $qb
+                ->andWhere('c.Pref = :pref')
+                ->setParameter('pref', $searchData['pref']->getId());
+        }
+
+        // sex
+        if (!empty($searchData['sex']) && count($searchData['sex']) > 0) {
+            $sexs = array();
+            foreach ($searchData['sex'] as $sex) {
+                $sexs[] = $sex->getId();
+            }
+
+            $qb
+                ->andWhere($qb->expr()->in('c.Sex', ':sexs'))
+                ->setParameter('sexs', $sexs);
+        }
+
+        if (!empty($searchData['birth_month']) && $searchData['birth_month']) {
+            $qb
+                ->andWhere('EXTRACT(MONTH FROM c.birth) = :birth_month')
+                ->setParameter('birth_month', $searchData['birth_month']);
+        }
+
+        // birth
+        if (!empty($searchData['birth_start']) && $searchData['birth_start']) {
+            $date = $searchData['birth_start']
+                ->format('Y-m-d H:i:s');
+            $qb
+                ->andWhere('c.birth >= :birth_start')
+                ->setParameter('birth_start', $date);
+        }
+        if (!empty($searchData['birth_end']) && $searchData['birth_end']) {
+            $date = clone $searchData['birth_end'];
+            $date = $date
+                ->modify('+1 days')
+                ->format('Y-m-d H:i:s');
+            $qb
+                ->andWhere('c.birth < :birth_end')
+                ->setParameter('birth_end', $date);
+        }
+
+        // tel
+        if (isset($searchData['tel']) && Str::isNotBlank($searchData['tel'])) {
+            $qb
+                ->andWhere('CONCAT(c.tel01, c.tel02, c.tel03) LIKE :tel')
+                ->setParameter('tel', '%' . $searchData['tel'] . '%');
+        }
+
+        // buy_total
+        if (isset($searchData['buy_total_start']) && Str::isNotBlank($searchData['buy_total_start'])) {
+            $qb
+                ->andWhere('c.buy_total >= :buy_total_start')
+                ->setParameter('buy_total_start', $searchData['buy_total_start']);
+        }
+        if (isset($searchData['buy_total_end']) && Str::isNotBlank($searchData['buy_total_end'])) {
+            $qb
+                ->andWhere('c.buy_total <= :buy_total_end')
+                ->setParameter('buy_total_end', $searchData['buy_total_end']);
+        }
+
+        // buy_times
+        if (!empty($searchData['buy_times_start']) && $searchData['buy_times_start']) {
+            $qb
+                ->andWhere('c.buy_times >= :buy_times_start')
+                ->setParameter('buy_times_start', $searchData['buy_times_start']);
+        }
+        if (!empty($searchData['buy_times_end']) && $searchData['buy_times_end']) {
+            $qb
+                ->andWhere('c.buy_times <= :buy_times_end')
+                ->setParameter('buy_times_end', $searchData['buy_times_end']);
+        }
+
+        // create_date
+        if (!empty($searchData['create_date_start']) && $searchData['create_date_start']) {
+            $date = $searchData['create_date_start']
+                ->format('Y-m-d H:i:s');
+            $qb
+                ->andWhere('c.create_date >= :create_date_start')
+                ->setParameter('create_date_start', $date);
+        }
+        if (!empty($searchData['create_date_end']) && $searchData['create_date_end']) {
+            $date = clone $searchData['create_date_end'];
+            $date = $date
+                ->modify('+1 days')
+                ->format('Y-m-d H:i:s');
+            $qb
+                ->andWhere('c.create_date < :create_date_end')
+                ->setParameter('create_date_end', $date);
+        }
+
+        // update_date
+        if (!empty($searchData['update_date_start']) && $searchData['update_date_start']) {
+            $date = $searchData['update_date_start']
+                ->format('Y-m-d H:i:s');
+            $qb
+                ->andWhere('c.update_date >= :update_date_start')
+                ->setParameter('update_date_start', $date);
+        }
+        if (!empty($searchData['update_date_end']) && $searchData['update_date_end']) {
+            $date = clone $searchData['update_date_end'];
+            $date = $date
+                ->modify('+1 days')
+                ->format('Y-m-d H:i:s');
+            $qb
+                ->andWhere('c.update_date < :update_date_end')
+                ->setParameter('update_date_end', $date);
+        }
+
+        // last_buy
+        if (!empty($searchData['last_buy_start']) && $searchData['last_buy_start']) {
+            $date = $searchData['last_buy_start']
+                ->format('Y-m-d H:i:s');
+            $qb
+                ->andWhere('c.last_buy_date >= :last_buy_start')
+                ->setParameter('last_buy_start', $date);
+        }
+        if (!empty($searchData['last_buy_end']) && $searchData['last_buy_end']) {
+            $date = clone $searchData['last_buy_end'];
+            $date = $date
+                ->modify('+1 days')
+                ->format('Y-m-d H:i:s');
+            $qb
+                ->andWhere('c.last_buy_date < :last_buy_end')
+                ->setParameter('last_buy_end', $date);
+        }
+
+        // buy_product_name、buy_product_code
+        if (isset($searchData['buy_product_code']) && Str::isNotBlank($searchData['buy_product_code'])) {
+            $qb
+                ->leftJoin('c.Orders', 'o')
+                ->leftJoin('o.OrderDetails', 'od')
+                ->andWhere('od.product_name LIKE :buy_product_name OR od.product_code LIKE :buy_product_name')
+                ->setParameter('buy_product_name', '%' . $searchData['buy_product_code'] . '%');
+        }
+
+        // Order By
+        $qb->addOrderBy('c.id', 'DESC');
+
+        return $qb;
+    }
+
+    public function getQueryBuilderBySearchCustomerIds($searchData)
+    {
+        $qb = $this->createQueryBuilder('c')
+            ->select('c')
+            ->leftJoin('c.CustomerBasicInfo', 'bc')
+            ->andWhere('c.del_flg = 0')
+            ->andWhere('c.id IN (:customerIds)')
+            ->setParameter('customerIds', $searchData);
+
+        // Order By
+        $qb->addOrderBy('c.id', 'DESC');
+
+        return $qb;
+    }
+
+    public function getQueryBuilderBySearchRegularMemberIds($searchData)
+    {
+        $qb = $this->createQueryBuilder('c')
+            ->select('c')
+            ->leftJoin('c.CustomerBasicInfo', 'bc')
+            ->andWhere('bc.Status = 1')
+            ->andWhere('c.Status = 2')
+            ->andWhere('c.del_flg = 0')
+            ->andWhere('c.id IN (:customerIds)')
+            ->setParameter('customerIds', $searchData);
+
+        // Order By
+        $qb->addOrderBy('c.id', 'DESC');
+
+        return $qb;
+    }
+
+    public function getQueryBuilderBySearchTrainingProductIds($searchData)
+    {
+        $qb = $this->createQueryBuilder('c')
+                ->select('c')
+                ->leftJoin('c.Orders', 'o')
+                ->leftJoin('o.OrderDetails', 'od')
+                ->andWhere('c.Status = 2')
+                ->andWhere('c.del_flg = 0')
+                ->andWhere('od.Product IN (:productIds)')
+                ->setParameter('productIds', $searchData);
+        // Order By
+        $qb->addOrderBy('c.id', 'ASC');
+
+        return $qb;
+    }
+
+    public function getQueryBuilderBySearchGroupId($searchData)
+    {
+        $qb = $this->createQueryBuilder('c')
+            ->select('c')
+            ->andWhere('c.Status = 2')
+            ->andWhere('c.del_flg = 0')
+            ->andWhere('c.CustomerGroup = :customerGroupId')
+            ->setParameter('customerGroupId', $searchData);
+
+        // Order By
+        $qb->addOrderBy('c.id', 'DESC');
+
+        return $qb;
+    }
+
+    public function setCustomerGroupBySearchIds($searchData, $CustomerGroupId)
+    {
+        $em = $this->getEntityManager();
+        $em->getConnection()->beginTransaction();
+        try {
+            $em->createQueryBuilder()
+                ->update('\Eccube\Entity\Customer', 'c')
+                ->set("c.CustomerGroup", $CustomerGroupId)
+                ->andWhere('c.id IN (:ids)')
+                ->setParameter('ids', $searchData)
+                ->getQuery()
+                ->execute();
+            $em->getConnection()->commit();
+        } catch (\Exception $e) {
+            $em->getConnection()->rollback();
+            return false;
+        }
+
+        return true;
+
+    }
+
+    public function getCustomerByExclusionOrderProduct($searchData)
+    {
+        $em = $this->getEntityManager();
+        $sql = "SELECT * FROM dtb_customer WHERE customer_id NOT IN ";
+        $sql .= "(SELECT dtb_customer.customer_id FROM dtb_customer INNER JOIN dtb_order ON dtb_customer.customer_id = dtb_order.customer_id ";
+        $sql .= "INNER JOIN dtb_order_detail ON dtb_order.order_id = dtb_order_detail.order_id ";
+        $sql .= "WHERE dtb_order_detail.product_id = :product_id ";
+        $sql .= "GROUP BY dtb_customer.customer_id) ";
+        $sql .= "ORDER BY customer_id DESC;";
+        $customers = $em->getConnection()->fetchAll($sql, array(':product_id' => $searchData));
+
+        return $customers;
+    }
+
     /**
      * ユニークなシークレットキーを返す
      * @param $app

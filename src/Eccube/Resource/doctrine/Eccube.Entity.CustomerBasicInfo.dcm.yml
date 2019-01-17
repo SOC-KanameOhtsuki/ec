@@ -1,0 +1,88 @@
+Eccube\Entity\CustomerBasicInfo:
+    type: entity
+    table: dtb_customer_basic_info
+    repositoryClass: Eccube\Repository\CustomerBasicInfoRepository
+    indexes:
+        # requires a length on MySQL
+        # dtb_customer_email_idx:
+        #     columns:
+        #         - email
+        dtb_customer_basic_info_customer_id_idx:
+            columns:
+                - customer_id
+    id:
+        id:
+            type: integer
+            nullable: false
+            unsigned: false
+            id: true
+            column: customer_basic_info_id
+            generator:
+                strategy: AUTO
+    fields:
+        customer_number:
+            type: text
+            nullable: true
+        customer_number_old:
+            type: text
+            nullable: true
+        customer_pin_code:
+            type: integer
+            nullable: true
+        qualification:
+            type: text
+            nullable: true
+        last_pay_membership_year:
+            type: integer
+            nullable: true
+        membership_expired:
+            type: date
+            nullable: true
+        regular_member_promoted:
+            type: datetime
+            nullable: false
+        create_date:
+            type: datetime
+            nullable: false
+        update_date:
+            type: datetime
+            nullable: false
+    manyToOne:
+        Status:
+            targetEntity: Eccube\Entity\Master\CustomerBasicInfoStatus
+            joinColumn:
+                name: status
+                referencedColumnName: id
+        Nobulletin:
+            targetEntity: Eccube\Entity\Master\NobulletinType
+            joinColumn:
+                name: nobulletin
+                referencedColumnName: id
+        InstructorType:
+            targetEntity: Eccube\Entity\Master\InstructorType
+            joinColumn:
+                name: instructor_type
+                referencedColumnName: id
+        SupporterType:
+            targetEntity: Eccube\Entity\Master\SupporterType
+            joinColumn:
+                name: supporter_type
+                referencedColumnName: id
+        Bureau:
+            targetEntity: Eccube\Entity\Master\Bureau
+            joinColumn:
+                name: bureau
+                referencedColumnName: id
+        MembershipExemption:
+            targetEntity: Eccube\Entity\Master\ExemptionType
+            joinColumn:
+                name: membership_exemption
+                referencedColumnName: id
+    oneToOne:
+        Customer:
+            targetEntity: Eccube\Entity\Customer
+            inversedBy: CustomerBasicInfo
+            joinColumn:
+                name: customer_id
+                referencedColumnName: customer_id
+    lifecycleCallbacks: {  }

@@ -34,11 +34,13 @@ use Eccube\Event\EventArgs;
 use Eccube\Service\CsvExportService;
 use Eccube\Util\FormUtil;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Symfony\Component\HttpKernel\Exception\UnsupportedMediaTypeHttpException;
 
 class ProductController extends AbstractController
@@ -49,7 +51,7 @@ class ProductController extends AbstractController
         $session = $app['session'];
 
         $builder = $app['form.factory']
-            ->createBuilder('admin_search_product');
+            ->createBuilder('admin_search_general_product');
 
         $event = new EventArgs(
             array(
@@ -95,6 +97,12 @@ class ProductController extends AbstractController
 
                 // paginator
                 $qb = $app['eccube.repository.product']->getQueryBuilderBySearchDataForAdmin($searchData);
+                if (empty($searchData['category_id']) || !($searchData['category_id'])) {
+                    $qb
+                        ->leftJoin('p.ProductCategories', 'pct')
+                        ->leftJoin('pct.Category', 'c')
+                        ->andWhere('c.id <> 1 or pct IS NULL');
+                }
                 $page_no = 1;
 
                 $event = new EventArgs(
@@ -174,6 +182,12 @@ class ProductController extends AbstractController
                     $session->set('eccube.admin.product.search', $viewData);
 
                     $qb = $app['eccube.repository.product']->getQueryBuilderBySearchDataForAdmin($searchData);
+                    if (empty($searchData['category_id']) || !($searchData['category_id'])) {
+                        $qb
+                            ->innerJoin('p.ProductCategories', 'pct')
+                            ->innerJoin('pct.Category', 'c')
+                            ->andWhere('pct.Category <> 1');
+                    }
 
                     $event = new EventArgs(
                         array(
@@ -250,6 +264,8 @@ class ProductController extends AbstractController
     public function edit(Application $app, Request $request, $id = null)
     {
         $has_class = false;
+        $is_membership = false;
+        $ProductMembership = null;
         if (is_null($id)) {
             $Product = new \Eccube\Entity\Product();
             $ProductClass = new \Eccube\Entity\ProductClass();
@@ -281,6 +297,10 @@ class ProductController extends AbstractController
                 }
                 $ProductStock = $ProductClasses[0]->getProductStock();
             }
+            $ProductMembership = $Product->getProductMembership();
+            if (!is_null($ProductMembership)) {
+                $is_membership = true;
+            }
         }
 
         $builder = $app['form.factory']
@@ -305,6 +325,9 @@ class ProductController extends AbstractController
         if (!$has_class) {
             $ProductClass->setStockUnlimited((boolean)$ProductClass->getStockUnlimited());
             $form['class']->setData($ProductClass);
+        }
+        if ($ProductMembership) {
+            $form['membership']->setData($ProductMembership);
         }
 
         // ファイルの登録
@@ -332,7 +355,29 @@ class ProductController extends AbstractController
 
         if ('POST' === $request->getMethod()) {
             $form->handleRequest($request);
-            if ($form->isValid()) {
+            $membershipError = false;
+            $membershipExists = false;
+            if (isset($request->get('admin_product')['class'])) {
+                if ($request->get('admin_product')['class']['product_type'] == $app['config']['product_type_membership']) {
+                    $is_membership = true;
+                    $membership_year = $request->get('admin_product')['membership']['membership_year'];
+                    
+                    if (!is_null($membership_year)) {
+                        if (preg_match("/^[0-9][0-9][0-9][0-9]$/", $membership_year)) {
+                            $membershipExists = $app['eccube.repository.product_membership']->isExistsMembership($membership_year, $Product->getId());
+                        } else {
+                            $membershipError = true;
+                        }
+                    } else {
+                        $membershipError = true;
+                    }
+                }
+            }
+            if ($membershipExists) {
+                $form['membership']['membership_year']->addError(new FormError('既に対象年度の年会費は登録されております'));
+            } else if ($membershipError) {
+                $form['membership']['membership_year']->addError(new FormError('年会費の対象年度が不正です'));
+            } else if ($form->isValid()) {
                 log_info('商品登録開始', array($id));
                 $Product = $form->getData();
 
@@ -366,7 +411,7 @@ class ProductController extends AbstractController
                     $app['orm.em']->persist($ProductClass);
 
                     // 在庫情報を作成
-                    if (!$ProductClass->getStockUnlimited()) {
+                    if (!$ProductClass->getStockUnlimited() && !$is_membership) {
                         $ProductStock->setStock($ProductClass->getStock());
                     } else {
                         // 在庫無制限時はnullを設定
@@ -385,27 +430,46 @@ class ProductController extends AbstractController
                 $app['orm.em']->persist($Product);
                 $app['orm.em']->flush();
 
-                $count = 1;
-                $Categories = $form->get('Category')->getData();
-                $categoriesIdList = array();
-                foreach ($Categories as $Category) {
-                    foreach ($Category->getPath() as $ParentCategory) {
-                        if (!isset($categoriesIdList[$ParentCategory->getId()])) {
-                            $ProductCategory = $this->createProductCategory($Product, $ParentCategory, $count);
+                if ($is_membership) {
+                    $Membership = $form->get('membership')->getData();
+                    if (is_null($ProductMembership)) {
+                        $ProductMembership = new \Eccube\Entity\ProductMembership();
+                        $ProductMembership->setProduct($Product);
+                    }
+                    $ProductCategory = $this->createProductCategory($Product, $app['eccube.repository.category']->find(7), 1);
+                    $app['orm.em']->persist($ProductCategory);
+                    $count++;
+                    $Product->addProductCategory($ProductCategory);
+                    $ProductMembership->setProduct($Product);
+                    $ProductMembership->setMembershipYear($Membership->getMembershipYear());
+                    $app['orm.em']->persist($ProductMembership);
+                } else {
+                    // 年会費から年会費以外への更新時は、年会費情報削除
+                    if (!is_null($ProductMembership)) {
+                        $app['orm.em']->remove($ProductMembership);
+                    }
+                    $count = 1;
+                    $Categories = $form->get('Category')->getData();
+                    $categoriesIdList = array();
+                    foreach ($Categories as $Category) {
+                        foreach ($Category->getPath() as $ParentCategory) {
+                            if (!isset($categoriesIdList[$ParentCategory->getId()])) {
+                                $ProductCategory = $this->createProductCategory($Product, $ParentCategory, $count);
+                                $app['orm.em']->persist($ProductCategory);
+                                $count++;
+                                /* @var $Product \Eccube\Entity\Product */
+                                $Product->addProductCategory($ProductCategory);
+                                $categoriesIdList[$ParentCategory->getId()] = true;
+                            }
+                        }
+                        if (!isset($categoriesIdList[$Category->getId()])) {
+                            $ProductCategory = $this->createProductCategory($Product, $Category, $count);
                             $app['orm.em']->persist($ProductCategory);
                             $count++;
                             /* @var $Product \Eccube\Entity\Product */
                             $Product->addProductCategory($ProductCategory);
-                            $categoriesIdList[$ParentCategory->getId()] = true;
+                            $categoriesIdList[$Category->getId()] = true;
                         }
-                    }
-                    if (!isset($categoriesIdList[$Category->getId()])) {
-                        $ProductCategory = $this->createProductCategory($Product, $Category, $count);
-                        $app['orm.em']->persist($ProductCategory);
-                        $count++;
-                        /* @var $Product \Eccube\Entity\Product */
-                        $Product->addProductCategory($ProductCategory);
-                        $categoriesIdList[$Category->getId()] = true;
                     }
                 }
 
@@ -508,7 +572,7 @@ class ProductController extends AbstractController
 
         // 検索結果の保持
         $builder = $app['form.factory']
-            ->createBuilder('admin_search_product');
+            ->createBuilder('admin_search_general_product');
 
         $event = new EventArgs(
             array(
@@ -530,6 +594,7 @@ class ProductController extends AbstractController
             'form' => $form->createView(),
             'searchForm' => $searchForm->createView(),
             'has_class' => $has_class,
+            'is_membership' => $is_membership,
             'id' => $id,
         ));
     }

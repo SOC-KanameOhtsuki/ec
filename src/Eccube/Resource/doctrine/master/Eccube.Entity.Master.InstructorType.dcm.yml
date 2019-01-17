@@ -1,0 +1,19 @@
+Eccube\Entity\Master\InstructorType:
+    type: entity
+    table: mtb_instructor_type
+    repositoryClass: Eccube\Repository\Master\InstructorTypeRepository
+    id:
+        id:
+            type: smallint
+            nullable: false
+            unsigned: false
+            id: true
+    fields:
+        name:
+            type: text
+            nullable: true
+        rank:
+            type: smallint
+            nullable: false
+            unsigned: false
+    lifecycleCallbacks: {  }

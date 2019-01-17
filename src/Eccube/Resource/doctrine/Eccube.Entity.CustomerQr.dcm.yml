@@ -1,0 +1,39 @@
+Eccube\Entity\CustomerQr:
+    type: entity
+    table: dtb_customer_qr
+    repositoryClass: Eccube\Repository\CustomerQrRepository
+    id:
+        id:
+            type: integer
+            nullable: false
+            unsigned: false
+            id: true
+            column: customer_qr_id
+            generator:
+                strategy: AUTO
+    fields:
+        file_name:
+            type: text
+            nullable: false
+        rank:
+            type: integer
+            nullable: false
+            unsigned: false
+        create_date:
+            type: datetime
+            nullable: false
+    manyToOne:
+        Customer:
+            targetEntity: Eccube\Entity\Customer
+            inversedBy: CustomerQr
+            joinColumn:
+                name: customer_id
+                referencedColumnName: customer_id
+                nullable: false
+        Creator:
+            targetEntity: Eccube\Entity\Member
+            joinColumn:
+                name: creator_id
+                referencedColumnName: member_id
+                nullable: false
+    lifecycleCallbacks: {  }

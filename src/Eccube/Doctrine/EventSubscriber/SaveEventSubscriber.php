@@ -67,6 +67,11 @@ class SaveEventSubscriber implements EventSubscriber
             $Member = $this->app['security']->getToken()->getUser();
             $entity->setCreator($Member);
         }
+
+        if ($this->app['security']->getToken() && $this->app['security']->isGranted('ROLE_ADMIN') && method_exists($entity, 'setUpdater')) {
+            $Member = $this->app['security']->getToken()->getUser();
+            $entity->setUpdater($Member);
+        }
     }
 
     public function preUpdate(LifecycleEventArgs $args)

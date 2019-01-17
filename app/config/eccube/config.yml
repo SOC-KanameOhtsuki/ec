@@ -1,6 +1,6 @@
 auth_magic: FtT3PsqwqxOivIiwui8RUB6JxpvHAPst
 password_hash_algos: sha256
-shop_name: 開発中サイトトライアル
+shop_name: ふまねっと
 force_ssl: null
 admin_allow_host: {  }
 cookie_lifetime: 0
