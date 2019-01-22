@@ -20,4 +20,14 @@ class CustomerBasicInfoRepository extends EntityRepository
     			->getQuery()
     			->getOneOrNullResult();
 	}
+
+	public function getCustomerBasicInfoByExemption(\Eccube\Entity\Master\ExemptionType $ExemptionType)
+	{
+
+		return $this->createQueryBuilder("c")
+				->where("c.ExemptionType = :ExemptionType")
+				->setParameter('ExemptionType', $ExemptionType)
+				->getQuery()
+				->getResult();
+	}
 }

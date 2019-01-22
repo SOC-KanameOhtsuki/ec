@@ -434,4 +434,20 @@ class CustomerController extends AbstractController
             'contributionOrders' => $contributionOrders
         ));
     }
+
+    public function membershipExemption(Application $app, Request $request)
+    {
+        $ExemptionType = $app['eccube.repository.master.exemption_type_type']->find(2);
+        $newExemptionType = $app['eccube.repository.master.exemption_type_type']->find(1);
+
+        $customerBasicInfos = $app['eccube.repository.customer_basic_info']->getCustomerBasicInfoByExemption($ExemptionType);
+
+        foreach ($customerBasicInfos as $customerBasicInfo) {
+            $customerBasicInfo->setExemptionType($newExemptionType);
+            $app['orm.em']->persist($customerBasicInfo);
+            $app['orm.em']->flush();
+        }
+
+        return "success";
+    }
 }

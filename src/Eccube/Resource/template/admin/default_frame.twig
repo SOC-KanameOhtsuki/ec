@@ -108,6 +108,33 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
     <!-- ▼ #modal ▼ -->
     {% block modal %}{% endblock %}
+    <div class="modal fade" id="exemptionConfirmModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-body">
+            年会費免除クリア処理を実行しますか？
+          </div>
+          <div class="modal-footer hidden-print">
+            <button type="button" class="btn btn-default" data-dismiss="modal">いいえ</button>
+            <button id="exemptionConfirmBtn" type="button" class="btn btn-primary" data-dismiss="modal" data-toggle="modal" data-target="#exemptionSuccessModal">はい</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="exemptionSuccessModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-body">
+            年会費免除クリア処理を実行しました。
+          </div>
+          <div class="modal-footer hidden-print">
+            <button type="button" class="btn btn-default" data-dismiss="modal">閉じる</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ▲ #modal ▲ -->
 
 </div>
@@ -124,6 +151,12 @@ $(function () {
     }).done(function(data){
         $('body').prepend(data);
     }).fail(function(data){
+    });
+});
+
+$('#exemptionConfirmBtn').click(function() {
+    $.post("{{ url('admin_customer_membership_exemption') }}", function(data, status) {
+
     });
 });
 </script>

@@ -90,6 +90,7 @@ class AdminControllerProvider implements ControllerProviderInterface
         $c->match('/customer/new', '\Eccube\Controller\Admin\Customer\CustomerEditController::index')->bind('admin_customer_new');
         $c->match('/customer/{id}/edit', '\Eccube\Controller\Admin\Customer\CustomerEditController::index')->assert('id', '\d+')->bind('admin_customer_edit');
         $c->match('/customer/{id}/annual_fee', '\Eccube\Controller\Admin\Customer\CustomerController::annualFeeReport')->assert('id', '\d+')->bind('admin_customer_annual_fee_report');
+        $c->post('/customer/membership_exemption', '\Eccube\Controller\Admin\Customer\CustomerController::membershipExemption')->bind('admin_customer_membership_exemption');
         $c->match('/customer/{id}/training_order_history', '\Eccube\Controller\Admin\Customer\CustomerController::trainingOrderHistory')->assert('id', '\d+')->bind('admin_customer_training_order_history');
         $c->match('/customer/{id}/contribution_order_history', '\Eccube\Controller\Admin\Customer\CustomerController::contributionOrderHistory')->assert('id', '\d+')->bind('admin_customer_contribution_order_history');
         $c->delete('/customer/{id}/delete', '\Eccube\Controller\Admin\Customer\CustomerController::delete')->assert('id', '\d+')->bind('admin_customer_delete');
