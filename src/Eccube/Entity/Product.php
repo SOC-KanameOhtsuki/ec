@@ -1156,4 +1156,14 @@ class Product extends \Eccube\Entity\AbstractEntity
     {
         return $this->ProductMembership;
     }
+
+    public function checkProductCategory($categoryID)
+    {
+        foreach ($this->ProductCategories as $productCategory) {
+            if ($productCategory->getCategoryId() == $categoryID)
+                return true;
+        }
+
+        return false;
+    }
 }

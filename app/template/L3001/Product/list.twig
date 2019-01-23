@@ -119,18 +119,20 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
                                 </div>
                                 <dl id="result_list__detail--{{ Product.id }}">
                                     <dt id="result_list__name--{{ Product.id }}" class="item_name">{{ Product.name }}</dt>
-                                    {% if Product.hasProductClass %}
-                                        {% if Product.getPrice02Min == Product.getPrice02Max %}
-                                            <dd id="result_list__price02_inc_tax--{{ Product.id }}" class="item_price">
-                                                {{ Product.getPrice02IncTaxMin|price }}
-                                            </dd>
+                                    {% if Product.checkProductCategory(2) == false %}
+                                        {% if Product.hasProductClass %}
+                                            {% if Product.getPrice02Min == Product.getPrice02Max %}
+                                                <dd id="result_list__price02_inc_tax--{{ Product.id }}" class="item_price">
+                                                    {{ Product.getPrice02IncTaxMin|price }}
+                                                </dd>
+                                                {% else %}
+                                                <dd id="result_list__price02_inc_tax--{{ Product.id }}" class="item_price">
+                                                    {{ Product.getPrice02IncTaxMin|price }} ～ {{ Product.getPrice02IncTaxMax|price }}
+                                                </dd>
+                                            {% endif %}
                                             {% else %}
-                                            <dd id="result_list__price02_inc_tax--{{ Product.id }}" class="item_price">
-                                                {{ Product.getPrice02IncTaxMin|price }} ～ {{ Product.getPrice02IncTaxMax|price }}
-                                            </dd>
+                                            <dd id="result_list__price02_inc_tax--{{ Product.id }}" class="item_price">{{ Product.getPrice02IncTaxMin|price }}</dd>
                                         {% endif %}
-                                        {% else %}
-                                        <dd id="result_list__price02_inc_tax--{{ Product.id }}" class="item_price">{{ Product.getPrice02IncTaxMin|price }}</dd>
                                     {% endif %}
                                 </dl>
                             </a>
