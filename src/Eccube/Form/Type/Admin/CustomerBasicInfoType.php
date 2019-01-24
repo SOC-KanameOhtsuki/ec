@@ -29,7 +29,12 @@ class CustomerBasicInfoType extends AbstractType
 
         $builder
             ->add('customer_number', 'text', array(
-                'label' => '会員番号',
+                'label' => '会員ID',
+                'required' => false,
+                'mapped' => true,
+            ))
+            ->add('customer_number_old', 'text', array(
+                'label' => '旧会員ID',
                 'required' => false,
                 'mapped' => true,
             ))
@@ -94,6 +99,26 @@ class CustomerBasicInfoType extends AbstractType
                     new Assert\NotBlank(),
                 ),
                 'mapped' => true,
+            ))
+            ->add('nobulletin', 'nobulletin_type', array(
+                'label' => '機関紙お届け',
+                'constraints' => array(
+                    new Assert\NotBlank(),
+                ),
+            ))
+            ->add('bureau', 'bureau', array(
+                'label' => '振興局',
+                'required' => true,
+                'multiple' => false,
+                'expanded' => false,
+                'constraints' => array(),
+                'mapped' => true,
+            ))
+            ->add('membership_exemption', 'exemption_type', array(
+                'label' => '年会費免除',
+                'constraints' => array(
+                    new Assert\NotBlank(),
+                ),
             ))
             ->add('status', 'customer_basic_info_status', array(
                 'label' => '基本情報ステータス',

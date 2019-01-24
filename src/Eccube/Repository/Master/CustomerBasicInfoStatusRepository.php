@@ -3,6 +3,7 @@
 namespace Eccube\Repository\Master;
 
 use Doctrine\ORM\EntityRepository;
+use Eccube\Application;
 
 /**
  * CustomerBasicInfoStatusRepository
@@ -12,4 +13,32 @@ use Doctrine\ORM\EntityRepository;
  */
 class CustomerBasicInfoStatusRepository extends EntityRepository
 {
+    /**
+     * @var \Eccube\Application
+     */
+    protected $app;
+
+    public function setApplication(Application $app)
+    {
+        $this->app = $app;
+    }
+
+    public function getStatusList()
+    {
+        $options = $this->app['config']['doctrine_cache'];
+        $lifetime = $options['result_cache']['lifetime'];
+
+        $results = $this->createQueryBuilder('bcs')
+            ->addOrderBy('bcs.rank', 'ASC')
+            ->getQuery()
+            ->useResultCache(true, $lifetime)
+            ->getResult();
+
+        $statusList = [];
+        foreach ($results as $result) {
+            $statusList[] = [$result->getId() => $result->getName()];
+        }
+
+        return $statusList;
+    }
 }

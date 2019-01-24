@@ -217,6 +217,20 @@ class CartService
     }
 
     /**
+     *
+     * @param  string $productClassId
+     * @param  integer $quantity
+     * @return \Eccube\Service\CartService
+     */
+    public function addProductAndPrice($productClassId, $price)
+    {
+        $price += $this->getProductPrice($productClassId);
+        $this->setProductPrice($productClassId, $price);
+
+        return $this;
+    }
+
+    /**
      * @param  string $productClassId
      * @return integer
      */
@@ -225,6 +239,20 @@ class CartService
         $CartItem = $this->cart->getCartItemByIdentifier('Eccube\Entity\ProductClass', (string)$productClassId);
         if ($CartItem) {
             return $CartItem->getQuantity();
+        } else {
+            return 0;
+        }
+    }
+
+    /**
+     * @param  string $productClassId
+     * @return integer
+     */
+    public function getProductPrice($productClassId)
+    {
+        $CartItem = $this->cart->getCartItemByIdentifier('Eccube\Entity\ProductClass', (string)$productClassId);
+        if ($CartItem) {
+            return $CartItem->getPrice();
         } else {
             return 0;
         }
@@ -310,6 +338,85 @@ class CartService
                 ->setClassId((string)$ProductClass->getId())
                 ->setPrice($ProductClass->getPrice02IncTax())
                 ->setQuantity($quantity);
+
+            $this->cart->setCartItem($CartItem);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param  \Eccube\Entity\ProductClass|integer $ProductClass
+     * @param  integer $price
+     * @return \Eccube\Service\CartService
+     * @throws CartException
+     */
+    public function setProductPrice($ProductClass, $price)
+    {
+        if (!$ProductClass instanceof ProductClass) {
+            $ProductClass = $this->entityManager
+                ->getRepository('Eccube\Entity\ProductClass')
+                ->find($ProductClass);
+            if (!$ProductClass) {
+                throw new CartException('cart.product.delete');
+            }
+        }
+
+        if (!$this->isProductDisplay($ProductClass)) {
+            throw new CartException('cart.product.not.status');
+        }
+
+        $productName = $this->getProductName($ProductClass);
+
+        // 商品種別に紐づく配送業者を取得
+        $deliveries = $this->app['eccube.repository.delivery']->getDeliveries($ProductClass->getProductType());
+
+        if (count($deliveries) == 0) {
+            // 商品種別が存在しなければエラー
+            $this->removeProduct($ProductClass->getId());
+            $this->addError('cart.product.not.producttype', $productName);
+            throw new CartException('cart.product.not.producttype');
+        }
+
+        $this->setCanAddProductType($ProductClass->getProductType());
+
+        if ($this->BaseInfo->getOptionMultipleShipping() != Constant::ENABLED) {
+            if (!$this->canAddProduct($ProductClass->getId())) {
+                // 複数配送対応でなければ商品種別が異なればエラー
+                throw new CartException('cart.product.type.kind');
+            }
+        } else {
+            // 複数配送の場合、同一支払方法がなければエラー
+            if (!$this->canAddProductPayment($ProductClass->getProductType())) {
+                throw new CartException('cart.product.payment.kind');
+            }
+        }
+
+        $tmp_subtotal = 0;
+        foreach ($this->getCartObj()->getCartItems() as $cartitem) {
+            $pc = $cartitem->getObject();
+            if ($pc->getId() != $ProductClass->getId()) {
+                // 追加された商品以外のtotal priceをセット
+                $tmp_subtotal += $cartitem->getTotalPrice();
+            }
+        }
+        $tmp_subtotal += $price;
+        if ($tmp_subtotal > $this->app['config']['max_total_fee']) {
+            $this->setError('cart.over.price_limit');
+        }
+
+        // 制限数チェック(在庫不足の場合は、処理の中でカート内商品を削除している)
+        $quantity = $this->setProductLimit($ProductClass, $productName, 1);
+
+        // 新しい価格でカート内商品を登録する
+        if (0 < $quantity) {
+            $CartItem = new CartItem();
+            $CartItem
+                ->setClassName('Eccube\Entity\ProductClass')
+                ->setClassId((string)$ProductClass->getId())
+                ->setPrice($price)
+                ->setQuantity(1);
+            file_put_contents("/var/www/ec_ohtsuki/app/log/debug.log", "price:" . $price, FILE_APPEND);
 
             $this->cart->setCartItem($CartItem);
         }

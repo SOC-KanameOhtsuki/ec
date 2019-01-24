@@ -1,0 +1,15 @@
+<div id="questionnaire_detail_choice_listitem_{{ index }}" class="questionnaire_detail_choice_box">
+    {# 選択肢 #}
+    <div id="detail_box__choice_name_{{ index }}" class="questionnaire_detail_choice_item">
+        <label class="col-sm-3 col-lg-3 control-label">{{ questionnaireDetailChoiceForm.choice_name.vars.label }}</label>
+        <div id="detail_box__chice_name_{{ index }}" class="col-sm-8">
+            {{ form_widget(questionnaireDetailChoiceForm.choice_name) }}
+            {{ form_errors(questionnaireDetailChoiceForm.choice_name) }}
+        </div>
+        <a id="delete_detail{{ index }}">
+            <svg class="cb cb-close">
+                <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#cb-close"></use>'
+            </svg>
+        </a>
+    </div>
+</div>

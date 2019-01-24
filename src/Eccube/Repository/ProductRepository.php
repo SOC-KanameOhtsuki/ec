@@ -97,7 +97,7 @@ class ProductRepository extends EntityRepository
      *
      * @throws NotFoundHttpException
      */
-    public function getProductTrainingList($training_type_id)
+    public function getProductTrainingList($training_type_id, $searchData, $history = false)
     {
         // Products
         try {
@@ -117,6 +117,25 @@ class ProductRepository extends EntityRepository
             } else {
                 $qb->where('tt.id IS NULL')
                     ->andWhere('p.Status = 1');
+            }
+            $now = date('Y-m-d h H:i:s');
+            if ($history) {
+                $qb->andWhere('(pt.accept_limit_date IS NULL ) OR (pt.accept_limit_date IS NOT NULL AND pt.accept_limit_date <= :now) AND (pt.training_date_start IS NULL) OR (pt.training_date_start IS NOT NULL AND pt.training_date_start <= :now)');
+            } else {
+                $qb->andWhere('(pt.accept_limit_date IS NOT NULL AND pt.accept_limit_date > :now) OR (pt.training_date_start IS NOT NULL AND pt.training_date_start > :now)');
+            }
+            $qb->setParameter('now', $now);
+            if (!empty($searchData['year']) && $searchData['year']) {
+                $qb->andWhere('pt.training_date_start LIKE :year');
+                $qb->setParameter('year', $searchData['year'] . '-%-% %:%:%');
+            }
+            if (!empty($searchData['month']) && $searchData['month']) {
+                $qb->andWhere('pt.training_date_start LIKE :month');
+                $qb->setParameter('month', '%-' . ($searchData['month']<10?"0":"") . $searchData['month'] . '-% %:%:%');
+            }
+            if (!empty($searchData['area']) && $searchData['area']) {
+                $qb->andWhere('pt.addr01 = :addr01');
+                $qb->setParameter('addr01', $searchData['area']);
             }
 
             $products = $qb

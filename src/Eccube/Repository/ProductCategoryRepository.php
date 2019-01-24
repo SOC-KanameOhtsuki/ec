@@ -34,13 +34,13 @@ use Doctrine\ORM\EntityRepository;
  */
 class ProductCategoryRepository extends EntityRepository
 {
-	public function getProductsForCategory(\Eccube\Entity\Category $ProductCategory)
-	{
-		return $this->createQueryBuilder('pc')
-						->select('pc.product_id')
+    public function getProductsForCategory(\Eccube\Entity\Category $ProductCategory)
+    {
+        return $this->createQueryBuilder('pc')
+                        ->select('pc.product_id')
                         ->where('pc.Category = :ProductCategory')
                         ->setParameter('ProductCategory', $ProductCategory)
                         ->getQuery()
                         ->getResult();
-	}
+    }
 }

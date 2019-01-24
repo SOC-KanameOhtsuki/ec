@@ -4714,3 +4714,10 @@ fieldset[disabled] .btn-link:focus {
 
 	}
 }
+
+.training_search {
+    border: 1px solid #C4CCCE;
+    border-radius:3px !important;
+    padding: 10px;
+    margin: 0 0 15px;
+}

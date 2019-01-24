@@ -477,7 +477,7 @@ class ShoppingService
             $quantity = $item->getQuantity();
 
             // 受注明細情報を作成
-            $OrderDetail = $this->getNewOrderDetail($Product, $ProductClass, $quantity);
+            $OrderDetail = $this->getNewOrderDetail($Product, $ProductClass, $quantity, $item->getPrice());
             $OrderDetail->setOrder($Order);
             $Order->addOrderDetail($OrderDetail);
 
@@ -497,7 +497,7 @@ class ShoppingService
      * @param $quantity
      * @return \Eccube\Entity\OrderDetail
      */
-    public function getNewOrderDetail(Product $Product, ProductClass $ProductClass, $quantity)
+    public function getNewOrderDetail(Product $Product, ProductClass $ProductClass, $quantity, $cart_price)
     {
         $OrderDetail = new OrderDetail();
         $TaxRule = $this->app['eccube.repository.tax_rule']->getByRule($Product, $ProductClass);
@@ -509,6 +509,16 @@ class ShoppingService
             ->setQuantity($quantity)
             ->setTaxRule($TaxRule->getCalcRule()->getId())
             ->setTaxRate($TaxRule->getTaxRate());
+
+        // 価格入力商品は、カート価格を価格とする
+        foreach ($Product->getProductCategories() as $ProductCategory) {
+            if ($ProductCategory->getCategoryId() == \Eccube\Entity\Category::DONATION_CATEGORY) {
+                $OrderDetail->setPrice($cart_price)
+                            ->setTaxRule(2)
+                            ->setTaxRate(0);
+                break;
+            }
+        }
 
         $ClassCategory1 = $ProductClass->getClassCategory1();
         if (!is_null($ClassCategory1)) {

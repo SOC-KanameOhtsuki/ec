@@ -1,0 +1,500 @@
+{#
+This is Customized File
+#}
+{% extends 'default_frame.twig' %}
+
+{% set menus = ['questionnaire', 'questionnaire_edit'] %}
+
+{% block title %}総会表決アンケート{% endblock %}
+{% block sub_title %}アンケート登録{% endblock %}
+
+{% form_theme form 'Form/bootstrap_3_horizontal_layout.html.twig' %}
+
+{% block stylesheet %}
+<link rel="stylesheet" href="{{ app.config.admin_urlpath }}/assets/css/fileupload/jquery.fileupload.css">
+<link rel="stylesheet" href="{{ app.config.admin_urlpath }}/assets/css/fileupload/jquery.fileupload-ui.css">
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+<style>
+    .ui-state-highlight {
+        height: 148px;
+        border: dashed 1px #ccc;
+        background: #fff;
+    }
+</style>
+{% endblock stylesheet %}
+
+{% block javascript %}
+<script src="{{ app.config.admin_urlpath }}/assets/js/vendor/fileupload/vendor/jquery.ui.widget.js"></script>
+<script src="{{ app.config.admin_urlpath }}/assets/js/vendor/fileupload/jquery.iframe-transport.js"></script>
+<script src="{{ app.config.admin_urlpath }}/assets/js/vendor/fileupload/jquery.fileupload.js"></script>
+<script src="{{ app.config.admin_urlpath }}/assets/js/vendor/fileupload/jquery.fileupload-process.js"></script>
+<script src="{{ app.config.admin_urlpath }}/assets/js/vendor/fileupload/jquery.fileupload-validate.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+<script>
+$(function() {
+    $("#thumb").sortable({
+        cursor: 'move',
+        opacity: 0.7,
+        placeholder: 'ui-state-highlight',
+        update: function (event, ui) {
+            updateRank();
+        }
+    });
+    var attachment_file = ''
+            + '<li class="ui-state-default">'
+            + '<a class="delete-attachment">'
+            + '<svg class="cb cb-close">'
+            + '<use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#cb-close"></use>'
+            + '</svg>'
+            + '<svg class="cb cb-attachment">'
+            + '<use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#cb-attachment"></use>'
+            + '</svg>'
+            + '<span class="save_file">__path__</span>'
+            + '<span class="org_file">__filename__</span>'
+            + '</a>'
+            + '</li>';
+    var attachment_add = '{{ form_widget(form.add_attachments.vars.prototype) }}';
+    var attachment_del = '{{ form_widget(form.delete_attachments.vars.prototype) }}';
+    {% for attachment in form.attachments %}
+    var $attachment = $(attachment_file.replace(/__path__/g, '{{ app.config.questionnaire_attachment_save_urlpath }}/{{ attachment.vars.save_file.value }}').replace(/__filename__/g, {{ attachment.vars.org_file.value }}'));
+    var $widget = $('{{ form_widget(attachment) }}');
+    $widget.val('{{ attachment.save_file.vars.value }}');
+    $("#thumb").append($attachment.append($widget));
+    {% endfor %}
+    {% for add_attachment in form.add_attachments %}
+    var $attachment = $(attachment_file.replace(/__path__/g, '{{ app.config.questionnaire_attachment_save_urlpath }}/{{ add_attachment.vars.save_file.value }}').replace(/__filename__/g, {{ add_attachment.vars.org_file.value }}'));
+    var $widget = $('{{ form_widget(add_attachment) }}');
+    $widget.val('{{ add_attachment.save_file.vars.value }}');
+    $("#thumb").append($attachment.append($widget));
+    {% endfor %}
+    {% for delete_attachment in form.delete_attachments %}
+    $("#thumb").append('{{ form_widget(delete_attachment) }}');
+    {% endfor %}
+    // 添付アップロード
+    $('#file_upload').on('click', function () {
+        $('#{{ form.attachment_file.vars.id }}').click();
+    });
+    $("#thumb").sortable({
+        cursor: 'move',
+        opacity: 0.7,
+        placeholder: 'ui-state-highlight',
+        update: function (event, ui) {
+            updateRank();
+        }
+    });
+    var hideSvg = function () {
+        if ($("#thumb li").length > 0) {
+            $("#icon_no_attachment").css("display", "none");
+        } else {
+            $("#icon_no_attachment").css("display", "");
+        }
+    };
+    var updateRank = function () {
+        $("#thumb li").each(function (index) {
+            $(this).find(".rank_files").remove();
+            filename = $(this).find("input[type='hidden']").val();
+            $rank = $('<input type="hidden" class="rank_files" name="rank_files[]" />');
+            $rank.val(filename + '//' + parseInt(index + 1));
+            $(this).append($rank);
+        });
+    }
+    hideSvg();
+    updateRank();
+    // 添付削除時
+    var count_del = 0;
+    $("#thumb").on("click", ".delete-attachment", function () {
+        var $new_delete_attachment = $(attachment_del.replace(/__name__/g, count_del));
+        var save_file = $(this).parent("li").find(".save_file").text()
+                .replace('{{ app.config.file_temp_urlpath }}/', '')
+                .replace('{{ app.config.questionnaire_attachment_save_urlpath }}/', '');
+        var org_file = $(this).parent("li").find(".org_file").text();
+        $new_delete_attachment.val(JSON.stringify({"save_file":save_file, "org_file":org_file}));
+        $("#thumb").append($new_delete_attachment);
+        $(this).parent("li").remove();
+        hideSvg();
+        updateRank();
+        count_del++;
+    });
+    var count_add = {{ form.add_attachments|length|default(0) }};
+    $('#{{ form.attachment_file.vars.id }}').fileupload({
+        url: "{{ url('admin_questionnaire_attachment_add') }}",
+        type: "post",
+        sequentialUploads: true,
+        dataType: 'json',
+        done: function (e, data) {
+            $('#progress').hide();
+            $.each(data.result.files, function (index, file) {
+                var path = '{{ app.config.file_temp_urlpath }}/' + file['save_file'];
+                var $attachment = $(attachment_file.replace(/__path__/g, path).replace(/__filename__/g, file['org_file']));
+                var $new_attachment = $(attachment_add.replace(/__name__/g, count_add));
+                $new_attachment.val(JSON.stringify(file));
+                $child = $attachment.append($new_attachment);
+                $('#thumb').append($child);
+                count_add++;
+            });
+            hideSvg();
+            updateRank();
+        },
+        fail: function (e, data) {
+            alert('アップロードに失敗しました。');
+        },
+        always: function (e, data) {
+            $('#progress').hide();
+            $('#progress .progress-bar').width('0%');
+        },
+        start: function (e, data) {
+            $('#progress').show();
+        },
+        maxFileSize: {{ app.config.max_attachment_size }},
+        maxNumberOfFiles: 10,
+        progressall: function (e, data) {
+            var progress = parseInt(data.loaded / data.total * 100, 10);
+            $('#progress .progress-bar').css(
+                    'width',
+                    progress + '%'
+            );
+        },
+        processalways: function (e, data) {
+            if (data.files.error) {
+                alert("添付ファイルサイズが大きすぎます。");
+            }
+        }
+    });
+    var add_detail_flag = 0;
+    var add_choice_flag = 0;
+    // アンケート項目追加
+    $('#detail_add').on('click', function () {
+        if (add_detail_flag == 1) {
+            return;
+        }
+        add_detail_flag = 1;
+        var list = $('#questionnaire_detail_list');
+        // prototype templateを取得.
+        var newWidget = list.attr('data-prototype');
+        var questionnaire_details_count = 0;
+        list.find('div[id^=questionnaire_detail_list_item_]').each(function(){
+            ++questionnaire_details_count;
+        });
+        if ({{ app.config.max_questionnaire_detail }} <= questionnaire_details_count && 0 < {{ app.config.max_questionnaire_detail }}) {
+            add_detail_flag = 0;
+            return;
+        }
+        // レコード数カウンタで置換.
+        newWidget = newWidget.replace(/\[QuestionnaireDetails\]\[__name__\]/g, "[QuestionnaireDetails]["+questionnaire_details_count+"]");
+        newWidget = newWidget.replace(/QuestionnaireDetails___name___/g, "QuestionnaireDetails_"+questionnaire_details_count+"_");
+        newWidget = newWidget.replace(/detail_box__detail_name___index__/g, "detail_box__detail_name_" + questionnaire_details_count);
+        newWidget = newWidget.replace(/detail_box__detail_description___index__/g, "detail_box__detail_description_" + questionnaire_details_count);
+        newWidget = newWidget.replace(/questionnaire_detail_choice_listitem___index__/g, "questionnaire_detail_choice_listitem_" + questionnaire_details_count);
+        newWidget = newWidget.replace(/choice_add___index__/g, "choice_add_" + questionnaire_details_count);
+        newWidget = newWidget.replace(/delete_detail__index__/g, "delete_detail_" + questionnaire_details_count);
+        // フォームのコールバックをセット
+        $newWidget = $(newWidget);
+        $newWidget.find('div[id^=questionnaire_detail_choice_list]').sortable({
+            cursor: 'move',
+            opacity: 0.7,
+            placeholder: 'ui-state-highlight',
+            update: function (event, ui) {
+                updateChoiceRank(this);
+            }
+        });
+        // 明細行に追加.
+        list.append($newWidget);
+        updateDetailRank();
+        add_detail_flag = 0;
+    });
+    // 項目削除
+    $("#questionnaire_detail_list").on('click', 'a[id^=delete_detail_]', function () {
+        $(this).parent().parent().remove();
+        updateDetailRank();
+    });
+    $("#questionnaire_detail_list").sortable({
+        cursor: 'move',
+        opacity: 0.7,
+        placeholder: 'ui-state-highlight',
+        update: function (event, ui) {
+            updateDetailRank();
+        }
+    });
+    var updateDetailRank = function () {
+        $("#questionnaire_detail_list > div").each(function (index) {
+            $(this).find(".rank_details").remove();
+            detailIndex = parseInt($(this).attr('id').replace(/questionnaire_detail_list_item_/g, ""));
+            $rank = $('<input type="hidden" class="rank_details" name="rank_details[]" />');
+            $rank.val(detailIndex + '//' + parseInt(index + 1));
+            $(this).append($rank);
+        });
+    }
+    updateDetailRank();
+    function updateChoiceRank(target) {
+        var questionnaire_detail_choices_count = 0;
+        target.find("div[id^=questionnaire_detail_choice_listitem_]").each(function (index) {
+            ++questionnaire_detail_choices_count;
+            $(this).find(".rank_choices").remove();
+            detailIndex = parseInt($(this).parent().parent().parent().attr('id').replace(/questionnaire_detail_list_item_/g, ""));
+            choiceIndex = parseInt($(this).attr('id').replace(/questionnaire_detail_choice_listitem_/g, ""));
+            $rank = $('<input type="hidden" class="rank_choices" name="rank_choices[]" />');
+            $rank.val(detailIndex + "_" + choiceIndex + '//' + parseInt(index + 1));
+            $(this).append($rank);
+        });
+    }
+    // 選択肢追加
+    var add_choice_flag = 0;
+    $("#questionnaire_detail_list").on('click', 'a[id^=choice_add_]', function () {
+        if (add_choice_flag == 1) {
+            return;
+        }
+        add_choice_flag = 1;
+        var choiceList = $(this).parent().parent().parent().find('div[id^=questionnaire_detail_choice_list_block_]');
+        var questionnaire_detail_choices_count = 0;
+        choiceList.find('div[id^=questionnaire_detail_choice_listitem_]').each(function(){
+            ++questionnaire_detail_choices_count;
+        });
+        if ({{ app.config.max_questionnaire_detail_choice }} <= questionnaire_detail_choices_count && 0 < {{ app.config.max_questionnaire_detail_choice }}) {
+            add_choice_flag = 0;
+            return;
+        }
+        // prototype templateを取得.
+        var newChoiceWidget = choiceList.attr('data-prototype');
+        // レコード数カウンタで置換.
+        newChoiceWidget = newChoiceWidget.replace(/__name__/g, questionnaire_detail_choices_count).replace(/__index__/g, questionnaire_detail_choices_count);
+        // フォーム入力値をセット
+        $newChoiceWidget = $(newChoiceWidget);
+        // 明細行に追加.
+        choiceList.append($newChoiceWidget);
+        updateChoiceRank(choiceList);
+        add_choice_flag = 0;
+    });
+    // 選択肢削除
+    $("#questionnaire_detail_list").on('click', 'a[id^=delete_choice]', function () {
+        list = $(this).parent().parent().parent().find('div[id^=questionnaire_detail_choice_list_block_]');
+        $(this).parent().parent().remove();
+        updateChoiceRank(list);
+    });
+    $('div[id^=questionnaire_detail_choice_list_block_]').sortable({
+        cursor: 'move',
+        opacity: 0.7,
+        placeholder: 'ui-state-highlight',
+        update: function (event, ui) {
+            updateChoiceRank(ui.item);
+        }
+    });
+    $('div[id^=questionnaire_detail_choice_list_block_]').each(function () {
+        updateChoiceRank($(this));
+    });
+});
+
+function fnClass(action) {
+    document.form1.action = action;
+    document.form1.submit();
+    return false;
+}
+
+</script>
+{% endblock javascript %}
+
+{% block main %}
+        <div class="row" id="aside_wrap">
+            <form role="form" name="form1" id="form1" method="post" action="" novalidate enctype="multipart/form-data">
+            {{ form_widget(form._token) }}
+                <div id="detail_wrap" class="col-md-9">
+                    <div id="detail_box" class="box form-horizontal">
+                        <div id="detail_box__header" class="box-header">
+                            <h3 class="box-title">アンケート情報</h3>
+                        </div><!-- /.box-header -->
+                        <div id="detail_box__body" class="box-body">
+
+                            {# アンケートID #}
+                            {% if Questionnaire.id %}
+                                <div id="detail_box__id" class="form-group">
+                                    <label class="col-sm-3 col-lg-3 control-label">アンケートID</label>
+                                    <div class="col-sm-9 col-lg-10 padT07">{{ Questionnaire.id }}</div>
+                                </div>
+                            {% endif %}
+
+                            {# アンケート名 #}
+                            <div id="detail_box__name" class="form-group">
+                                <label class="col-sm-3 col-lg-3 control-label">{{ form.name.vars.label }}</label>
+                                <div id="detail_box__name" class="col-sm-8">
+                                    {{ form_widget(form.name) }}
+                                    {{ form_errors(form.name) }}
+                                </div>
+                            </div>
+                            {# アンケート説明 #}
+                            <div id="detail_box__description" class="form-group">
+                                <label class="col-sm-3 col-lg-3 control-label">{{ form.description.vars.label }}</label>
+                                <div id="detail_box__name" class="col-sm-8">
+                                    {{ form_widget(form.description) }}
+                                    {{ form_errors(form.description) }}
+                                </div>
+                            </div>
+                            {# 対象 #}
+                            <div id="detail_box__target" class="form-group">
+                                <label class="col-sm-3 col-lg-3 control-label">{{ form.target.vars.label }}</label>
+                                <div class="col-sm-4 col-lg-4">
+                                    {{ form_widget(form.target) }}
+                                    {{ form_errors(form.target) }}
+                                </div>
+                            </div>
+                            {# 募集期間(From) #}
+                            <div id="detail_box__application_period_from" class="form-group">
+                                <label class="col-sm-3 col-lg-3 control-label">{{ form.application_period_from.vars.label }}</label>
+                                <div id="detail_box__application_period_from" class="col-sm-4">
+                                    {{ form_widget(form.application_period_from) }}
+                                    {{ form_errors(form.application_period_from) }}
+                                </div>
+                            </div>
+                            {# 募集期間(To) #}
+                            <div id="detail_box__application_period_to" class="form-group">
+                                <label class="col-sm-3 col-lg-3 control-label">{{ form.application_period_to.vars.label }}</label>
+                                <div id="detail_box__application_period_to" class="col-sm-4">
+                                    {{ form_widget(form.application_period_to) }}
+                                    {{ form_errors(form.application_period_to) }}
+                                </div>
+                            </div>
+
+                            <div id="detail_box__attachment" class="form-group">
+                                <label class="col-sm-3 col-lg-3 control-label" for="admin_questionnaire_attachment_file">
+                                    {{ form.attachment_file.vars.label }}<br>
+                                    <span class="small">{{ app.config.max_attachment_size }}バイトまで</span>
+                                </label>
+                                <div id="detail_files_box" class="col-sm-8 col-lg-8">
+                                    <div class="photo_files" id="drag-drop-area">
+                                        <svg id="icon_no_attachment" class="cb cb-attachment no-attachment"> <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#cb-attachment"></use></svg>
+                                        <ul id="thumb" class="clearfix"></ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="marB30">
+                                <div id="detail_box__file_upload" class="col-sm-offset-3 col-sm-9">
+
+                                    <div id="progress" class="progress progress-striped active" style="display:none;">
+                                        <div class="progress-bar progress-bar-info"></div>
+                                    </div>
+
+                                    {{ form_widget(form.attachment_file, { attr : { style : 'display:none;' } }) }}
+                                    {{ form_errors(form.attachment_file) }}
+                                    <a id="file_upload" class="with-icon">
+                                        <svg class="cb cb-plus"> <use xlink:href="#cb-plus" /></svg>ファイルをアップロード
+                                    </a>
+
+                                </div>
+                            </div>
+                            <div class="extra-form">
+                                {% for f in form.getIterator %}
+                                    {% if f.vars.name matches '[^plg*]' %}
+                                        {{ form_row(f) }}
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+
+                        </div><!-- /.box-body -->
+                    </div><!-- /.box -->
+                    <div id="questionnaire_detail_box" class="box accordion">
+                        <div id="questionnaire_detail_box__toggle" class="box-header toggle active">
+                            <h3 class="box-title">アンケート詳細情報<svg class="cb cb-angle-down icon_down"> <use xlink:href="#cb-angle-down" /></svg></h3>
+                        </div><!-- /.box-header -->
+                        <div id="questionnaire_detail_box__body" class="box-body accpanel" style="display: block;">
+                            <div class="detail_box__questionnaire_detail form-group">
+                                <div id="questionnaire_detail_list" 
+                                    class="tableish"
+                                    data-prototype="
+                                    {% filter escape %}
+                                    {{ include('Questionnaire/questionnaire_detail_prototype.twig', { 'questionnaireDetailForm': form.QuestionnaireDetails.vars.prototype, 'index': '__index__' }) }}
+                                    {% endfilter %}">
+                                    {% for questionnaireDetailForm in form.QuestionnaireDetails %}
+                                        {{ include('Questionnaire/questionnaire_detail_prototype.twig', { 'questionnaireDetailForm': form.QuestionnaireDetails.vars.prototype, 'index': loop.index }) }}
+                                    {% endfor %}
+                                </div>
+                                <div id="questionnaire_detail_add_buttun">
+                                    <a id="detail_add" class="with-icon">
+                                        <svg class="cb cb-plus"> <use xlink:href="#cb-plus" /></svg>アンケート項目追加
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="detail_box__footer" class="row hidden-xs hidden-sm">
+                        <div class="col-xs-10 col-xs-offset-1 col-sm-6 col-sm-offset-3 text-center btn_area">
+                            <p><a href="{{ url('admin_questionnaire_page', { page_no : app.session.get('eccube.admin.questionnaire.search.page_no')|default('1') } ) }}?resume=1">検索画面に戻る</a></p>
+                        </div>
+                    </div>
+
+                </div><!-- /.col -->
+
+                <div class="col-md-3" id="aside_column">
+                    <div id="common_box" class="col_inner">
+                        <div id="common_button_box" class="box no-header">
+                            <div id="common_button_box__body" class="box-body">
+                                <div id="common_button_box__status" class="row">
+                                    <div class="col-xs-12">
+                                        <div class="form-group">
+                                            {{ form_widget(form.Status) }}
+                                            {{ form_errors(form.Status) }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="common_button_box__insert_button" class="row text-center">
+                                    <div class="col-sm-6 col-sm-offset-3 col-md-12 col-md-offset-0">
+                                        <button type="submit" class="btn btn-primary btn-block btn-lg prevention-btn prevention-mask" >登録</button>
+                                    </div>
+                                </div>
+                                <div id="common_button_box__operation_button" class="row text-center with-border">
+                                    <div class="col-sm-6 col-sm-offset-3 col-md-12 col-md-offset-0">
+                                        <ul class="col-3">
+                                            {% if id is null %}
+                                                <li>
+                                                    <button class="btn btn-default btn-block btn-sm" disabled>
+                                                        確認
+                                                    </button>
+                                                </li>
+                                                <li>
+                                                    <button class="btn btn-default btn-block btn-sm" disabled>
+                                                        複製
+                                                    </button>
+                                                </li>
+                                                <li>
+                                                    <button class="btn btn-default btn-block btn-sm" disabled>
+                                                        削除
+                                                    </button>
+                                                </li>
+                                            {% else %}
+                                                <li>
+                                                    <a class="btn btn-default btn-block btn-sm" href="{{ url('admin_questionnaire_display', {'id' : id}) }}" target="_blank">
+                                                        確認
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    {% if is_membership == true %}
+                                                    <button class="btn btn-default btn-block btn-sm" disabled>
+                                                    {% else %}
+                                                    <a class="btn btn-default btn-block btn-sm" href="{{ url('admin_questionnaire_copy', {'id' : Questionnaire.id}) }}"  {{ csrf_token_for_anchor() }} data-method="post" data-message="このアンケート情報を複製してもよろしいですか？">
+                                                    {% endif %}
+                                                        複製
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                     <a class="btn btn-default btn-block btn-sm" href="{{ url('admin_questionnaire_delete', {'id' : Questionnaire.id}) }}" {{ csrf_token_for_anchor() }} data-method="delete" data-message="このアンケート情報を削除してもよろしいですか？">
+                                                        削除
+                                                    </a>
+                                                </li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div><!-- /.box-body -->
+                        </div><!-- /.box -->
+
+                        <div id="common_date_info_box" class="box no-header">
+                            <div id="common_date_info_box__body" class="box-body update-area">
+                                <p><svg class="cb cb-clock"> <use xlink:href="#cb-clock" /></svg>登録日：{{ Questionnaire.create_date|date_format }}</p>
+                                <p><svg class="cb cb-clock"> <use xlink:href="#cb-clock" /></svg>更新日：{{ Questionnaire.update_date|date_format }}</p>
+                            </div>
+                        </div><!-- /.box -->
+                    </div>
+                </div><!-- /.col -->
+
+            </form>
+        </div>
+
+{% endblock %}

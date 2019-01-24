@@ -274,12 +274,6 @@ class CustomerBasicInfo extends \Eccube\Entity\AbstractEntity
     private $Bureau;
 
     /**
-     * @var \Eccube\Entity\Master\ExemptionType
-     */
-    private $ExemptionType;
-
-
-    /**
      * Set qualification
      *
      * @param string $qualification
@@ -395,25 +389,87 @@ class CustomerBasicInfo extends \Eccube\Entity\AbstractEntity
     }
 
     /**
-     * Set ExemptionType
+     * @var string
+     */
+    private $customer_number_old;
+
+    /**
+     * @var \Eccube\Entity\Master\NobulletinType
+     */
+    private $Nobulletin;
+
+
+    /**
+     * Set customer_number_old
      *
-     * @param \Eccube\Entity\Master\ExemptionType $exemptionType
+     * @param string $customerNumberOld
      * @return CustomerBasicInfo
      */
-    public function setExemptionType(\Eccube\Entity\Master\ExemptionType $exemptionType = null)
+    public function setCustomerNumberOld($customerNumberOld)
     {
-        $this->ExemptionType = $exemptionType;
+        $this->customer_number_old = $customerNumberOld;
 
         return $this;
     }
 
     /**
-     * Get ExemptionType
+     * Get customer_number_old
+     *
+     * @return string 
+     */
+    public function getCustomerNumberOld()
+    {
+        return $this->customer_number_old;
+    }
+
+    /**
+     * Set Nobulletin
+     *
+     * @param \Eccube\Entity\Master\NobulletinType $nobulletin
+     * @return CustomerBasicInfo
+     */
+    public function setNobulletin(\Eccube\Entity\Master\NobulletinType $nobulletin = null)
+    {
+        $this->Nobulletin = $nobulletin;
+
+        return $this;
+    }
+
+    /**
+     * Get Nobulletin
+     *
+     * @return \Eccube\Entity\Master\NobulletinType 
+     */
+    public function getNobulletin()
+    {
+        return $this->Nobulletin;
+    }
+    /**
+     * @var \Eccube\Entity\Master\ExemptionType
+     */
+    private $MembershipExemption;
+
+
+    /**
+     * Set MembershipExemption
+     *
+     * @param \Eccube\Entity\Master\ExemptionType $membershipExemption
+     * @return CustomerBasicInfo
+     */
+    public function setMembershipExemption(\Eccube\Entity\Master\ExemptionType $membershipExemption = null)
+    {
+        $this->MembershipExemption = $membershipExemption;
+
+        return $this;
+    }
+
+    /**
+     * Get MembershipExemption
      *
      * @return \Eccube\Entity\Master\ExemptionType 
      */
-    public function getExemptionType()
+    public function getMembershipExemption()
     {
-        return $this->ExemptionType;
+        return $this->MembershipExemption;
     }
 }

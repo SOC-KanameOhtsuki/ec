@@ -21,8 +21,8 @@ class CustomerGroupRepository extends EntityRepository
             ->andWhere('cg.del_flg = 0');
 
         if (isset($searchData['multi']) && Str::isNotBlank($searchData['multi'])) {
-            //スペース除去
-            $clean_key_multi = preg_replace('/\s+|[　]+/u', '', $searchData['multi']);
+            //繧ｹ繝壹�ｼ繧ｹ髯､蜴ｻ
+            $clean_key_multi = preg_replace('/\s+|[縲]+/u', '', $searchData['multi']);
             $id = preg_match('/^\d+$/', $clean_key_multi) ? $clean_key_multi : null;
             $qb
                 ->andWhere('cg.id = :customer_group_id OR cg.name LIKE :name OR cg.kana LIKE :kana OR cg.bill_to LIKE :bill_to')

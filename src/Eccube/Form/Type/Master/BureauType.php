@@ -36,6 +36,6 @@ class BureauType extends AbstractType
 
     public function getName()
     {
-        return 'bureau_type';
+        return 'bureau';
     }
 }

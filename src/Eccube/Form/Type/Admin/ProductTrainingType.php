@@ -46,9 +46,6 @@ class ProductTrainingType extends AbstractType
                 'multiple' => false,
                 'expanded' => false,
             ))
-            ->add('place', 'textarea', array(
-                'label' => '会場',
-            ))
             ->add('training_date_start', 'text', array(
                 'label' => '開始日付',
                 'constraints' => array(
@@ -63,14 +60,37 @@ class ProductTrainingType extends AbstractType
                     new Assert\Regex(array('pattern' => '/^[0-9]{4}\/([0][1-9]|[1][0-2])\/([0][1-9]|[1-2][0-9]|[3][0-1]) ([0-1][0-9]|[2][0-3]):[0-5][0-9]$/')),
                 ),
             ))
-            ->add('place', 'textarea', array(
+            ->add('place', 'text', array(
                 'label' => '会場',
+            ))
+            ->add('place_kana', 'text', array(
+                'label' => '会場(カナ)',
+                'constraints' => array(
+                    new Assert\Regex(array(
+                        'pattern' => "/^[ァ-ヶｦ-ﾟー]+$/u",
+                    )),
+                ),
+            ))
+            ->add('place_room', 'text', array(
+                'label' => '会場(部屋名)',
+            ))
+            ->add('lecturer', 'text', array(
+                'label' => '講師',
             ))
             ->add('zip', 'zip', array(
                 'required' => true,
             ))
             ->add('address', 'address', array(
                 'required' => true,
+            ))
+            ->add('tel', 'tel', array(
+                'required' => false,
+            ))
+            ->add('tel_second', 'tel', array(
+                'required' => false,
+            ))
+            ->add('fax', 'tel', array(
+                'required' => false,
             ))
             ->add('target', 'textarea', array(
                 'label' => '対象',
@@ -80,6 +100,23 @@ class ProductTrainingType extends AbstractType
             ))
             ->add('item', 'textarea', array(
                 'label' => '持ち物',
+            ))
+            ->add('place_fee', 'money', array(
+                'label' => '会場費',
+                'currency' => 'JPY',
+                'precision' => 0,
+                'scale' => 0,
+                'grouping' => true,
+                'required' => false,
+                'constraints' => array(
+                    new Assert\Length(array(
+                        'max' => 10,
+                    )),
+                    new Assert\Regex(array(
+                        'pattern' => "/^\d+$/u",
+                        'message' => 'form.type.numeric.invalid'
+                    )),
+                ),
             ))
             ->add('collaborators', 'text', array(
                 'label' => '協力',

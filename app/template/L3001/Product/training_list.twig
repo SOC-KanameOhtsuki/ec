@@ -9,16 +9,35 @@ This file is Customized file
 {% endblock %}
 
 {% block main %}
+    <div style="text-align: right;">
+    過去の講習会は<a href="{{ url('product_training_history_list') }}">こちら</a>
+    </div>
+    <div class="row">
+        <h1 class="page-heading">講習会一覧</h1>
+    </div><!--/row-->
+    <form name="form1" id="form1" method="post" action="?">
+        <div class="training_search form-inline pc col-xs-12">
+            <div class="form-group" style="width:20%;">
+                <label>年</label>
+                {{ form_widget(search_form.year) }}
+            </div>
+            <div class="form-group" style="width:20%;">
+                <label>月</label>
+                {{ form_widget(search_form.month) }}
+            </div>
+            <div class="form-group" style="width:55%;">
+                <label>地域</label>
+                {{ form_widget(search_form.area) }}
+            </div>
+        </div>
+        <div class="training_search form-inline pc col-xs-12">
+            <button type="submit" class="btn btn-success btn-block btn-lg">絞込み</button>
+        </div>
+    </form>
+    <div id="result_info_box" class="row">
     {% if 0 < tainingCnt %}
-        <form name="form1" id="form1" method="get" action="?">
-            {{ form_widget(search_form) }}
-        </form>
-        <div class="row">
-            <h1 class="page-heading">講習会一覧</h1>
-        </div><!--/row-->
-        <div id="result_info_box" class="row">
             <form name="page_navi_top" id="page_navi_top" action="?">
-                <table width="920" cellpadding="0" cellspacing="0">
+                <table width="920" cellpadding="0" cellspacing="0" style="margin:0 0px 20px;">
                     <tbody>
                         <tr>
                             <td valign="top" align="center">
@@ -80,8 +99,6 @@ This file is Customized file
                             </td>
                         </tr>
                     </tbody>
-                    <br>
-                    <br>
                     {% for form in forms %}
                         {% if 0 < form.ProductsCount %}
                         <table width="900" cellpadding="1" cellspacing="3">

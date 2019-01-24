@@ -953,6 +953,10 @@ textarea.form-control{
     fill: #d0d0d0;
     font-size: 60px;
 }
+#drag-drop-area .no-attachment {
+    fill: #d0d0d0;
+    font-size: 60px;
+}
 #drag-drop-area {
 }
 
@@ -3245,6 +3249,53 @@ textarea#log {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+.save_file {
+    display: none;
+}
+
+.org_file {
+    fontsize: 16px;
+}
+
+.questionnaire_detail_box {
+    border: 1px solid #d1d8d9;
+    overflow: hidden;
+}
+
+.questionnaire_detail_item {
+    overflow: hidden;
+    padding: 10px;
+}
+
+.questionnaire_detail_choice_box {
+    border-top: 1px dotted #D1D8D9;
+    overflow: hidden;
+}
+
+.choice_add_btn {
+    border-top: 1px dotted #D1D8D9;
+    padding: 10px;
+    overflow: hidden;
+}
+
+.questionnaire_detail_choice_item {
+    overflow: hidden;
+    padding: 10px;
+}
+
+#file_upload_image:hover,
+#detail_add:hover {
+    opacity: 0.8;
+    cursor: pointer;
+}
+
+a[id^="delete_detail"]:hover,
+a[id^="choice_add"]:hover,
+a[id^="delete_choice"]:hover {
+    opacity: 0.8;
+    cursor: pointer;
 }
 
 .margin-top-15 {

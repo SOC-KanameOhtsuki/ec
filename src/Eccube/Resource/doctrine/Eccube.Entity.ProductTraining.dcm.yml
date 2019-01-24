@@ -18,7 +18,16 @@ Eccube\Entity\ProductTraining:
         training_date_end:
             type: datetime
             nullable: false
+        lecturer:
+            type: text
+            nullable: true
         place:
+            type: text
+            nullable: true
+        place_kana:
+            type: text
+            nullable: true
+        place_room:
             type: text
             nullable: true
         zip01:
@@ -36,6 +45,33 @@ Eccube\Entity\ProductTraining:
         addr02:
             type: text
             nullable: true
+        tel01:
+            type: text
+            nullable: true
+        tel02:
+            type: text
+            nullable: true
+        tel03:
+            type: text
+            nullable: true
+        tel_second01:
+            type: text
+            nullable: true
+        tel_second02:
+            type: text
+            nullable: true
+        tel_second03:
+            type: text
+            nullable: true
+        fax01:
+            type: text
+            nullable: true
+        fax02:
+            type: text
+            nullable: true
+        fax03:
+            type: text
+            nullable: true
         target:
             type: text
             nullable: true
@@ -45,7 +81,7 @@ Eccube\Entity\ProductTraining:
         item:
             type: text
             nullable: true
-        collaborators:
+        place_fee:
             type: text
             nullable: true
         area:

@@ -1,0 +1,65 @@
+Eccube\Entity\Questionnaire:
+    type: entity
+    table: dtb_questionnaire
+    repositoryClass: Eccube\Repository\QuestionnaireRepository
+    id:
+        id:
+            type: integer
+            nullable: false
+            unsigned: false
+            id: true
+            column: questionnaire_id
+            generator:
+                strategy: AUTO
+    fields:
+        name:
+            type: text
+            nullable: false
+            length: 65535
+        description:
+            type: text
+            nullable: true
+            length: 65535
+        del_flg:
+            type: smallint
+            nullable: false
+            unsigned: false
+            options:
+                default: '0'
+        create_date:
+            type: datetime
+            nullable: false
+        update_date:
+            type: datetime
+            nullable: false
+    manyToOne:
+        Creator:
+            targetEntity: Eccube\Entity\Member
+            joinColumn:
+                name: creator_id
+                referencedColumnName: member_id
+                nullable: false
+        Status:
+            targetEntity: Eccube\Entity\Master\Disp
+            joinColumn:
+                name: status
+                referencedColumnName: id
+                default: 2
+        Target:
+            targetEntity: Eccube\Entity\Master\CustomerType
+            joinColumn:
+                name: target
+                referencedColumnName: id
+                default: 1
+    oneToMany:
+        QuestionnaireAttachments:
+            targetEntity: Eccube\Entity\QuestionnaireAttachment
+            mappedBy: Questionnaire
+            orderBy:
+                rank: ASC
+        QuestionnaireDetails:
+            targetEntity: Eccube\Entity\QuestionnaireDetail
+            mappedBy: Questionnaire
+            orderBy:
+                rank: ASC
+    lifecycleCallbacks: {  }

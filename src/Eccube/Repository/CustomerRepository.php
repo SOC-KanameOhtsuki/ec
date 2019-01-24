@@ -144,6 +144,7 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
     {
         $qb = $this->createQueryBuilder('c')
             ->select('c')
+            ->leftJoin('c.CustomerBasicInfo', 'bc')
             ->andWhere('c.del_flg = 0');
 
         if (isset($searchData['multi']) && Str::isNotBlank($searchData['multi'])) {
@@ -151,11 +152,20 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
             $clean_key_multi = preg_replace('/\s+|[　]+/u', '', $searchData['multi']);
             $id = preg_match('/^\d+$/', $clean_key_multi) ? $clean_key_multi : null;
             $qb
-                ->andWhere('c.id = :customer_id OR CONCAT(c.name01, c.name02) LIKE :name OR CONCAT(c.kana01, c.kana02) LIKE :kana OR c.email LIKE :email')
+                ->andWhere('c.id = :customer_id OR bc.customer_number LIKE :customer_number OR bc.customer_number_old LIKE :customer_number_old OR CONCAT(c.name01, c.name02) LIKE :name OR CONCAT(c.kana01, c.kana02) LIKE :kana OR c.email LIKE :email')
                 ->setParameter('customer_id', $id)
+                ->setParameter('customer_number', '%' . $clean_key_multi . '%')
+                ->setParameter('customer_number_old', '%' . $clean_key_multi . '%')
                 ->setParameter('name', '%' . $clean_key_multi . '%')
                 ->setParameter('kana', '%' . $clean_key_multi . '%')
                 ->setParameter('email', '%' . $clean_key_multi . '%');
+        }
+
+        // CusotmerId
+        if (!empty($searchData['customer_id']) && $searchData['pref']) {
+            $qb
+                ->andWhere('c.customer_id = :customer_id')
+                ->setParameter('pref', $searchData['customer_id']);
         }
 
         // Pref
@@ -291,6 +301,27 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
             $qb
                 ->andWhere($qb->expr()->in('c.Status', ':statuses'))
                 ->setParameter('statuses', $searchData['customer_status']);
+        }
+
+        // CustomerNumber
+        if (!empty($searchData['customer_number']) && $searchData['customer_number']) {
+            $qb
+                ->andWhere('bc.customer_number LIKE :customer_number')
+                ->setParameter('customer_number', '%' . $searchData['customer_number'] . '%');
+        }
+
+        // CustomerNumberOld
+        if (!empty($searchData['customer_number_old']) && $searchData['customer_number_old']) {
+            $qb
+                ->andWhere('bc.customer_number_old LIKE :customer_number_old')
+                ->setParameter('customer_number_old', '%' . $searchData['customer_number_old'] . '%');
+        }
+
+        // BasicInfoStatus
+        if (!empty($searchData['customer_basicinfo_status']) && count($searchData['customer_basicinfo_status']) > 0) {
+            $qb
+                ->andWhere($qb->expr()->in('bc.Status', ':statuses'))
+                ->setParameter('statuses', $searchData['customer_basicinfo_status']);
         }
 
         // buy_product_name、buy_product_code

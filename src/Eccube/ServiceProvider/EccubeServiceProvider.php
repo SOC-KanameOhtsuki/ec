@@ -238,6 +238,18 @@ class EccubeServiceProvider implements ServiceProviderInterface
         $app['eccube.repository.flyer'] = $app->share(function () use ($app) {
             return $app['orm.em']->getRepository('Eccube\Entity\Flyer');
         });
+        $app['eccube.repository.questionnaire'] = $app->share(function () use ($app) {
+            return $app['orm.em']->getRepository('Eccube\Entity\Questionnaire');
+        });
+        $app['eccube.repository.questionnaire_attachment'] = $app->share(function () use ($app) {
+            return $app['orm.em']->getRepository('Eccube\Entity\QuestionnaireAttachment');
+        });
+        $app['eccube.repository.questionnaire_detail'] = $app->share(function () use ($app) {
+            return $app['orm.em']->getRepository('Eccube\Entity\QuestionnaireDetail');
+        });
+        $app['eccube.repository.questionnaire_detail_choice'] = $app->share(function () use ($app) {
+            return $app['orm.em']->getRepository('Eccube\Entity\QuestionnaireDetailChoice');
+        });
         $app['eccube.repository.mail_history'] = $app->share(function () use ($app) {
             return $app['orm.em']->getRepository('Eccube\Entity\MailHistory');
         });
@@ -346,7 +358,9 @@ class EccubeServiceProvider implements ServiceProviderInterface
             return $app['orm.em']->getRepository('Eccube\Entity\Master\CustomerStatus');
         });
         $app['eccube.repository.customer_basic_info_status'] = $app->share(function () use ($app) {
-            return $app['orm.em']->getRepository('Eccube\Entity\Master\CustomerBasicInfoStatus');
+            $CustomerBaseInfoStatusRepository = $app['orm.em']->getRepository('Eccube\Entity\Master\CustomerBasicInfoStatus');
+            $CustomerBaseInfoStatusRepository->setApplication($app);
+            return $CustomerBaseInfoStatusRepository;
         });
         $app['eccube.repository.order_status'] = $app->share(function () use ($app) {
             return $app['orm.em']->getRepository('Eccube\Entity\Master\OrderStatus');
@@ -455,6 +469,7 @@ class EccubeServiceProvider implements ServiceProviderInterface
             $types[] = new \Eccube\Form\Type\Master\MembershipBillingStatusType();
             $types[] = new \Eccube\Form\Type\Master\BureauType();
             $types[] = new \Eccube\Form\Type\Master\ExemptionTypeType();
+            $types[] = new \Eccube\Form\Type\Master\NobulletinTypeType();
 
             $types[] = new \Eccube\Form\Type\CustomerType($app); // 削除予定
 
@@ -462,6 +477,7 @@ class EccubeServiceProvider implements ServiceProviderInterface
                 $types[] = new \Eccube\Form\Type\AddCartType($app['config'], $app['security'], $app['eccube.repository.customer_favorite_product']);
             }
             $types[] = new \Eccube\Form\Type\SearchProductType($app);
+            $types[] = new \Eccube\Form\Type\SearchProductTrainingType($app);
             $types[] = new \Eccube\Form\Type\SearchProductBlockType($app);
             $types[] = new \Eccube\Form\Type\OrderSearchType($app);
             $types[] = new \Eccube\Form\Type\ShippingItemType($app);
@@ -485,7 +501,7 @@ class EccubeServiceProvider implements ServiceProviderInterface
             $types[] = new \Eccube\Form\Type\Admin\ProductClassType($app);
             $types[] = new \Eccube\Form\Type\Admin\SearchProductType($app);
             $types[] = new \Eccube\Form\Type\Admin\SearchGeneralProductType($app);
-            $types[] = new \Eccube\Form\Type\Admin\SearchCustomerType($app['config']);
+            $types[] = new \Eccube\Form\Type\Admin\SearchCustomerType($app);
             $types[] = new \Eccube\Form\Type\Admin\SearchCustomerGroupType($app['config']);
             $types[] = new \Eccube\Form\Type\Admin\SearchRegularMemberType($app['config']);
             $types[] = new \Eccube\Form\Type\Admin\SearchOrderType($app['config']);
@@ -533,6 +549,10 @@ class EccubeServiceProvider implements ServiceProviderInterface
             $types[] = new \Eccube\Form\Type\Admin\SearchGroupOrderType($app['config']);
             $types[] = new \Eccube\Form\Type\Admin\FlyerType($app);
             $types[] = new \Eccube\Form\Type\Admin\SearchFlyerType($app);
+            $types[] = new \Eccube\Form\Type\Admin\QuestionnaireType($app);
+            $types[] = new \Eccube\Form\Type\Admin\QuestionnaireDetailType($app);
+            $types[] = new \Eccube\Form\Type\Admin\QuestionnaireDetailChoiceType($app);
+            $types[] = new \Eccube\Form\Type\Admin\SearchQuestionnaireType($app);
 
             $types[] = new \Eccube\Form\Type\Admin\MasterdataType($app);
             $types[] = new \Eccube\Form\Type\Admin\MasterdataDataType($app);

@@ -101,7 +101,7 @@ $(function() {
     var proto_add = '{{ form_widget(form.add_images.vars.prototype) }}';
     var proto_del = '{{ form_widget(form.delete_images.vars.prototype) }}';
     {% for image in form.images %}
-    var $img = $(proto_img.replace(/__path__/g, '{{ app.config.image_save_urlpath }}/{{ image.vars.value }}'));
+    var $img = $(proto_img.replace(/__path__/g, '{{ app.config.product_image_save_urlpath }}/{{ image.vars.value }}'));
     var $widget = $('{{ form_widget(image) }}');
     $widget.val('{{ image.vars.value }}');
     $("#thumb").append($img.append($widget));
@@ -139,7 +139,7 @@ $(function() {
         var $new_delete_image = $(proto_del.replace(/__name__/g, count_del));
         var src = $(this).prev().attr('src')
                 .replace('{{ app.config.image_temp_urlpath }}/', '')
-                .replace('{{ app.config.image_save_urlpath }}/', '');
+                .replace('{{ app.config.product_image_save_urlpath }}/', '');
         $new_delete_image.val(src);
         $("#thumb").append($new_delete_image);
         $(this).parent("li").remove();
@@ -178,7 +178,7 @@ $(function() {
             $('#progress').show();
         },
         acceptFileTypes: /(\.|\/)(gif|jpe?g|png)$/i,
-        maxFileSize: 10000000,
+        maxFileSize: 1000000000,
         maxNumberOfFiles: 10,
         progressall: function (e, data) {
             var progress = parseInt(data.loaded / data.total * 100, 10);
@@ -194,8 +194,8 @@ $(function() {
         }
     });
     // 画像アップロード
-    $('#file_upload').on('click', function () {
-        $('#{{ form.product_file.vars.id }}').click();
+    $('#file_upload_image').on('click', function () {
+        $('#{{ form.product_image.vars.id }}').click();
     });
     $("#thumb_file").sortable({
         cursor: 'move',
@@ -205,7 +205,7 @@ $(function() {
             updateRank();
         }
     });
-    var proto_file_img = ''
+    var proto_file = ''
             + '<li class="ui-state-default">'
             + '<img src="__path__" />'
             + '<a class="delete-image">'
@@ -216,29 +216,29 @@ $(function() {
             + '</li>';
     var proto_file_add = '{{ form_widget(form.add_files.vars.prototype) }}';
     var proto_file_del = '{{ form_widget(form.delete_files.vars.prototype) }}';
-    {% for image in form.images %}
-    var $img = $(proto_img.replace(/__path__/g, '{{ app.config.image_save_urlpath }}/{{ file.vars.value }}'));
-    var $widget = $('{{ form_widget(image) }}');
+    {% for file in form.files %}
+    var $file = $(proto_img.replace(/__path__/g, '{{ app.config.product_file_save_urlpath }}/{{ file.vars.value }}'));
+    var $widget = $('{{ form_widget(form.file) }}');
     $widget.val('{{ image.vars.value }}');
-    $("#thumb_file").append($img.append($widget));
+    $("#thumb_file").append($file.append($widget));
     {% endfor %}
     {% for add_file in form.add_files %}
-    var $img = $(proto_file.replace(/__path__/g, '{{ app.config.image_temp_urlpath }}/{{ add_file.vars.value }}'));
+    var $fi = $(proto_file.replace(/__path__/g, '{{ app.config.image_temp_urlpath }}/{{ add_file.vars.value }}'));
     var $widget = $('{{ form_widget(add_file) }}');
     $widget.val('{{ add_file.vars.value }}');
-    $("#thumb_file").append($file.append($widget));
+    $("#thumb_file").append($fi.append($widget));
     {% endfor %}
     {% for delete_file in form.delete_files %}
     $("#thumb_file").append('{{ form_widget(delete_file) }}');
     {% endfor %}
-    var hideSvg = function () {
+    var hideFileSvg = function () {
         if ($("#thumb_file li").length > 0) {
-            $("#icon_no_image").css("display", "none");
+            $("#icon_no_file").css("display", "none");
         } else {
-            $("#icon_no_image").css("display", "");
+            $("#icon_no_file").css("display", "");
         }
     };
-    var updateRank = function () {
+    var updateFileRank = function () {
         $("#thumb_file li").each(function (index) {
             $(this).find(".rank_files").remove();
             filename = $(this).find("input[type='hidden']").val();
@@ -247,25 +247,25 @@ $(function() {
             $(this).append($rank);
         });
     }
-    hideSvg();
-    updateRank();
+    hideFileSvg();
+    updateFileRank();
     // 画像削除時
     var count_del = 0;
-    $("#thumb_file").on("click", ".delete-image", function () {
-        var $new_delete_image = $(proto_del.replace(/__name__/g, count_del));
+    $("#thumb_file").on("click", ".delete-file", function () {
+        var $new_delete_file = $(proto_del.replace(/__name__/g, count_del));
         var src = $(this).prev().attr('src')
                 .replace('{{ app.config.image_temp_urlpath }}/', '')
-                .replace('{{ app.config.image_save_urlpath }}/', '');
-        $new_delete_image.val(src);
-        $("#thumb_file").append($new_delete_image);
+                .replace('{{ app.config.product_file_save_urlpath }}/', '');
+        $new_delete_file.val(src);
+        $("#thumb_file").append($new_delete_file);
         $(this).parent("li").remove();
         hideSvg();
         updateRank();
         count_del++;
     });
-    var count_add = {{ form.add_images|length|default(0) }};
-    $('#{{ form.product_image.vars.id }}').fileupload({
-        url: "{{ url('admin_product_image_add') }}",
+    var count_add = {{ form.add_files|length|default(0) }};
+    $('#{{ form.product_file.vars.id }}').fileupload({
+        url: "{{ url('admin_product_file_add') }}",
         type: "post",
         sequentialUploads: true,
         dataType: 'json',
@@ -273,15 +273,15 @@ $(function() {
             $('#progress').hide();
             $.each(data.result.files, function (index, file) {
                 var path = '{{ app.config.image_temp_urlpath }}/' + file;
-                var $img = $(proto_img.replace(/__path__/g, path));
+                var $fi = $(proto_img.replace(/__path__/g, path));
                 var $new_img = $(proto_add.replace(/__name__/g, count_add));
                 $new_img.val(file);
-                $child = $img.append($new_img);
+                $child = $fi.append($new_img);
                 $('#thumb_file').append($child);
                 count_add++;
             });
-            hideSvg();
-            updateRank();
+            hideFileSvg();
+            updateFileRank();
         },
         fail: function (e, data) {
             alert('アップロードに失敗しました。');
@@ -305,12 +305,12 @@ $(function() {
         },
         processalways: function (e, data) {
             if (data.files.error) {
-                alert("ファイルサイズが大きい過ぎます。");
+                alert("ファイルサイズが大きすぎます。");
             }
         }
     });
     // 商品ファイルアップロード
-    $('#product_file_upload').on('click', function () {
+    $('#product_file_upload_file').on('click', function () {
         $('#{{ form.product_file.vars.id }}').click();
     });
 });
@@ -377,7 +377,7 @@ function fnClass(action) {
 
                                     {{ form_widget(form.product_image, { attr : { accept : 'image/*', style : 'display:none;' } }) }}
                                     {{ form_errors(form.product_image) }}
-                                    <a id="file_upload" class="with-icon">
+                                    <a id="file_upload_image" class="with-icon">
                                         <svg class="cb cb-plus"> <use xlink:href="#cb-plus" /></svg>ファイルをアップロード
                                     </a>
 
@@ -474,7 +474,7 @@ function fnClass(action) {
                                     </label>
                                     <div id="detail_files_box" class="col-sm-9 col-lg-10">
                                         <div class="photo_files" id="drag-drop-area">
-                                            <svg id="icon_no_image" class="cb cb-photo no-image"> <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#cb-photo"></use></svg>
+                                            <svg id="icon_no_file" class="cb cb-photo no-image"> <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#cb-photo"></use></svg>
                                             <ul id="thumb_file" class="clearfix"></ul>
                                         </div>
                                     </div>
@@ -486,7 +486,7 @@ function fnClass(action) {
                                         </div>
                                         {{ form_widget(form.product_file, { attr : { accept : '*/*', style : 'display:none;' } }) }}
                                         {{ form_errors(form.product_file) }}
-                                        <a id="product_file_upload" class="with-icon">
+                                        <a id="product_file_upload_file" class="with-icon">
                                             <svg class="cb cb-plus"> <use xlink:href="#cb-plus" /></svg>ファイルをアップロード
                                         </a>
 

@@ -61,6 +61,7 @@ class AdminControllerProvider implements ControllerProviderInterface
         $c->post('/product/product/{id}/copy', '\Eccube\Controller\Admin\Product\ProductController::copy')->assert('id', '\d+')->bind('admin_product_product_copy');
         $c->post('/product/product/class/edit/{id}', '\Eccube\Controller\Admin\Product\ProductClassController::edit')->assert('id', '\d+')->bind('admin_product_product_class_edit');
         $c->post('/product/product/image/add', '\Eccube\Controller\Admin\Product\ProductController::addImage')->bind('admin_product_image_add');
+        $c->post('/product/product/file/add', '\Eccube\Controller\Admin\Product\ProductController::addFile')->bind('admin_product_file_add');
 
         $c->match('/product/category', '\Eccube\Controller\Admin\Product\CategoryController::index')->bind('admin_product_category');
         $c->match('/product/category/export', '\Eccube\Controller\Admin\Product\CategoryController::export')->bind('admin_product_category_export');
@@ -153,7 +154,10 @@ class AdminControllerProvider implements ControllerProviderInterface
         $c->match('/questionnaire/page/{page_no}', '\Eccube\Controller\Admin\Questionnaire\QuestionnaireController::index')->assert('page_no', '\d+')->bind('admin_questionnaire_page');
         $c->match('/questionnaire/new', '\Eccube\Controller\Admin\Questionnaire\QuestionnaireController::edit')->bind('admin_questionnaire_new');
         $c->match('/questionnaire/{id}/edit', '\Eccube\Controller\Admin\Questionnaire\QuestionnaireController::edit')->assert('id', '\d+')->bind('admin_questionnaire_edit');
+        $c->match('/questionnaire/{id}/display', '\Eccube\Controller\Admin\Product\ProductController::display')->assert('id', '\d+')->bind('admin_product_product_display');
         $c->delete('/questionnaire/{id}/delete', '\Eccube\Controller\Admin\Questionnaire\QuestionnaireController::delete')->assert('id', '\d+')->bind('admin_questionnaire_delete');
+        $c->post('/questionnaire/{id}/copy', '\Eccube\Controller\Admin\Questionnaire\QuestionnaireController::copy')->assert('id', '\d+')->bind('admin_questionnaire_copy');
+        $c->post('/questionnaire/attachment/add', '\Eccube\Controller\Admin\Questionnaire\QuestionnaireController::addAttachment')->bind('admin_questionnaire_attachment_add');
 
         // training
         $c->match('/training/type', '\Eccube\Controller\Admin\Training\TrainingController::indexType')->bind('admin_training_type');
@@ -223,7 +227,6 @@ class AdminControllerProvider implements ControllerProviderInterface
 
         // content
         // deprecated /content/ 3.1 delete. use /content/news
-
         $c->match('/content', '\Eccube\Controller\Admin\Content\ContentsController::index')->bind('admin_content');
         $c->match('/content/new', '\Eccube\Controller\Admin\Content\ContentsController::edit')->bind('admin_content_new');
         $c->match('/content/{id}/edit', '\Eccube\Controller\Admin\Content\ContentsController::edit')->assert('id', '\d+')->bind('admin_content_edit');
@@ -234,7 +237,7 @@ class AdminControllerProvider implements ControllerProviderInterface
         $c->match('/content/news', '\Eccube\Controller\Admin\Content\NewsController::index')->bind('admin_content_news');
         $c->match('/content/news/new', '\Eccube\Controller\Admin\Content\NewsController::edit')->bind('admin_content_news_new');
         $c->match('/content/news/{id}/edit', '\Eccube\Controller\Admin\Content\NewsController::edit')->assert('id', '\d+')->bind('admin_content_news_edit');
-        $c->delete('/content/news/{id}/delete', '\Eccube\Controller\Admin\Content\NewsController::delete')->assert('id', '\d+')->bind('admin_content_delete');
+        $c->delete('/content/news/{id}/delete', '\Eccube\Controller\Admin\Content\NewsController::delete')->assert('id', '\d+')->bind('admin_content_news_delete');
         $c->put('/content/news/{id}/up', '\Eccube\Controller\Admin\Content\NewsController::up')->assert('id', '\d+')->bind('admin_content_news_up');
         $c->put('/content/news/{id}/down', '\Eccube\Controller\Admin\Content\NewsController::down')->assert('id', '\d+')->bind('admin_content_news_down');
 

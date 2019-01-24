@@ -31,11 +31,17 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 class SearchCustomerType extends AbstractType
 {
+    /**
+     * @var Application
+     */
+    public $app;
+
     private $config;
 
-    public function __construct($config)
+    public function __construct($app)
     {
-        $this->config = $config;
+        $this->app = $app;
+        $this->config = $app['config'];
     }
 
     /**
@@ -44,11 +50,33 @@ class SearchCustomerType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $config = $this->config;
+        $BaseInfoStatusList = $this->app['eccube.repository.customer_basic_info_status']->getStatusList();
         $months = range(1, 12);
         $builder
-            // 会員ID・メールアドレス・名前・名前(フリガナ)
+            // 会員番号・会員ID・旧会員ID・メールアドレス・名前・名前(フリガナ)
             ->add('multi', 'text', array(
-                'label' => '会員ID・メールアドレス・名前・名前(フリガナ)',
+                'label' => '会員番号・会員ID・旧会員ID・メールアドレス・名前・名前(フリガナ)',
+                'required' => false,
+                'constraints' => array(
+                    new Assert\Length(array('max' => $config['stext_len'])),
+                ),
+            ))
+            ->add('customer_id', 'text', array(
+                'label' => '会員番号',
+                'required' => false,
+                'constraints' => array(
+                    new Assert\Length(array('max' => $config['stext_len'])),
+                ),
+            ))
+            ->add('customer_number', 'text', array(
+                'label' => '会員ID',
+                'required' => false,
+                'constraints' => array(
+                    new Assert\Length(array('max' => $config['stext_len'])),
+                ),
+            ))
+            ->add('customer_number_old', 'text', array(
+                'label' => '旧会員ID',
                 'required' => false,
                 'constraints' => array(
                     new Assert\Length(array('max' => $config['stext_len'])),
@@ -199,12 +227,20 @@ class SearchCustomerType extends AbstractType
                 'required' => false,
             ))
             ->add('customer_status', 'choice', array(
-                'label' => '会員ステータス',
+                'label' => 'EC会員ステータス',
                 'required' => false,
                 'choices' => array(
                     '1' => '仮会員',
                     '2' => '本会員',
                 ),
+                'expanded' => true,
+                'multiple' => true,
+                'empty_value' => false,
+            ))
+            ->add('customer_basicinfo_status', 'choice', array(
+                'label' => '会員ステータス',
+                'required' => false,
+                'choices' => $BaseInfoStatusList,
                 'expanded' => true,
                 'multiple' => true,
                 'empty_value' => false,

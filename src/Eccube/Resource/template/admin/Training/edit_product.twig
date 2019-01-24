@@ -72,7 +72,7 @@ This file is Customized File
         var proto_add = '{{ form_widget(form.add_images.vars.prototype) }}';
         var proto_del = '{{ form_widget(form.delete_images.vars.prototype) }}';
         {% for image in form.images %}
-        var $img = $(proto_img.replace(/__path__/g, '{{ app.config.image_save_urlpath }}/{{ image.vars.value }}'));
+        var $img = $(proto_img.replace(/__path__/g, '{{ app.config.product_image_save_urlpath }}/{{ image.vars.value }}'));
         var $widget = $('{{ form_widget(image) }}');
         $widget.val('{{ image.vars.value }}');
         $("#thumb").append($img.append($widget));
@@ -110,7 +110,7 @@ This file is Customized File
             var $new_delete_image = $(proto_del.replace(/__name__/g, count_del));
             var src = $(this).prev().attr('src')
                     .replace('{{ app.config.image_temp_urlpath }}/', '')
-                    .replace('{{ app.config.image_save_urlpath }}/', '');
+                    .replace('{{ app.config.product_image_save_urlpath }}/', '');
             $new_delete_image.val(src);
             $("#thumb").append($new_delete_image);
             $(this).parent("li").remove();
@@ -149,7 +149,7 @@ This file is Customized File
                 $('#progress').show();
             },
             acceptFileTypes: /(\.|\/)(gif|jpe?g|png)$/i,
-            maxFileSize: 10000000,
+            maxFileSize: {{ app.config.max_customer_upload_size }},
             maxNumberOfFiles: 10,
             progressall: function (e, data) {
                 var progress = parseInt(data.loaded / data.total * 100, 10);
@@ -250,6 +250,38 @@ This file is Customized File
                                     {{ form_errors(form.product_training.place) }}
                                 </div>
                             </div>
+                            {# 会場(カナ) #}
+                            <div id="detail_box__place_kana" class="form-group">
+                                {{ form_label(form.product_training.place_kana) }}
+                                <div id="detail_box__place_kana" class="col-sm-3 col-lg-10">
+                                    {{ form_widget(form.product_training.place_kana) }}
+                                    {{ form_errors(form.product_training.place_kana) }}
+                                </div>
+                            </div>
+                            {# 会場(部屋名) #}
+                            <div id="detail_box__place_room" class="form-group">
+                                {{ form_label(form.product_training.place_room) }}
+                                <div id="detail_box__place_room" class="col-sm-3 col-lg-10">
+                                    {{ form_widget(form.product_training.place_room) }}
+                                    {{ form_errors(form.product_training.place_room) }}
+                                </div>
+                            </div>
+                            {# 講師 #}
+                            <div id="detail_box__lecturer" class="form-group">
+                                {{ form_label(form.product_training.lecturer) }}
+                                <div id="detail_box__lecturer" class="col-sm-3 col-lg-10">
+                                    {{ form_widget(form.product_training.lecturer) }}
+                                    {{ form_errors(form.product_training.lecturer) }}
+                                </div>
+                            </div>
+                            {# 会場費 #}
+                            <div id="detail_box__place_fee" class="form-group">
+                                {{ form_label(form.product_training.place_fee) }}
+                                <div id="detail_box__place_fee" class="col-sm-3 col-lg-10">
+                                    {{ form_widget(form.product_training.place_fee) }}
+                                    {{ form_errors(form.product_training.place_fee) }}
+                                </div>
+                            </div>
                             {# 住所：郵便番号 #}
                             <div id="detail_box__address" class="form-group">
                                 {{ form_label(form.product_training.address) }}
@@ -280,6 +312,36 @@ This file is Customized File
                                 <div id="detail_box__addr02" class="col-sm-offset-2 col-sm-9 col-lg-10">
                                     {{ form_widget(form.product_training.address.addr02, { attr : { placeholder : '番地・ビル名（例：1-3-5）' }}) }}
                                     {{ form_errors(form.product_training.address.addr02) }}
+                                </div>
+                            </div>
+                            {# 電話番号1 #}
+                            <div id="detail_box__tel" class="form-group">
+                                <label class="col-sm-3 col-lg-2 control-label">電話番号1</label>
+                                <div class="col-sm-9 col-lg-10 input_tel form-inline">
+                                    {{ form_widget(form.product_training.tel.tel01) }}-{{ form_widget(form.product_training.tel.tel02) }}-{{ form_widget(form.product_training.tel.tel03) }}
+                                    {{ form_errors(form.product_training.tel.tel01) }}
+                                    {{ form_errors(form.product_training.tel.tel02) }}
+                                    {{ form_errors(form.product_training.tel.tel03) }}
+                                </div>
+                            </div>
+                            {# 電話番号2 #}
+                            <div id="detail_box__tel_second" class="form-group">
+                                <label class="col-sm-3 col-lg-2 control-label">電話番号2</label>
+                                <div class="col-sm-9 col-lg-10 input_tel form-inline">
+                                    {{ form_widget(form.product_training.tel_second.tel_second01) }}-{{ form_widget(form.product_training.tel_second.tel_second02) }}-{{ form_widget(form.product_training.tel_second.tel_second03) }}
+                                    {{ form_errors(form.product_training.tel_second.tel_second01) }}
+                                    {{ form_errors(form.product_training.tel_second.tel_second02) }}
+                                    {{ form_errors(form.product_training.tel_second.tel_second03) }}
+                                </div>
+                            </div>
+                            {# FAX番号 #}
+                            <div id="detail_box__fox" class="form-group">
+                                <label class="col-sm-3 col-lg-2 control-label">Fax</label>
+                                <div class="col-sm-9 col-lg-10 input_tel form-inline">
+                                    {{ form_widget(form.product_training.fax.fax01) }}-{{ form_widget(form.product_training.fax.fax02) }}-{{ form_widget(form.product_training.fax.fax03) }}
+                                    {{ form_errors(form.product_training.fax.fax01) }}
+                                    {{ form_errors(form.product_training.fax.fax02) }}
+                                    {{ form_errors(form.product_training.fax.fax03) }}
                                 </div>
                             </div>
                             {# 対象 #}
@@ -403,7 +465,7 @@ This file is Customized File
                             <div id="detail_box__image" class="form-group">
                                 <label class="col-sm-2 control-label" for="admin_training_product_image">
                                     {{ form.product_image.vars.label }}<br>
-                                    <span class="small">620px以上推奨</span>
+                                    <span class="small">400px×400px推奨</span>
                                 </label>
                                 <div id="detail_files_box" class="col-sm-9 col-lg-10">
                                     <div class="photo_files" id="drag-drop-area">

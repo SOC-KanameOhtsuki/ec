@@ -142,7 +142,7 @@ class TrainingController extends AbstractController
 
         if ('POST' === $request->getMethod()) {
             $request_data = $request->request->all();
-            $request_data['admin_training']['class']['product_type'] = $app['config']['product_type_training'];
+            $request_data['admin_training']['class']['product_type'] = $app['eccube.repository.master.product_type']->find($app['config']['product_type_training']);
             $request->request->add($request_data);
             $form->handleRequest($request);
             if ($form->isValid()) {
@@ -792,8 +792,9 @@ class TrainingController extends AbstractController
         $form['images']->setData($images);
 
         if ('POST' === $request->getMethod()) {
+            // 入力制限回避
             $request_data = $request->request->all();
-            $request_data['admin_training']['class']['product_type'] = $app['config']['product_type_training'];
+            $request_data['admin_training']['class']['product_type'] = $app['config']['product_type_normal'];
             $request->request->add($request_data);
             $form->handleRequest($request);
             if ($form->isValid()) {
@@ -801,6 +802,7 @@ class TrainingController extends AbstractController
                 // 講習会情報の登録
                 $Product = $form->getData();
                 $ProductClass = $form['class']->getData();
+                $ProductClass->setProductType($app['eccube.repository.master.product_type']->find($app['config']['product_type_training']));
 
                 // 個別消費税
                 $BaseInfo = $app['eccube.repository.base_info']->get();
@@ -863,7 +865,7 @@ class TrainingController extends AbstractController
 
                     // 移動
                     $file = new File($app['config']['image_temp_realdir'].'/'.$add_image);
-                    $file->move($app['config']['image_save_realdir']);
+                    $file->move($app['config']['product_image_save_realdir']);
                 }
 
                 // 画像の削除
@@ -883,7 +885,7 @@ class TrainingController extends AbstractController
                     // 削除
                     if (!empty($delete_image)) {
                         $fs = new Filesystem();
-                        $fs->remove($app['config']['image_save_realdir'].'/'.$delete_image);
+                        $fs->remove($app['config']['product_image_save_realdir'].'/'.$delete_image);
                     }
                 }
                 $app['orm.em']->persist($Product);
@@ -1761,7 +1763,7 @@ class TrainingController extends AbstractController
                     try {
                         if (!empty($deleteImage)) {
                             $fs = new Filesystem();
-                            $fs->remove($app['config']['image_save_realdir'].'/'.$deleteImage);
+                            $fs->remove($app['config']['product_image_save_realdir'].'/'.$deleteImage);
                         }
                     } catch (\Exception $e) {
                         // エラーが発生しても無視する
@@ -1835,7 +1837,7 @@ class TrainingController extends AbstractController
                     $filename = date('mdHis').uniqid('_').'.'.$extension;
                     try {
                         $fs = new Filesystem();
-                        $fs->copy($app['config']['image_save_realdir'].'/'.$Image->getFileName(), $app['config']['image_save_realdir'].'/'.$filename);
+                        $fs->copy($app['config']['product_image_save_realdir'].'/'.$Image->getFileName(), $app['config']['product_image_save_realdir'].'/'.$filename);
                     } catch (\Exception $e) {
                         // エラーが発生しても無視する
                     }

@@ -1,9 +1,9 @@
 database:
     driver: 'pdo_mysql'
     host: '127.0.0.1'
-    dbname: 'ec_trial_temp'
+    dbname: 'fumanet'
     port: '3306'
-    user: 'root'
-    password : ''
+    user: 'fumanet'
+    password : 'password1to3'
     charset: utf8
     defaultTableOptions: { collate: utf8_general_ci }

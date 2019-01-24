@@ -486,7 +486,7 @@ class ProductController extends AbstractController
 
                     // 移動
                     $file = new File($app['config']['image_temp_realdir'].'/'.$add_image);
-                    $file->move($app['config']['image_save_realdir']);
+                    $file->move($app['config']['product_image_save_realdir']);
                 }
 
                 // 画像の削除

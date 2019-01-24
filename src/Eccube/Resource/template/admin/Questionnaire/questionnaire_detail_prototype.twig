@@ -1,0 +1,42 @@
+<div id="questionnaire_detail_list_item_{{ index }}" class="questionnaire_detail_box form-group">
+    <div>
+        <a id="delete_choice{{ index }}">
+            <svg class="cb cb-close">
+                <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="#cb-close"></use>'
+            </svg>
+        </a>
+    </div>
+    {# 項目名 #}
+    <div id="detail_box__detail_name_{{ index }}" class="questionnaire_detail_item">
+        <label class="col-sm-3 col-lg-3 control-label">{{ questionnaireDetailForm.detail_name.vars.label }}</label>
+        <div name="detail_box__name" class="col-sm-8">
+            {{ form_widget(questionnaireDetailForm.detail_name) }}
+            {{ form_errors(questionnaireDetailForm.detail_name) }}
+        </div>
+    </div>
+    {# 項目説明 #}
+    <div id="detail_box__detail_description_{{ index }}" class="questionnaire_detail_item">
+        <label class="col-sm-3 col-lg-3 control-label">{{ questionnaireDetailForm.detail_description.vars.label }}</label>
+        <div name="detail_box__name" class="col-sm-8">
+            {{ form_widget(questionnaireDetailForm.detail_description) }}
+            {{ form_errors(questionnaireDetailForm.detail_description) }}
+        </div>
+    </div>
+    <div class="detail_box__questionnaire_detail_choice questionnaire_detail_item">
+        <div id="questionnaire_detail_choice_list_block_{{ index }}" 
+            class="tableish"
+            data-prototype="
+            {% filter escape %}
+            {{ include('Questionnaire/questionnaire_detail_choice_prototype.twig', { 'questionnaireDetailChoiceForm': questionnaireDetailForm.QuestionnaireDetailChoices.vars.prototype, 'index': '__index__' }) }}
+            {% endfilter %}">
+            {% for questionnaireDetailChoiceForm in questionnaireDetailForm.QuestionnaireDetailChoices %}
+                {{ include('Questionnaire/questionnaire_detail_choice_prototype.twig', { 'questionnaireDetailChoiceForm': questionnaireDetailForm.QuestionnaireDetailChoices.vars.prototype, 'index': loop.index }) }}
+            {% endfor %}
+        </div>
+        <div name="questionnaire_detail_choice_add_buttun" class="choice_add_btn">
+            <a id="choice_add_{{ index }}" class="with-icon">
+                <svg class="cb cb-plus"> <use xlink:href="#cb-plus" /></svg>選択肢追加
+            </a>
+        </div>
+    </div>
+</div>

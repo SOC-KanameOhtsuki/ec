@@ -1,0 +1,115 @@
+{#
+This file is Customized file
+#}
+{% extends 'default_frame.twig' %}
+
+{% set body_class = 'product_page' %}
+
+{% block javascript %}
+{% endblock %}
+
+{% block main %}
+    <div style="text-align: right;">
+    現在申し込み可能な講習会は<a href="{{ url('product_training_list') }}">こちら</a>
+    </div><!--/row-->
+    <div class="row">
+        <h1 class="page-heading">過去講習会一覧</h1>
+    </div><!--/row-->
+    <form name="form1" id="form1" method="post" action="?">
+        <div class="training_search form-inline pc col-xs-12">
+            <div class="form-group" style="width:20%;">
+                <label>年</label>
+                {{ form_widget(search_form.year) }}
+            </div>
+            <div class="form-group" style="width:20%;">
+                <label>月</label>
+                {{ form_widget(search_form.month) }}
+            </div>
+            <div class="form-group" style="width:55%;">
+                <label>地域</label>
+                {{ form_widget(search_form.area) }}
+            </div>
+        </div>
+        <div class="training_search form-inline pc col-xs-12">
+            <button type="submit" class="btn btn-success btn-block btn-lg">絞込み</button>
+        </div>
+    </form>
+    <div id="result_info_box" class="row">
+    {% if 0 < tainingCnt %}
+            <form name="page_navi_top" id="page_navi_top" action="?">
+                <table width="920" cellpadding="0" cellspacing="0" style="margin:0 0px 20px;">
+                    <tbody>
+                        <tr>
+                            <td valign="top" align="center">
+                                <table cellpadding="0" cellspacing="0" width="100%" class="font10">
+                                    <tbody>
+                                        <tr>
+                                            <td align="center">
+                                                <table class="font10" bgcolor="#EAF1F7">
+                                                    <tbody>
+                                                        {% for headerInfo in headerInfos %}
+                                                        <tr>
+                                                            <td align="center"><b>｜</b></td>
+                                                            {% if 0 < headerInfo.0.ProductsCount %}
+                                                                <td><a href=#training{{ headerInfo.0.id }}>{{ headerInfo.0.name }}</a></td>
+                                                            {% else %}
+                                                                <td><font color=#aaaaaa>{{ headerInfo.0.name }}</font></td>
+                                                            {% endif %}
+                                                            <td align=center><b>｜</b></td>
+                                                            {% if headerInfo.1 %}
+                                                                {% if 0 < headerInfo.1.ProductsCount %}
+                                                                    <td><a href=#training{{ headerInfo.1.id }}>{{ headerInfo.1.name }}</a></td>
+                                                                {% else %}
+                                                                    <td><font color=#aaaaaa>{{ headerInfo.1.name }}</font></td>
+                                                                {% endif %}
+                                                            {% endif %}
+                                                        </tr>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <br>
+                    <br>
+                    {% for form in forms %}
+                        {% if 0 < form.ProductsCount %}
+                        <table width="900" cellpadding="1" cellspacing="3">
+                            <tbody>
+                                <tr>
+                                    <td id="training{{ form.TrainingType.id }}">{{ form.TrainingType.name }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <table class="font10" width="900" cellspacing="1" cellpadding="3" bgcolor="#717EAA" style="border-collapse: separate;border-spacing: 1px 1px;">
+                            <tbody class="callink">
+                                <tr>
+                                    <td nowrap="" bgcolor="#D8DEEC" align="center">地域</td>
+                                    <td nowrap="" bgcolor="#D8DEEC" align="center">日付</td>
+                                    <td nowrap="" bgcolor="#D8DEEC" align="center">会場</td>
+                                </tr>
+                                {% for product in form['Product'] %}
+                                <tr onmouseover="setPointer(this, '#F9F1DA', '#ffffff')" onmouseout="setPointer(this, '#ffffff', '#ffffff')" bgcolor="#ffffff">
+                                    <td valign="top" nowrap="" bgcolor="#ffffff" align="center">{{ product.ProductTraining.addr01 }}</td>
+                                    <td nowrap="" bgcolor="#ffffff">{{ form['Training_Date'][product.id] }}</td>
+                                    <td width="100%" bgcolor="#ffffff">{{ product.ProductTraining.place }}（{{ product.ProductTraining.addr01 }}{{ product.ProductTraining.addr02 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        <br>
+                        <br>
+                        {% endif %}
+                    </table>
+                    {% endfor %}
+                </table>
+            </form>
+        </div>
+    {% else %}
+        <p class="errormsg text-danger">現在、有効な講習会情報は存在しません。</p>
+    {% endif %}
+{% endblock %}

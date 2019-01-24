@@ -696,4 +696,368 @@ class ProductTraining extends \Eccube\Entity\AbstractEntity
     {
         return $this->AttendanceHistories;
     }
+    /**
+     * @var string
+     */
+    private $lecturer;
+
+    /**
+     * @var string
+     */
+    private $place_kana;
+
+    /**
+     * @var string
+     */
+    private $place_room;
+
+    /**
+     * @var string
+     */
+    private $tel01;
+
+    /**
+     * @var string
+     */
+    private $tel02;
+
+    /**
+     * @var string
+     */
+    private $tel03;
+
+    /**
+     * @var string
+     */
+    private $tel_second01;
+
+    /**
+     * @var string
+     */
+    private $tel_second02;
+
+    /**
+     * @var string
+     */
+    private $tel_second03;
+
+    /**
+     * @var string
+     */
+    private $fax01;
+
+    /**
+     * @var string
+     */
+    private $fax02;
+
+    /**
+     * @var string
+     */
+    private $fax03;
+
+    /**
+     * @var string
+     */
+    private $place_fee;
+
+
+    /**
+     * Set lecturer
+     *
+     * @param string $lecturer
+     * @return ProductTraining
+     */
+    public function setLecturer($lecturer)
+    {
+        $this->lecturer = $lecturer;
+
+        return $this;
+    }
+
+    /**
+     * Get lecturer
+     *
+     * @return string 
+     */
+    public function getLecturer()
+    {
+        return $this->lecturer;
+    }
+
+    /**
+     * Set place_kana
+     *
+     * @param string $placeKana
+     * @return ProductTraining
+     */
+    public function setPlaceKana($placeKana)
+    {
+        $this->place_kana = $placeKana;
+
+        return $this;
+    }
+
+    /**
+     * Get place_kana
+     *
+     * @return string 
+     */
+    public function getPlaceKana()
+    {
+        return $this->place_kana;
+    }
+
+    /**
+     * Set place_room
+     *
+     * @param string $placeRoom
+     * @return ProductTraining
+     */
+    public function setPlaceRoom($placeRoom)
+    {
+        $this->place_room = $placeRoom;
+
+        return $this;
+    }
+
+    /**
+     * Get place_room
+     *
+     * @return string 
+     */
+    public function getPlaceRoom()
+    {
+        return $this->place_room;
+    }
+
+    /**
+     * Set tel01
+     *
+     * @param string $tel01
+     * @return ProductTraining
+     */
+    public function setTel01($tel01)
+    {
+        $this->tel01 = $tel01;
+
+        return $this;
+    }
+
+    /**
+     * Get tel01
+     *
+     * @return string 
+     */
+    public function getTel01()
+    {
+        return $this->tel01;
+    }
+
+    /**
+     * Set tel02
+     *
+     * @param string $tel02
+     * @return ProductTraining
+     */
+    public function setTel02($tel02)
+    {
+        $this->tel02 = $tel02;
+
+        return $this;
+    }
+
+    /**
+     * Get tel02
+     *
+     * @return string 
+     */
+    public function getTel02()
+    {
+        return $this->tel02;
+    }
+
+    /**
+     * Set tel03
+     *
+     * @param string $tel03
+     * @return ProductTraining
+     */
+    public function setTel03($tel03)
+    {
+        $this->tel03 = $tel03;
+
+        return $this;
+    }
+
+    /**
+     * Get tel03
+     *
+     * @return string 
+     */
+    public function getTel03()
+    {
+        return $this->tel03;
+    }
+
+    /**
+     * Set tel_second01
+     *
+     * @param string $telSecond01
+     * @return ProductTraining
+     */
+    public function setTelSecond01($telSecond01)
+    {
+        $this->tel_second01 = $telSecond01;
+
+        return $this;
+    }
+
+    /**
+     * Get tel_second01
+     *
+     * @return string 
+     */
+    public function getTelSecond01()
+    {
+        return $this->tel_second01;
+    }
+
+    /**
+     * Set tel_second02
+     *
+     * @param string $telSecond02
+     * @return ProductTraining
+     */
+    public function setTelSecond02($telSecond02)
+    {
+        $this->tel_second02 = $telSecond02;
+
+        return $this;
+    }
+
+    /**
+     * Get tel_second02
+     *
+     * @return string 
+     */
+    public function getTelSecond02()
+    {
+        return $this->tel_second02;
+    }
+
+    /**
+     * Set tel_second03
+     *
+     * @param string $telSecond03
+     * @return ProductTraining
+     */
+    public function setTelSecond03($telSecond03)
+    {
+        $this->tel_second03 = $telSecond03;
+
+        return $this;
+    }
+
+    /**
+     * Get tel_second03
+     *
+     * @return string 
+     */
+    public function getTelSecond03()
+    {
+        return $this->tel_second03;
+    }
+
+    /**
+     * Set fax01
+     *
+     * @param string $fax01
+     * @return ProductTraining
+     */
+    public function setFax01($fax01)
+    {
+        $this->fax01 = $fax01;
+
+        return $this;
+    }
+
+    /**
+     * Get fax01
+     *
+     * @return string 
+     */
+    public function getFax01()
+    {
+        return $this->fax01;
+    }
+
+    /**
+     * Set fax02
+     *
+     * @param string $fax02
+     * @return ProductTraining
+     */
+    public function setFax02($fax02)
+    {
+        $this->fax02 = $fax02;
+
+        return $this;
+    }
+
+    /**
+     * Get fax02
+     *
+     * @return string 
+     */
+    public function getFax02()
+    {
+        return $this->fax02;
+    }
+
+    /**
+     * Set fax03
+     *
+     * @param string $fax03
+     * @return ProductTraining
+     */
+    public function setFax03($fax03)
+    {
+        $this->fax03 = $fax03;
+
+        return $this;
+    }
+
+    /**
+     * Get fax03
+     *
+     * @return string 
+     */
+    public function getFax03()
+    {
+        return $this->fax03;
+    }
+
+    /**
+     * Set place_fee
+     *
+     * @param string $placeFee
+     * @return ProductTraining
+     */
+    public function setPlaceFee($placeFee)
+    {
+        $this->place_fee = $placeFee;
+
+        return $this;
+    }
+
+    /**
+     * Get place_fee
+     *
+     * @return string 
+     */
+    public function getPlaceFee()
+    {
+        return $this->place_fee;
+    }
 }

@@ -1,324 +1,228 @@
 <?php
 /*
- * This file is part of the Order Pdf plugin
- *
- * Copyright (C) 2016 LOCKON CO.,LTD. All Rights Reserved.
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+ * This file is Customized File.
  */
 
-namespace Eccube\Service;
+
+namespace Eccube\Controller\Admin\Questionnaire;
 
 use Eccube\Application;
-use Eccube\Entity\BaseInfo;
-use Eccube\Entity\Help;
-use Eccube\Entity\Order;
-use Eccube\Entity\OrderDetail;
-use Japanese\Holiday\Repository as HolidayRepository;
+use Eccube\Common\Constant;
+use Eccube\Controller\AbstractController;
+use Eccube\Entity\Master\CsvType;
+use Eccube\Entity\QuestionnaireTag;
+use Eccube\Event\EccubeEvents;
+use Eccube\Event\EventArgs;
+use Eccube\Service\CsvExportService;
+use Eccube\Util\FormUtil;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Form\FormError;
+use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
+use Symfony\Component\HttpKernel\Exception\UnsupportedMediaTypeHttpException;
 
-/**
- * Class FaxAcceptPdfService.
- * Do export pdf function.
- */
-class FlyerPdfService extends AbstractFPDIService
+class QuestionnaireController extends AbstractController
 {
-    // ====================================
-    // 定数宣言
-    // ====================================
-    /** ダウンロードするPDFファイル名 */
-    const OUT_PDF_FILE_NAME = 'flyer';
-
-    /** FONT ゴシック */
-    const FONT_GOTHIC = 'kozgopromedium';
-    /** FONT 明朝 */
-    const FONT_SJIS = 'kozminproregular';
-    /** 1ページ最大行数 */
-    const MAX_ROR_PER_PAGE = 8;
-
-    // ====================================
-    // 変数宣言
-    // ====================================
-    /** @var Application */
-    public $app;
-
-    // --------------------------------------
-    // Font情報のバックアップデータ
-    /** @var string フォント名 */
-    private $bakFontFamily;
-    /** @var string フォントスタイル */
-    private $bakFontStyle;
-    /** @var string フォントサイズ */
-    private $bakFontSize;
-    // --------------------------------------
-
-    // lfTextのoffset
-    private $baseOffsetX = 0;
-    private $baseOffsetY = -4;
-
-    /** ダウンロードファイル名 @var string */
-    private $downloadFileName = null;
-
-    /** 発行日 @var string */
-    private $issueDate = '';
-
-    /** 最大ページ @var string */
-    private $pageMax = '';
-
-    /** 曜日 @var array */
-    private $WeekDay = ['0' => '日', '1' => '月', '2' => '火', '3' => '水', '4' => '木', '5' => '金', '6' => '土'];
-
-    /**
-     * コンストラクタ.
-     *
-     * @param object $app
-     */
-    public function __construct($app)
+    public function index(Application $app, Request $request, $page_no = null)
     {
-        $this->app = $app;
-        parent::__construct();
+        $session = $app['session'];
+        $builder = $app['form.factory']
+            ->createBuilder('admin_search_questionnaire');
+        $searchForm = $builder->getForm();
 
-        // Fontの設定しておかないと文字化けを起こす
-         $this->SetFont(self::FONT_SJIS);
-
-        // PDFの余白(上左右)を設定
-        $this->SetMargins(15, 20);
-
-        // ヘッダーの出力を無効化
-        $this->setPrintHeader(false);
-
-        // フッターの出力を無効化
-        $this->setPrintFooter(true);
-        $this->setFooterMargin();
-        $this->setFooterFont(array(self::FONT_SJIS, '', 8));
-    }
-
-    /**
-     * 顧客情報からPDFファイルを作成する.
-     *
-     * @param array $customersData
-     *
-     * @return bool
-     */
-    public function makePdf($flyer_data)
-    {
-        // データが空であれば終了
-        if (is_null($flyer_data)) {
-            return false;
+        $pagination = array();
+        $disps = $app['eccube.repository.master.disp']->findAll();
+        $pageMaxis = $app['eccube.repository.master.page_max']->findAll();
+        // 表示件数は順番で取得する、1.SESSION 2.設定ファイル
+        $page_count = $session->get('eccube.admin.questionnaire.search.page_count', $app['config']['default_page_count']);
+        // 表示件数
+        $page_count_param = $request->get('page_count');
+        // 表示件数はURLパラメターから取得する
+        if ($page_count_param && is_numeric($page_count_param)) {
+            foreach ($pageMaxis as $pageMax) {
+                if ($page_count_param == $pageMax->getName()) {
+                    $page_count = $pageMax->getName();
+                    // 表示件数入力値正し場合はSESSIONに保存する
+                    $session->set('eccube.admin.questionnaire.search.page_count', $page_count);
+                    break;
+                }
+            }
         }
-        // 発行日の設定
-        $this->issueDate = '作成日: ' . date('Y年m月d日');
-        // ダウンロードファイル名の初期化
-        $this->downloadFileName = null;
-        $BaseInfo = $this->app['eccube.repository.base_info']->get();
 
-        // テンプレートファイルを読み込む
-        $pdfFile = $this->app['config']['pdf_template_flyer1'];
-        $templateFilePath = __DIR__.'/../Resource/pdf/'.$pdfFile;
-        $this->setSourceFile($templateFilePath);
-        // PDFにページを追加する
-        $this->addPdfPage();
-        // 講習会種別
-        $this->lfMultiText(14.5, 28.2, 121.0, 20.5, $flyer_data->getProductTraining()->getTrainingType()->getName(), 30, 'B');
-        $this->lfText(14.5, 52.0, "のご案内", 29, 'B');
-        // 講習会日
-        $this->lfText(48.4, 92.5, date('m月d日(', strtotime($flyer_data->getProductTraining()->getTrainingDateStart())) . $this->WeekDay[date('w', strtotime($flyer_data->getProductTraining()->getTrainingDateStart()))] . ')', 18, 'B');
-        $this->lfText(48.4, 102.3, date('H:i～', strtotime($flyer_data->getProductTraining()->getTrainingDateStart())) . date('H:i', strtotime($flyer_data->getProductTraining()->getTrainingDateEnd())), 12, 'B');
-        // 場所
-        $this->lfText(122.3, 92.5, $flyer_data->getProductTraining()->getPlace(), 18, 'B');
-        // 住所
-        $this->lfText(122.3, 102.3, $flyer_data->getProductTraining()->getPref()->getName() . $flyer_data->getProductTraining()->getAddr01() . $flyer_data->getProductTraining()->getAddr02(), 12, 'B');
-        // 対象
-        $this->lfMultiText(34.8, 122.3, 88.0, 10.0, $flyer_data->getProductTraining()->getTarget(), 13, 'B');
-        // 内容
-        $this->lfMultiText(34.8, 135.3, 88.0, 10.0, $flyer_data->getProductTraining()->getProduct()->getDescriptionDetail(), 13, 'B');
-        // 受講料
-        $this->lfText(34.8, 148.6, number_format($flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax()) . '円', 13, 'B');
-        // 年会費
-        $this->lfText(41.7, 177.2, date('Y'), 11, 'B');
-        $membership = $this->app['config']['default_membership'];
-        try {
-            $membershipInfo = $this->app['eccube.repository.product']->getQueryBuilderBySearchDataForAdmin(array('membership_year' => date('Y')))->getQuery()->getSingleResult();
-            $membership = $membershipInfo->getPrice02IncTaxMax();
-        } catch (\Exception $e) {
+        $page_status = null;
+        $active = false;
+
+/*
+        if ('POST' === $request->getMethod()) {
+            $searchForm->handleRequest($request);
+            if ($searchForm->isValid()) {
+                $searchData = $searchForm->getData();
+
+                // paginator
+                $qb = $app['eccube.repository.product']->getQueryBuilderBySearchDataForAdmin($searchData);
+                if (empty($searchData['category_id']) || !($searchData['category_id'])) {
+                    $qb
+                        ->leftJoin('p.QuestionnaireCategories', 'pct')
+                        ->leftJoin('pct.Category', 'c')
+                        ->andWhere('c.id <> 1 or pct IS NULL');
+                }
+                $page_no = 1;
+                $pagination = $app['paginator']()->paginate(
+                    $qb,
+                    $page_no,
+                    $page_count,
+                    array('wrap-queries' => true)
+                );
+                // sessionに検索条件を保持
+                $viewData = FormUtil::getViewData($searchForm);
+                $session->set('eccube.admin.questionnaire.search', $viewData);
+                $session->set('eccube.admin.questionnaire.search.page_no', $page_no);
+            }
+        } else {
+            if (is_null($page_no) && $request->get('resume') != Constant::ENABLED) {
+                // sessionを削除
+                $session->remove('eccube.admin.questionnaire.search');
+                $session->remove('eccube.admin.questionnaire.search.page_no');
+                $session->remove('eccube.admin.questionnaire.search.page_count');
+            } else {
+                // pagingなどの処理
+                if (is_null($page_no)) {
+                    $page_no = intval($session->get('eccube.admin.questionnaire.search.page_no'));
+                } else {
+                    $session->set('eccube.admin.questionnaire.search.page_no', $page_no);
+                }
+                $viewData = $session->get('eccube.admin.questionnaire.search');
+                if (!is_null($viewData)) {
+                    // 表示件数
+                    $page_count = $request->get('page_count', $page_count);
+                    $searchData = FormUtil::submitAndGetData($searchForm, $viewData);
+                    if ($viewData['link_status']) {
+                        $searchData['link_status'] = $app['eccube.repository.master.disp']->find($viewData['link_status']);
+                    }
+                    $session->set('eccube.admin.questionnaire.search', $viewData);
+                    $qb = $app['eccube.repository.product']->getQueryBuilderBySearchDataForAdmin($searchData);
+                    if (empty($searchData['category_id']) || !($searchData['category_id'])) {
+                        $qb
+                            ->innerJoin('p.QuestionnaireCategories', 'pct')
+                            ->innerJoin('pct.Category', 'c')
+                            ->andWhere('pct.Category <> 1');
+                    }
+                    $pagination = $app['paginator']()->paginate(
+                        $qb,
+                        $page_no,
+                        $page_count,
+                        array('wrap-queries' => true)
+                    );
+                }
+            }
         }
-        $this->lfText(69.0, 177.1, number_format($membership), 11, 'B');
-        // 持ち物
-        $this->lfMultiText(34.8, 188.8, 88.0, 10.0, $flyer_data->getProductTraining()->getItem(), 13, 'B');
-        // 期限
-        $limit = date('Y/m/d', strtotime($flyer_data->getProductTraining()->getTrainingDateStart() . " -24 day"));
-        file_put_contents("/var/www/ec_trial2/app/log/debug.log", "limit:" . $limit . "\n", FILE_APPEND);
-        $holidayRepository = new HolidayRepository();
-        while($holidayRepository->isHoliday($limit)) {
-            $limit = date('Y/m/d', strtotime($limit . " -1 day"));
+*/
+
+        return $app->render('Questionnaire/index.twig', array(
+            'searchForm' => $searchForm->createView(),
+            'pagination' => $pagination,
+            'disps' => $disps,
+            'pageMaxis' => $pageMaxis,
+            'page_no' => $page_no,
+            'page_status' => $page_status,
+            'page_count' => $page_count,
+            'active' => $active,
+        ));
+    }
+
+    public function addAttachment(Application $app, Request $request)
+    {
+        if (!$request->isXmlHttpRequest()) {
+            throw new BadRequestHttpException('リクエストが不正です');
         }
-        file_put_contents("/var/www/ec_trial2/app/log/debug.log", "limit:" . $limit . "\n", FILE_APPEND);
-        $this->lfText(81.8, 202.5, date('m月d日', strtotime($limit)), 13, 'B');
-        // 定員
-        $ProductClasses = $flyer_data->getProductTraining()->getProduct()->getProductClasses();
-        $ProductClass = $ProductClasses[0];
-        if ($ProductClass->getStockUnlimited()) {
-            $this->lfText(72.6, 213.9, '※定員' . $ProductClass->getStock() . '名(先着順)', 11, 'B');
+
+        $attachments = $request->files->get('admin_questionnaire');
+
+        $files = array();
+        if (count($attachments) > 0) {
+            foreach ($attachments as $attachmentFile) {
+                foreach ($attachmentFile as $attachment) {
+                    log_info('attachment:' . print_r($attachment, true));
+                    //ファイルフォーマット検証
+                    $mimeType = $attachment->getMimeType();
+                    $extension = $attachment->getClientOriginalExtension();
+                    $filename = date('mdHis').uniqid('_').'.'.$extension;
+                    $attachment->move($app['config']['file_temp_realdir'], $filename);
+                    $files[] = ['save_file' => $filename, 'org_file' => $attachment->getClientOriginalName()];
+                }
+            }
         }
-        // 会社情報電話番号
-        $this->lfText(39.5, 236.4, $BaseInfo->getTel01() . '-' . $BaseInfo->getTel02() . '-' . $BaseInfo->getTel03(), 14, 'B');
-        // 会社情報Fax
-        $this->lfText(85.9, 236.4, $BaseInfo->getFax01() . '-' . $BaseInfo->getFax02() . '-' . $BaseInfo->getFax03(), 14, 'B');
-        // 会社情報郵便番号住所
-        $this->lfText(33.3, 248.4, $BaseInfo->getZip01() . '-' . $BaseInfo->getZip02() . ' ' . $BaseInfo->getPref()->getName() . $BaseInfo->getAddr01() . $BaseInfo->getAddr02(), 11, 'B');
 
-        // テンプレートファイルを読み込む
-        $pdfFile = $this->app['config']['pdf_template_flyer2'];
-        $templateFilePath = __DIR__.'/../Resource/pdf/'.$pdfFile;
-        $this->setSourceFile($templateFilePath);
-        // PDFにページを追加する
-        $this->addPdfPage();
-        // 年会費
-        $this->lfText(163.0, 36.2, date('Y'), 11, 'B');
-        $this->lfText(190.0, 36.2, number_format($membership), 11, 'B');
-        // 記入日
-        $this->lfText(152.0, 123.5, date('Y'), 13, 'B');
-        $this->lfText(169.5, 123.5, date('m'), 13, 'B');
-        $this->lfText(181.0, 123.5, date('d'), 13, 'B');
-        // 受講日
-        $this->lfText(50.0, 218.5, date('m月d日(', strtotime($flyer_data->getProductTraining()->getTrainingDateStart())) . $this->WeekDay[date('w', strtotime($flyer_data->getProductTraining()->getTrainingDateStart()))] . ')', 15, 'B');
-        // 場所
-        $this->lfText(125.3, 218.5, $flyer_data->getProductTraining()->getPlace(), 15, 'B');
-        // 会員数
-        $this->lfText(79.2, 252.1, date('Y'), 11, 'B');
-        $this->lfText(95.9, 252.1, '3', 11, 'B');
-        $this->lfText(106.8, 252.1, '31', 11, 'B');
-        $this->lfText(127.2, 252.1, '200', 11, 'B');
-        return true;
+        return $app->json(array('files' => $files), 200);
     }
 
-    /**
-     * PDFファイルを出力する.
-     *
-     * @return string|mixed
-     */
-    public function outputPdf()
+    public function edit(Application $app, Request $request, $id = null)
     {
-        return $this->Output($this->getPdfFileName(), 'S');
-    }
-
-    /**
-     * PDFファイル名を取得する
-     *
-     * @return string ファイル名
-     */
-    public function getPdfFileName()
-    {
-        if (!is_null($this->downloadFileName)) {
-            return $this->downloadFileName;
+        if (is_null($id)) {
+            $Questionnaire = new \Eccube\Entity\Questionnaire();
+        } else {
+            $Questionnaire = $app['eccube.repository.questionnaire']->find($id);
+            if (!$Product) {
+                throw new NotFoundHttpException();
+            }
         }
-        $this->downloadFileName = self::OUT_PDF_FILE_NAME . Date('YmdHis') . ".pdf";
+        $builder = $app['form.factory']
+            ->createBuilder('admin_questionnaire');
+        $form = $builder->getForm();
 
-        return $this->downloadFileName;
+        // ファイルの登録
+        $images = array();
+        $QuestionnaireAttachments = $Questionnaire->getQuestionnaireAttachments();
+        foreach ($QuestionnaireAttachments as $QuestionnaireAttachment) {
+            $attachments[] = ['save_file' => $QuestionnaireAttachment->getFileName(), 'org_file' => $QuestionnaireAttachment->getLabel()];
+        }
+        $form['attachments']->setData($attachments);
+
+        if ('POST' === $request->getMethod()) {
+            $form->handleRequest($request);
+            if ($form->isValid()) {
+                log_info('アンケート登録開始', array($Customer->getId()));
+            }
+        }
+
+        // 検索結果の保持
+        $builder = $app['form.factory']
+            ->createBuilder('admin_search_questionnaire');
+        $searchForm = $builder->getForm();
+        if ('POST' === $request->getMethod()) {
+            $searchForm->handleRequest($request);
+        }
+
+        return $app->render('Questionnaire/edit.twig', array(
+            'Questionnaire' => $Questionnaire,
+            'form' => $form->createView(),
+            'searchForm' => $searchForm->createView(),
+            'id' => $id,
+        ));
     }
 
-    /**
-     * フッターに発行日を出力する.
-     */
-    public function Footer()
+    public function delete(Application $app, Request $request, $id = null)
     {
+        $this->isTokenValid($app);
+        return $app->redirect($app->url('admin_questionnaire_page', array('page_no' => $page_no)).'?resume='.Constant::ENABLED);
     }
 
-    /**
-     * 作成するPDFのテンプレートファイルを指定する.
-     */
-    protected function addPdfPage()
+    public function copy(Application $app, Request $request, $id = null)
     {
-        // ページを追加
-        $this->AddPage();
-
-        // テンプレートに使うテンプレートファイルのページ番号を取得
-        $tplIdx = $this->importPage(1);
-
-        // テンプレートに使うテンプレートファイルのページ番号を指定
-        $this->useTemplate($tplIdx, null, null, null, null, true);
+        $this->isTokenValid($app);
+        return $app->redirect($app->url('admin_questionnaire'));
     }
 
-    /**
-     * PDFへのテキスト書き込み
-     *
-     * @param int    $x     X座標
-     * @param int    $y     Y座標
-     * @param string $text  テキスト
-     * @param int    $size  フォントサイズ
-     * @param string $style フォントスタイル
-     */
-    protected function lfText($x, $y, $text, $size = 0, $style = '')
+    public function display(Application $app, Request $request, $id = null)
     {
-        // 退避
-        $bakFontStyle = $this->FontStyle;
-        $bakFontSize = $this->FontSizePt;
+        if (!is_null($id)) {
+            return $app->redirect($app->url('product_detail', array('id' => $id, 'admin' => '1')));
+        }
 
-        $this->SetFont('', $style, $size);
-        $this->Text($x + $this->baseOffsetX, $y + $this->baseOffsetY, $text);
-
-        // 復元
-        $this->SetFont('', $bakFontStyle, $bakFontSize);
-    }
-
-    /**
-     * PDFへの折り返しテキスト書き込み
-     *
-     * @param int    $x     X座標
-     * @param int    $y     Y座標
-     * @param int    $w     幅
-     * @param int    $h     高さ
-     * @param string $text  テキスト
-     * @param int    $size  フォントサイズ
-     * @param string $style フォントスタイル
-     */
-    protected function lfMultiText($x, $y, $w, $h, $text, $size = 0, $style = '')
-    {
-        // 退避
-        $bakFontStyle = $this->FontStyle;
-        $bakFontSize = $this->FontSizePt;
-
-        $this->SetFont('', $style, $size);
-        $this->MultiCell($w, $h, $text, 0, 'J',false, 1, $x + $this->baseOffsetX, $y + $this->baseOffsetY);
-
-        // 復元
-        $this->SetFont('', $bakFontStyle, $bakFontSize);
-    }
-
-    /**
-     * 基準座標を設定する.
-     *
-     * @param int $x
-     * @param int $y
-     */
-    protected function setBasePosition($x = null, $y = null)
-    {
-        // 現在のマージンを取得する
-        $result = $this->getMargins();
-
-        // 基準座標を指定する
-        $actualX = is_null($x) ? $result['left'] : $x;
-        $this->SetX($actualX);
-        $actualY = is_null($y) ? $result['top'] : $y;
-        $this->SetY($actualY);
-    }
-
-    /**
-     * Font情報のバックアップ.
-     */
-    protected function backupFont()
-    {
-        // フォント情報のバックアップ
-        $this->bakFontFamily = $this->FontFamily;
-        $this->bakFontStyle = $this->FontStyle;
-        $this->bakFontSize = $this->FontSizePt;
-    }
-
-    /**
-     * Font情報の復元.
-     */
-    protected function restoreFont()
-    {
-        $this->SetFont($this->bakFontFamily, $this->bakFontStyle, $this->bakFontSize);
+        return $app->redirect($app->url('admin_questionnaire'));
     }
 }

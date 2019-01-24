@@ -100,12 +100,6 @@ $(function() {
                                     <div id="search_box__body_inner" class="col-sm-12 col-lg-10 col-lg-offset-1 search">
 
                                         <div class="row">
-                                            <div class="col-md-6">
-                                                <div id="search_box__category_id" class="form-group">
-                                                    <label>カテゴリ</label>
-                                                    {{ form_widget(searchForm.category_id) }}
-                                                </div>
-                                            </div>
                                             <div id="search_box__status" class="col-md-6">
                                                 <label>種別</label>
                                                 <div class="form-group">
@@ -233,7 +227,7 @@ $(function() {
                                             </div>
                                             <div id="result_list__image--{{ Product.id }}" class="item_photo td">
                                                 <a href="{{ url('admin_product_product_edit', { id : Product.id }) }}">
-                                                    <img src="{{ app.config.image_save_urlpath }}/{{ Product.mainFileName|no_image_product }}" />
+                                                    <img src="{{ app.config.product_image_save_urlpath }}/{{ Product.mainFileName|no_image_product }}" />
                                                 </a>
                                             </div>
                                             <div id="result_list__name--{{ Product.id }}" class="item_detail td">

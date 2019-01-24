@@ -52,6 +52,34 @@ class CustomerEditController extends AbstractController
             } else {
                 $CustomerGroup = $Customer->getCustomerGroup();
             }
+            $CustomerImages = $Customer->getCustomerImages();
+            $QrCode = null;
+            if (!is_null($Customer->getCustomerBasicInfo())) {
+                $customerId = $Customer->getCustomerBasicInfo()->getCustomerNumber();
+                log_info('会員番号:' . $customerId, array($Customer->getId()));
+                if ((0 < strlen($customerId)) && (!is_null($customerId))) {
+                    log_info('QRコード発行開始', array($Customer->getId()));
+                    if (!is_null($Customer->getCustomerQrs())) {
+                        if (count($Customer->getCustomerQrs()) > 0) {
+                            $QrCode = $Customer->getCustomerQrs()[0];
+                        }
+                    }
+                    if (is_null($QrCode)) {
+                        $qrCodeImg = file_get_contents($app['config']['qr_code_get_url'] . $customerId);
+                        if ($qrCodeImg !== false) {
+                            $fileName = date('mdHis').uniqid('_') . '.jpg';
+                            if (file_put_contents($app['config']['customer_image_save_realdir'] . "/" . $fileName, $qrCodeImg) !== false) {
+                                $QrCode = new \Eccube\Entity\CustomerQr();
+                                $QrCode->setCustomer($Customer);
+                                $QrCode->setFileName($fileName);
+                                $QrCode->setRank(1);
+                                $app['orm.em']->persist($QrCode);
+                                $app['orm.em']->flush();
+                            };
+                        }
+                    }
+                }
+            }
             // 編集用にデフォルトパスワードをセット
             $previous_password = $Customer->getPassword();
             $Customer->setPassword($app['config']['default_password']);
@@ -66,6 +94,7 @@ class CustomerEditController extends AbstractController
             $Customer->setCustomerBasicInfo($CustomerBasicInfo);
             $Customer->setCustomerGroup($CustomerGroup);
             $CustomerBasicInfo->setCustomer($Customer);
+            $QrCode = null;
         }
 
         // 会員登録フォーム
@@ -155,7 +184,7 @@ class CustomerEditController extends AbstractController
 
                     // 移動
                     $file = new File($app['config']['image_temp_realdir'].'/'.$add_image);
-                    $file->move($app['config']['image_save_realdir']);
+                    $file->move($app['config']['customer_image_save_realdir']);
                 }
 
                 // 画像の削除
@@ -175,7 +204,7 @@ class CustomerEditController extends AbstractController
                     // 削除
                     if (!empty($delete_image)) {
                         $fs = new Filesystem();
-                        $fs->remove($app['config']['image_save_realdir'].'/'.$delete_image);
+                        $fs->remove($app['config']['customer_image_save_realdir'].'/'.$delete_image);
                     }
                 }
                 $CustomerBasicInfo = $form['basic_info']->getData();
@@ -219,6 +248,7 @@ class CustomerEditController extends AbstractController
 
         $searchCustomerGroupModalForm = $builder->getForm();
 
+
         $CustomerCheckInfo = ['isRegister' => true];
         if ($Customer->getId() != null) {
             $CustomerCheckInfo['isRegister'] = false;
@@ -245,6 +275,7 @@ class CustomerEditController extends AbstractController
             'Customer' => $Customer,
             'CustomerGroup' => $CustomerGroup,
             'CustomerCheckInfo' => $CustomerCheckInfo
+            'QrCode' => $QrCode,
         ));
     }
 
@@ -265,10 +296,38 @@ class CustomerEditController extends AbstractController
                     if (0 !== strpos($mimeType, 'image')) {
                         throw new UnsupportedMediaTypeHttpException('ファイル形式が不正です');
                     }
-
+                    $imageBinary = file_get_contents($image->getPathname());
+                    $imageSize = getimagesizefromstring($imageBinary);
+                    $imageResize = imagecreatefromstring($imageBinary);
+                    $resizeRate = 1;
+                    if ($app['config']['customer_max_width'] < $app['config']['customer_max_height']) {
+                        if ($app['config']['customer_max_height'] < $imageSize[1]) {
+                            $resizeRate = $app['config']['customer_max_height'] / $imageSize[1];
+                        } else if ($app['config']['customer_max_width'] < $imageSize[0]) {
+                            $resizeRate = $app['config']['customer_max_width'] / $imageSize[0];
+                        } else if ($imageSize[0] < $imageSize[1]) {
+                            $resizeRate = $app['config']['customer_max_height'] / $imageSize[1];
+                        } else {
+                            $resizeRate = $app['config']['customer_max_width'] / $imageSize[0];
+                        }
+                    } else {
+                        if ($app['config']['customer_max_width'] < $imageSize[0]) {
+                            $resizeRate = $app['config']['customer_max_width'] / $imageSize[0];
+                        } else if ($app['config']['customer_max_height'] < $imageSize[1]) {
+                            $resizeRate = $app['config']['customer_max_height'] / $imageSize[1];
+                        } else if ($imageSize[1] < $imageSize[0]) {
+                            $resizeRate = $app['config']['customer_max_width'] / $imageSize[0];
+                        } else {
+                            $resizeRate = $app['config']['customer_max_height'] / $imageSize[1];
+                        }
+                    }
+                    $resizeWidth = round($imageSize[0] * $resizeRate);
+                    $resizeHeight = round($imageSize[1] * $resizeRate);
+                    $resizeImg = imagecreatetruecolor($resizeWidth, $resizeHeight);
+                    imagecopyresampled($resizeImg, imagecreatefromstring($imageBinary), 0, 0, 0, 0, $resizeWidth, $resizeHeight, $imageSize[0], $imageSize[1]);
                     $extension = $image->getClientOriginalExtension();
                     $filename = date('mdHis').uniqid('_').'.'.$extension;
-                    $image->move($app['config']['image_temp_realdir'], $filename);
+                    imagejpeg($resizeImg, $app['config']['image_temp_realdir'] . '/' . $filename);
                     $files[] = $filename;
                 }
             }
