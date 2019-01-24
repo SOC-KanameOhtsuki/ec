@@ -49,7 +49,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 	                <tbody>
 	                {% for trainingOrder in trainingOrders %}
 	                <tr>
-	                    <td><a href="/ecTrial/training/product/{{trainingOrder[3]}}/edit">{{trainingOrder[0]}}</a></td>
+	                    <td><a href="{{ url('admin_training_edit', { 'id' : trainingOrder[3] }) }}">{{trainingOrder[0]}}</a></td>
 	                    <td>{{trainingOrder[1]}}</td>
 	                    <td>{{trainingOrder[2]}}</td>
 	                </tr>
