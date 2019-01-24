@@ -274,7 +274,7 @@ class CustomerEditController extends AbstractController
             'searchCustomerGroupModalForm' => $searchCustomerGroupModalForm->createView(),
             'Customer' => $Customer,
             'CustomerGroup' => $CustomerGroup,
-            'CustomerCheckInfo' => $CustomerCheckInfo
+            'CustomerCheckInfo' => $CustomerCheckInfo,
             'QrCode' => $QrCode,
         ));
     }
