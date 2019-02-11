@@ -990,7 +990,7 @@ function plg_formDb_select(id){
               '[type="hidden"]'
               ]
             });
-    	    document.forms[0].reset();
+            document.forms[0].reset();
             $.ajax({
             type: 'POST',
             dataType: 'json',
@@ -998,13 +998,13 @@ function plg_formDb_select(id){
                        'id' :id,
                        },
             url: '{{ url('plugin_FormDb_getform') }}',
-			success: function(data) {
+            success: function(data) {
             console.log(data);
-			formStorage.load(data);
+            formStorage.load(data);
 
-			$('.collapse').collapse()
+            $('.collapse').collapse()
 
-			},
+            },
             fail: function (e, data) {
                 alert('通信に失敗しました。');
             }
@@ -1022,15 +1022,16 @@ function plg_formDb_delete(id){
                        'id' :id,
                        },
             url: '{{ url('plugin_FormDb_deleteform') }}',
-			success: function(data) {
+            success: function(data) {
             console.log(data);
                     $('#formInfomationLIST').html(data);
                     plg_formDb_list();
                     setTimeout(function() {
                         //一定時間後に消してトーストもどきにする
                         $('#formInfomationLIST').empty();
+                        plg_formDb_list();
                     }, 5000);
-			},
+            },
             fail: function (e, data) {
                 alert('通信に失敗しました。');
             }
@@ -1038,9 +1039,9 @@ function plg_formDb_delete(id){
      }
 
 function plg_formDb_list(){
-	var url_str=location.pathname;
-	url_str = url_str.replace(/\/page\/\d/g, '');
-	$.ajax({
+    var url_str=location.pathname;
+    url_str = url_str.replace(/\/page\/\d/g, '');
+    $.ajax({
         type: 'POST',
         dataType: 'html',
         data: {  
@@ -1059,15 +1060,15 @@ function plg_formDb_list(){
 
 
 function plg_formDb_save(val){
-	const formStorage = new FormStorage('#'+ document.forms[0].id, {
-	  name: 'form-basic', // you can decide local-storage name 
-	  ignores: [
-	  '[type="hidden"]'
-	  ]
-	});
+    const formStorage = new FormStorage('#'+ document.forms[0].id, {
+      name: 'form-basic', // you can decide local-storage name 
+      ignores: [
+      '[type="hidden"]'
+      ]
+    });
     var str_val=formStorage.getSerialize();
-	var url_str=location.pathname;
-	url_str = url_str.replace(/\/page\/\d/g, '');
+    var url_str=location.pathname;
+    url_str = url_str.replace(/\/page\/\d/g, '');
 
     console.log("#plg_formDb_save");
 // サーバに状態保存
@@ -1081,12 +1082,11 @@ function plg_formDb_save(val){
                 url: '{{ url('plugin_FormDb_save') }}',
                 success: function(data) {
                     $('#formInfomationLIST').html(data);
-
+                    plg_formDb_list();
                     setTimeout(function() {
                         //一定時間後に消してトーストもどきにする
                         $('#formInfomationLIST').empty();
                     }, 5000);
-
                     
                 },
                 error: function() {
@@ -1141,7 +1141,7 @@ const formStorage = new FormStorage('#'+ document.forms[0].id, {
     // 会員検索保存
     $('#plg_formDb_save').on('click', function() {
          plg_formDb_save($('#form_save_name').val() );
-		plg_formDb_list();
+
     });
 
 });

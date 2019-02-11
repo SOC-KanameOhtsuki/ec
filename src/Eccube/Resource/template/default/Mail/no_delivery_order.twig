@@ -50,6 +50,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 {% endfor %}
 
+
+{% if Order.kifu_no_pub ==1 %}
+※ 寄付者名簿には非掲載といたします。
+{% endif %}
+
 -------------------------------------------------
 小　計 {{ Order.subtotal|price }}{% if Order.tax > 0 %}(うち消費税 {{ Order.tax|price }}){% endif %}
 

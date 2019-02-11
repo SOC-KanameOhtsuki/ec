@@ -59,6 +59,7 @@ class TrainingTypeType extends AbstractType
                     'maxMessage' => '4桁以下の数字を入力してください。',
                 )),
                 ),
+        'attr' => array('max' => '9999','min' => '0'),
             ))
         ;
     }

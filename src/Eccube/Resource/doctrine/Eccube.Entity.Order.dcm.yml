@@ -168,6 +168,13 @@ Eccube\Entity\Order:
         payment_date:
             type: datetime
             nullable: true
+# add 寄付者名簿非掲載 0:掲載(既定値) 1:非掲載
+        kifu_no_pub:
+            type: smallint
+            nullable: true
+            unsigned: false
+            options:
+                default: '0'
         del_flg:
             type: smallint
             nullable: false

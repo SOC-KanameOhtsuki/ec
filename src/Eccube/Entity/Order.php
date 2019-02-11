@@ -1620,4 +1620,32 @@ class Order extends \Eccube\Entity\AbstractEntity
     {
         return $this->GroupOrder;
     }
+    /**
+     * @var integer
+     */
+    private $kifu_no_pub = '0';
+
+
+    /**
+     * Set kifu_no_pub
+     *
+     * @param integer $kifuNoPub
+     * @return Order
+     */
+    public function setKifuNoPub($kifuNoPub)
+    {
+        $this->kifu_no_pub = $kifuNoPub;
+
+        return $this;
+    }
+
+    /**
+     * Get kifu_no_pub
+     *
+     * @return integer 
+     */
+    public function getKifuNoPub()
+    {
+        return $this->kifu_no_pub;
+    }
 }

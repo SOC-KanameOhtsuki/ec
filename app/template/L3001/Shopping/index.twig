@@ -199,6 +199,11 @@ $(function() {
                                                 <br>{{ orderDetail.productClass.classCategory2.className }}：{{ orderDetail.productClass.classCategory2 }}
                                             {% endif %}
                                         </dd>
+                                        {% if kifu_no_pub[orderDetail.Product.id]  == 1 %}
+                                        <dd   class="item_pattern " style="font-size:105%;">
+                                            (寄付者名簿非掲載)
+                                        </dd>
+                                        {% endif %}
                                         <dd id="cart_box_list__price--{{ loop.index }}" class="item_price">{{ orderDetail.priceIncTax|price }} × {{ orderDetail.quantity|number_format }}</dd>
                                         <dd id="cart_box_list__subtotal--{{ loop.index }}" class="item_subtotal">小計：{{ orderDetail.totalPrice|price }}</dd>
                                     </dl>

@@ -522,6 +522,13 @@ var setModeAndSubmit = function(mode, keyname, keyid) {
                     </div>
                 </div>
             </div>
+            {% if Order.kifu_no_pub==1 %}
+            <div  class="box ">
+                <div  class="box-header" style="font-size:120%;">
+                ※寄付者名簿：　寄付者名簿非公開
+                </div><!-- /.box-header -->
+            </div>
+            {% endif %}
 
             {# お支払情報 #}
             <div id="payment_info_box" class="box accordion">

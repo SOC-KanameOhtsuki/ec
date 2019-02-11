@@ -144,6 +144,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
                                                     <br>{{ ProductClass.ClassCategory2.ClassName }}：{{ ProductClass.ClassCategory2 }}
                                                 {% endif %}
                                             </dd>
+                                                {% if kifu_no_pub[Product.id]  == 1 %}
+                                                <dd   class="item_pattern " style="font-size:110%;">
+                                                    （寄付者名簿非掲載）
+                                                </dd>
+                                                {% endif %}
+                                                
                                             <dd id="cart_item_list__item_price" class="item_price">￥{{ CartItem.price|number_format }}</dd>
                                             <dd id="cart_item_list__item_subtotal" class="item_subtotal">小計：￥{{ CartItem.total_price|number_format }}</dd>
                                         </dl>

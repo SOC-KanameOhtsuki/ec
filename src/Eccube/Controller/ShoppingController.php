@@ -29,6 +29,7 @@ use Eccube\Common\Constant;
 use Eccube\Entity\Customer;
 use Eccube\Entity\CustomerAddress;
 use Eccube\Entity\Order;
+use Eccube\Entity\OrderDetail;
 use Eccube\Entity\ShipmentItem;
 use Eccube\Entity\Shipping;
 use Eccube\Event\EccubeEvents;
@@ -162,10 +163,13 @@ class ShoppingController extends AbstractController
             }
             $app['session']->set($this->sessionMultipleKey, 'multiple');
         }
-
+		//#41 掲載可否
+        $wSESSION = $app['request']->getSession();
+        $kifu_no_pub= $wSESSION->get('kifu_no_pub');
         return $app->render('Shopping/index.twig', array(
             'form' => $form->createView(),
             'Order' => $Order,
+            'kifu_no_pub'=>$kifu_no_pub
         ));
     }
 
@@ -275,12 +279,20 @@ class ShoppingController extends AbstractController
 
             // 年会費、動画、寄付　購入者に対し購入内容の確認メールを送信            
             $needDelivery = true;
-
-            $OrderDetails = $Order->getOrderDetails();
+            //#41 掲載可否
+            $wSESSION = $app['request']->getSession();
+            $kifu_no_pub= $wSESSION->get('kifu_no_pub');
+			$Order_id = $Order->getId();
+			$flg=0;
+			//
+			$OrderDetails = $Order->getOrderDetails();
             foreach ($OrderDetails as $OrderDetail) {
                 $Product = $OrderDetail->getProduct();
                 if ($Product == null) {
                     continue;
+                }
+                if($flg ==0 && $kifu_no_pub[ $Product->getId()] ==1){
+					$flg=1;
                 }
                 $ProductCategories = $Product->getProductCategories();
                 if (isset($ProductCategories)) {
@@ -293,6 +305,14 @@ class ShoppingController extends AbstractController
                     }
                 }
             }
+
+            // 寄付公開可否　　1個でも非公開ならすべて公開しない
+            if($flg==1){
+              $Order->setKifuNoPub(1);
+            }
+            $app['session']->remove('kifu_no_pub'); 
+            $em->persist($Order);
+            $em->flush();
 
             // メール送信
             $MailHistory = $app['eccube.service.shopping']->sendOrderMail($Order, $needDelivery);

@@ -42,7 +42,6 @@ class CartController extends AbstractController
     public function index(Application $app, Request $request)
     {
         $Cart = $app['eccube.service.cart']->getCart();
-
         // FRONT_CART_INDEX_INITIALIZE
         $event = new EventArgs(
             array(),
@@ -85,6 +84,9 @@ class CartController extends AbstractController
         if ($event->hasResponse()) {
             return $event->getResponse();
         }
+        // 寄付者名簿可否のフラグ
+        $wSESSION = $app['request']->getSession();
+        $kifu_no_pub= $wSESSION->get('kifu_no_pub');
 
         return $app->render(
             'Cart/index.twig',
@@ -93,6 +95,7 @@ class CartController extends AbstractController
                 'least' => $least,
                 'quantity' => $quantity,
                 'is_delivery_free' => $isDeliveryFree,
+                'kifu_no_pub' => $kifu_no_pub,
             )
         );
     }
