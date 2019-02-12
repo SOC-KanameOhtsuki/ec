@@ -307,27 +307,6 @@ class ShoppingController extends AbstractController
             $kifu_no_pub= $wSESSION->get('kifu_no_pub');
             $Order_id = $Order->getId();
             $flg=0;
-            //
-            $OrderDetails = $Order->getOrderDetails();
-            foreach ($OrderDetails as $OrderDetail) {
-                $Product = $OrderDetail->getProduct();
-                if ($Product == null) {
-                    continue;
-                }
-                if($flg ==0 && $kifu_no_pub[ $Product->getId()] ==1){
-                    $flg=1;
-                }
-                $ProductCategories = $Product->getProductCategories();
-                if (isset($ProductCategories)) {
-                    foreach ($ProductCategories as $ProductCategory) {
-                        // 7 = 年会費, 6 = 映像, 2 = 寄付, 1 = 講習/研修/講演会
-                        if ($ProductCategory->getCategoryId() == 1 || $ProductCategory->getCategoryId() == 2 || $ProductCategory->getCategoryId() == 7 || $ProductCategory->getCategoryId() == 6) {
-                            $needDelivery = false;
-                            break;
-                        }
-                    }
-                }
-            }
 
             // 寄付公開可否　　1個でも非公開ならすべて公開しない
             if($flg==1){
@@ -338,7 +317,7 @@ class ShoppingController extends AbstractController
             $em->flush();
 
             // メール送信
-            $MailHistory = $app['eccube.service.shopping']->sendOrderMail($Order, $needDelivery);
+            $MailHistory = $app['eccube.service.shopping']->sendOrderMail($Order);
 
             $event = new EventArgs(
                 array(

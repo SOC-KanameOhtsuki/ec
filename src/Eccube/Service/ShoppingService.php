@@ -1270,11 +1270,11 @@ class ShoppingService
      * @param Order $Order
      * @return MailHistory
      */
-    public function sendOrderMail(Order $Order, $needDelivery = true)
+    public function sendOrderMail(Order $Order)
     {
 
         // メール送信
-        $message = $this->app['eccube.service.mail']->sendOrderMail($Order, $needDelivery);
+        $message = $this->app['eccube.service.mail']->sendOrderMail($Order);
 
         // 送信履歴を保存.
         $MailTemplate = $this->app['eccube.repository.mail_template']->find(1);

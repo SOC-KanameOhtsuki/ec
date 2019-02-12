@@ -231,10 +231,33 @@ class MailService
      * @param \Eccube\Entity\Order $Order 受注情報
      * @return string
      */
-    public function sendOrderMail(\Eccube\Entity\Order $Order, $needDelivery = true)
+    public function sendOrderMail(\Eccube\Entity\Order $Order)
     {
         log_info('受注メール送信開始');
 
+        $OrderDetails = $Order->getOrderDetails();
+        foreach ($OrderDetails as $OrderDetail) {
+            $Product = $OrderDetail->getProduct();
+            if ($Product == null) {
+                continue;
+            }
+            if($flg ==0 && $kifu_no_pub[ $Product->getId()] ==1){
+                $flg=1;
+            }
+            $ProductCategories = $Product->getProductCategories();
+            if (isset($ProductCategories)) {
+                foreach ($ProductCategories as $ProductCategory) {
+                    // 7 = 年会費, 6 = 映像, 2 = 寄付, 1 = 講習/研修/講演会
+                    if ($ProductCategory->getCategoryId() == 1 
+                        || $ProductCategory->getCategoryId() == 2 
+                        || $ProductCategory->getCategoryId() == 6 
+                        || $ProductCategory->getCategoryId() == 7) {
+                        $needDelivery = false;
+                        break;
+                    }
+                }
+            }
+        }
         if ($needDelivery == true) {
             $MailTemplate = $this->app['eccube.repository.mail_template']->find(1);
 
@@ -243,10 +266,6 @@ class MailService
                 'footer' => $MailTemplate->getFooter(),
                 'Order' => $Order,
             ));
-
-            if ($needDelivery == false) {
-                
-            }
 
             $message = \Swift_Message::newInstance()
                 ->setSubject('[' . $this->BaseInfo->getShopName() . '] ' . $MailTemplate->getSubject())
