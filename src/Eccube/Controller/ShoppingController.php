@@ -163,12 +163,35 @@ class ShoppingController extends AbstractController
             }
             $app['session']->set($this->sessionMultipleKey, 'multiple');
         }
-		//#41 掲載可否
+        $isDeliver = true;
+        $OrderDetails = $Order->getOrderDetails();
+        foreach ($OrderDetails as $OrderDetail) {
+            $Product = $OrderDetail->getProduct();
+            if ($Product == null) {
+                continue;
+            }
+            $ProductCategories = $Product->getProductCategories();
+            if (isset($ProductCategories)) {
+                foreach ($ProductCategories as $ProductCategory) {
+                    // 7 = 年会費, 6 = 映像, 2 = 寄付, 1 = 講習/研修/講演会
+                    if ($ProductCategory->getCategoryId() == 1 
+                        || $ProductCategory->getCategoryId() == 2 
+                        || $ProductCategory->getCategoryId() == 6 
+                        || $ProductCategory->getCategoryId() == 7) {
+                        $isDeliver = false;
+                        break;
+                    }
+                }
+            }
+        }
+
+        //#41 掲載可否
         $wSESSION = $app['request']->getSession();
         $kifu_no_pub= $wSESSION->get('kifu_no_pub');
         return $app->render('Shopping/index.twig', array(
             'form' => $form->createView(),
             'Order' => $Order,
+            'isDelever' => $isDeliver,
             'kifu_no_pub'=>$kifu_no_pub
         ));
     }
@@ -282,23 +305,23 @@ class ShoppingController extends AbstractController
             //#41 掲載可否
             $wSESSION = $app['request']->getSession();
             $kifu_no_pub= $wSESSION->get('kifu_no_pub');
-			$Order_id = $Order->getId();
-			$flg=0;
-			//
-			$OrderDetails = $Order->getOrderDetails();
+            $Order_id = $Order->getId();
+            $flg=0;
+            //
+            $OrderDetails = $Order->getOrderDetails();
             foreach ($OrderDetails as $OrderDetail) {
                 $Product = $OrderDetail->getProduct();
                 if ($Product == null) {
                     continue;
                 }
                 if($flg ==0 && $kifu_no_pub[ $Product->getId()] ==1){
-					$flg=1;
+                    $flg=1;
                 }
                 $ProductCategories = $Product->getProductCategories();
                 if (isset($ProductCategories)) {
                     foreach ($ProductCategories as $ProductCategory) {
-                        // 7 = 年会費, 6 = 映像, 2 = 寄付
-                        if ($ProductCategory->getCategoryId() == 2 || $ProductCategory->getCategoryId() == 7 || $ProductCategory->getCategoryId() == 6) {
+                        // 7 = 年会費, 6 = 映像, 2 = 寄付, 1 = 講習/研修/講演会
+                        if ($ProductCategory->getCategoryId() == 1 || $ProductCategory->getCategoryId() == 2 || $ProductCategory->getCategoryId() == 7 || $ProductCategory->getCategoryId() == 6) {
                             $needDelivery = false;
                             break;
                         }
@@ -337,13 +360,37 @@ class ShoppingController extends AbstractController
         }
 
         log_info('購入チェックエラー', array($Order->getId()));
+        $isDeliver = true;
+        $OrderDetails = $Order->getOrderDetails();
+        foreach ($OrderDetails as $OrderDetail) {
+            $Product = $OrderDetail->getProduct();
+            if ($Product == null) {
+                continue;
+            }
+            $ProductCategories = $Product->getProductCategories();
+            if (isset($ProductCategories)) {
+                foreach ($ProductCategories as $ProductCategory) {
+                    // 7 = 年会費, 6 = 映像, 2 = 寄付, 1 = 講習/研修/講演会
+                    if ($ProductCategory->getCategoryId() == 1 
+                        || $ProductCategory->getCategoryId() == 2 
+                        || $ProductCategory->getCategoryId() == 6 
+                        || $ProductCategory->getCategoryId() == 7) {
+                        $isDeliver = false;
+                        break;
+                    }
+                }
+            }
+        }
 
+        $wSESSION = $app['request']->getSession();
+        $kifu_no_pub= $wSESSION->get('kifu_no_pub');
         return $app->render('Shopping/index.twig', array(
             'form' => $form->createView(),
             'Order' => $Order,
+            'isDelever' => $isDeliver,
+            'kifu_no_pub'=>$kifu_no_pub
         ));
     }
-
 
     /**
      * 支払方法がOrderに保持している支払方法と一致することを確認する
@@ -498,11 +545,34 @@ class ShoppingController extends AbstractController
             log_info('配送業者変更処理完了', array($Order->getId()));
             return $app->redirect($app->url('shopping'));
         }
+        $isDeliver = true;
+        $OrderDetails = $Order->getOrderDetails();
+        foreach ($OrderDetails as $OrderDetail) {
+            $Product = $OrderDetail->getProduct();
+            if ($Product == null) {
+                continue;
+            }
+            $ProductCategories = $Product->getProductCategories();
+            if (isset($ProductCategories)) {
+                foreach ($ProductCategories as $ProductCategory) {
+                    // 7 = 年会費, 6 = 映像, 2 = 寄付, 1 = 講習/研修/講演会
+                    if ($ProductCategory->getCategoryId() == 1 
+                        || $ProductCategory->getCategoryId() == 2 
+                        || $ProductCategory->getCategoryId() == 6 
+                        || $ProductCategory->getCategoryId() == 7) {
+                        $isDeliver = false;
+                        break;
+                    }
+                }
+            }
+        }
 
         log_info('配送業者変更入力チェックエラー', array($Order->getId()));
         return $app->render('Shopping/index.twig', array(
             'form' => $form->createView(),
             'Order' => $Order,
+            'isDelever' => $isDeliver,
+            'kifu_no_pub'=>null
         ));
     }
 
@@ -569,11 +639,36 @@ class ShoppingController extends AbstractController
 
             return $app->redirect($app->url('shopping'));
         }
+        $isDeliver = true;
+        $OrderDetails = $Order->getOrderDetails();
+        foreach ($OrderDetails as $OrderDetail) {
+            $Product = $OrderDetail->getProduct();
+            if ($Product == null) {
+                continue;
+            }
+            $ProductCategories = $Product->getProductCategories();
+            if (isset($ProductCategories)) {
+                foreach ($ProductCategories as $ProductCategory) {
+                    // 7 = 年会費, 6 = 映像, 2 = 寄付, 1 = 講習/研修/講演会
+                    if ($ProductCategory->getCategoryId() == 1 
+                        || $ProductCategory->getCategoryId() == 2 
+                        || $ProductCategory->getCategoryId() == 6 
+                        || $ProductCategory->getCategoryId() == 7) {
+                        $isDeliver = false;
+                        break;
+                    }
+                }
+            }
+        }
 
         log_info('支払い方法変更入力チェックエラー', array("id" => $Order->getId()));
+        $wSESSION = $app['request']->getSession();
+        $kifu_no_pub= $wSESSION->get('kifu_no_pub');
         return $app->render('Shopping/index.twig', array(
             'form' => $form->createView(),
             'Order' => $Order,
+            'isDelever' => $isDeliver,
+            'kifu_no_pub'=>$kifu_no_pub
         ));
     }
 
@@ -617,10 +712,35 @@ class ShoppingController extends AbstractController
             // お届け先設定一覧へリダイレクト
             return $app->redirect($app->url('shopping_shipping', array('id' => $id)));
         }
+        $isDeliver = true;
+        $OrderDetails = $Order->getOrderDetails();
+        foreach ($OrderDetails as $OrderDetail) {
+            $Product = $OrderDetail->getProduct();
+            if ($Product == null) {
+                continue;
+            }
+            $ProductCategories = $Product->getProductCategories();
+            if (isset($ProductCategories)) {
+                foreach ($ProductCategories as $ProductCategory) {
+                    // 7 = 年会費, 6 = 映像, 2 = 寄付, 1 = 講習/研修/講演会
+                    if ($ProductCategory->getCategoryId() == 1 
+                        || $ProductCategory->getCategoryId() == 2 
+                        || $ProductCategory->getCategoryId() == 6 
+                        || $ProductCategory->getCategoryId() == 7) {
+                        $isDeliver = false;
+                        break;
+                    }
+                }
+            }
+        }
 
+        $wSESSION = $app['request']->getSession();
+        $kifu_no_pub= $wSESSION->get('kifu_no_pub');
         return $app->render('Shopping/index.twig', array(
             'form' => $form->createView(),
             'Order' => $Order,
+            'isDelever' => $isDeliver,
+            'kifu_no_pub'=>$kifu_no_pub
         ));
     }
 
@@ -752,10 +872,35 @@ class ShoppingController extends AbstractController
             // お届け先設定一覧へリダイレクト
             return $app->redirect($app->url('shopping_shipping_edit', array('id' => $id)));
         }
+        $isDeliver = true;
+        $OrderDetails = $Order->getOrderDetails();
+        foreach ($OrderDetails as $OrderDetail) {
+            $Product = $OrderDetail->getProduct();
+            if ($Product == null) {
+                continue;
+            }
+            $ProductCategories = $Product->getProductCategories();
+            if (isset($ProductCategories)) {
+                foreach ($ProductCategories as $ProductCategory) {
+                    // 7 = 年会費, 6 = 映像, 2 = 寄付, 1 = 講習/研修/講演会
+                    if ($ProductCategory->getCategoryId() == 1 
+                        || $ProductCategory->getCategoryId() == 2 
+                        || $ProductCategory->getCategoryId() == 6 
+                        || $ProductCategory->getCategoryId() == 7) {
+                        $isDeliver = false;
+                        break;
+                    }
+                }
+            }
+        }
 
+        $wSESSION = $app['request']->getSession();
+        $kifu_no_pub= $wSESSION->get('kifu_no_pub');
         return $app->render('Shopping/index.twig', array(
             'form' => $form->createView(),
             'Order' => $Order,
+            'isDelever' => $isDeliver,
+            'kifu_no_pub'=>$kifu_no_pub
         ));
     }
 
@@ -1159,13 +1304,37 @@ class ShoppingController extends AbstractController
             // 複数配送設定へリダイレクト
             return $app->redirect($app->url('shopping_shipping_multiple'));
         }
+        $isDeliver = true;
+        $OrderDetails = $Order->getOrderDetails();
+        foreach ($OrderDetails as $OrderDetail) {
+            $Product = $OrderDetail->getProduct();
+            if ($Product == null) {
+                continue;
+            }
+            $ProductCategories = $Product->getProductCategories();
+            if (isset($ProductCategories)) {
+                foreach ($ProductCategories as $ProductCategory) {
+                    // 7 = 年会費, 6 = 映像, 2 = 寄付, 1 = 講習/研修/講演会
+                    if ($ProductCategory->getCategoryId() == 1 
+                        || $ProductCategory->getCategoryId() == 2 
+                        || $ProductCategory->getCategoryId() == 6 
+                        || $ProductCategory->getCategoryId() == 7) {
+                        $isDeliver = false;
+                        break;
+                    }
+                }
+            }
+        }
 
+        $wSESSION = $app['request']->getSession();
+        $kifu_no_pub= $wSESSION->get('kifu_no_pub');
         return $app->render('Shopping/index.twig', array(
             'form' => $form->createView(),
             'Order' => $Order,
+            'isDelever' => $isDeliver,
+            'kifu_no_pub'=>$kifu_no_pub
         ));
     }
-
 
     /**
      * 複数配送処理

@@ -241,62 +241,64 @@ $(function() {
                         {% endif %}
                     </div>
 
-                    <h2 class="heading02">配送情報</h2>
-                    {% for shipping in Order.shippings %}
-                        {% set idx = loop.index0 %}
-                        <div id="shipping_confirm_box--{{ idx }}" class="column is-edit">
-                            <h3>お届け先{% if Order.multiple %}({{ loop.index }}){% endif %}</h3>
-                            <div id="shipping_confirm_box__body--{{ idx }}" class="cart_item table">
-                                <div id="shipping_confirm_box__list--{{ idx }}" class="tbody">
-                                {% for shipmentItem in shipping.shipmentItems %}
-                                    <div id="shipping_confirm_box__item--{{ idx }}_{{ shipmentItem.id }}" class="item_box tr">
-                                        <div id="shipping_box__body_inner--{{ idx }}_{{ shipmentItem.id }}" class="td table">
-                                            <div id="shipping_box__photo--{{ idx }}_{{ shipmentItem.id }}" class="item_photo"><img src="{{ app.config.image_save_urlpath }}/{{ shipmentItem.product.MainListImage|no_image_product }}" alt="{{ shipmentItem.productName }}" /></div>
-                                            <dl id="shipping_box__detail--{{ idx }}_{{ shipmentItem.id }}" class="item_detail">
-                                                <dt id="shipping_box__name--{{ idx }}_{{ shipmentItem.id }}" class="item_name text-default">{{ shipmentItem.productName }}</dt>
-                                                <dd id="shipping_box__class_category--{{ idx }}_{{ shipmentItem.id }}" class="item_pattern small">
-                                                    {% if shipmentItem.productClass.classCategory1 %}
-                                                        {{ shipmentItem.productClass.classCategory1.className }}：{{ shipmentItem.productClass.classCategory1 }}
-                                                    {% endif %}
-                                                    {% if shipmentItem.productClass.classCategory2 %}
-                                                        <br>{{ shipmentItem.productClass.classCategory2.className }}：{{ shipmentItem.productClass.classCategory2 }}
-                                                    {% endif %}
-                                                </dd>
-                                                <dd id="shipping_box__price--{{ idx }}_{{ shipmentItem.id }}" class="item_price">{{ shipmentItem.priceIncTax|price }} × {{ shipmentItem.quantity|number_format }}</dd>
-                                                <dd id="shipping_box__subtotal--{{ idx }}_{{ shipmentItem.id }}" class="item_subtotal">小計：{{ shipmentItem.totalPrice|price }}</dd>
-                                            </dl>
-                                        </div>
-                                    </div><!--/item_box-->
-                                {% endfor %}
+                    {% if isDelever == true %}
+                        <h2 class="heading02">配送情報</h2>
+                        {% for shipping in Order.shippings %}
+                            {% set idx = loop.index0 %}
+                            <div id="shipping_confirm_box--{{ idx }}" class="column is-edit">
+                                <h3>お届け先{% if Order.multiple %}({{ loop.index }}){% endif %}</h3>
+                                <div id="shipping_confirm_box__body--{{ idx }}" class="cart_item table">
+                                    <div id="shipping_confirm_box__list--{{ idx }}" class="tbody">
+                                    {% for shipmentItem in shipping.shipmentItems %}
+                                        <div id="shipping_confirm_box__item--{{ idx }}_{{ shipmentItem.id }}" class="item_box tr">
+                                            <div id="shipping_box__body_inner--{{ idx }}_{{ shipmentItem.id }}" class="td table">
+                                                <div id="shipping_box__photo--{{ idx }}_{{ shipmentItem.id }}" class="item_photo"><img src="{{ app.config.image_save_urlpath }}/{{ shipmentItem.product.MainListImage|no_image_product }}" alt="{{ shipmentItem.productName }}" /></div>
+                                                <dl id="shipping_box__detail--{{ idx }}_{{ shipmentItem.id }}" class="item_detail">
+                                                    <dt id="shipping_box__name--{{ idx }}_{{ shipmentItem.id }}" class="item_name text-default">{{ shipmentItem.productName }}</dt>
+                                                    <dd id="shipping_box__class_category--{{ idx }}_{{ shipmentItem.id }}" class="item_pattern small">
+                                                        {% if shipmentItem.productClass.classCategory1 %}
+                                                            {{ shipmentItem.productClass.classCategory1.className }}：{{ shipmentItem.productClass.classCategory1 }}
+                                                        {% endif %}
+                                                        {% if shipmentItem.productClass.classCategory2 %}
+                                                            <br>{{ shipmentItem.productClass.classCategory2.className }}：{{ shipmentItem.productClass.classCategory2 }}
+                                                        {% endif %}
+                                                    </dd>
+                                                    <dd id="shipping_box__price--{{ idx }}_{{ shipmentItem.id }}" class="item_price">{{ shipmentItem.priceIncTax|price }} × {{ shipmentItem.quantity|number_format }}</dd>
+                                                    <dd id="shipping_box__subtotal--{{ idx }}_{{ shipmentItem.id }}" class="item_subtotal">小計：{{ shipmentItem.totalPrice|price }}</dd>
+                                                </dl>
+                                            </div>
+                                        </div><!--/item_box-->
+                                    {% endfor %}
+                                    </div>
                                 </div>
-                            </div>
 
-                            <p id="shopping_confirm_box__shipping_address_detail--{{ idx }}" class="address">{{ shipping.name01 }} {{ shipping.name02 }} 様<br>
-                            〒{{ shipping.zip01 }}-{{ shipping.zip02 }} {{ shipping.pref }}{{ shipping.addr01 }}{{ shipping.addr02 }}<br>
-                            {{ shipping.tel01 }}-{{ shipping.tel02 }}-{{ shipping.tel03 }}</p>
-                            <div id="shopping_confirm_box__shipping_delivery--{{ idx }}" class="form-inline form-group">
-                                <label>配送方法</label>
-                                {{ form_widget(form.shippings[idx].delivery, {'attr': {'class': 'delivery'}}) }}
-                                {{ form_errors(form.shippings[idx].delivery) }}
-                            </div>
+                                <p id="shopping_confirm_box__shipping_address_detail--{{ idx }}" class="address">{{ shipping.name01 }} {{ shipping.name02 }} 様<br>
+                                〒{{ shipping.zip01 }}-{{ shipping.zip02 }} {{ shipping.pref }}{{ shipping.addr01 }}{{ shipping.addr02 }}<br>
+                                {{ shipping.tel01 }}-{{ shipping.tel02 }}-{{ shipping.tel03 }}</p>
+                                <div id="shopping_confirm_box__shipping_delivery--{{ idx }}" class="form-inline form-group">
+                                    <label>配送方法</label>
+                                    {{ form_widget(form.shippings[idx].delivery, {'attr': {'class': 'delivery'}}) }}
+                                    {{ form_errors(form.shippings[idx].delivery) }}
+                                </div>
 
-                            <div id="shopping_confirm_box__shipping_delivery_date_time--{{ idx }}" class="form-inline form-group">
-                                <label>お届け日</label>
-                                {{ form_widget(form.shippings[idx].shippingDeliveryDate) }}<br class="sp">
-                                <label>お届け時間</label>
-                                {{ form_widget(form.shippings[idx].deliveryTime) }}
+                                <div id="shopping_confirm_box__shipping_delivery_date_time--{{ idx }}" class="form-inline form-group">
+                                    <label>お届け日</label>
+                                    {{ form_widget(form.shippings[idx].shippingDeliveryDate) }}<br class="sp">
+                                    <label>お届け時間</label>
+                                    {{ form_widget(form.shippings[idx].deliveryTime) }}
+                                </div>
+                                {% if is_granted('ROLE_USER') %}
+                                <p id="shopping_confirm_box__edit_button--{{ idx }}" class="btn_edit"><a href="{{ url('shopping_shipping_change', {'id': shipping.id}) }}" class="btn btn-default btn-sm btn-shipping">変更</a></p>
+                                {% else %}
+                                <p id="shopping_confirm_box__edit_button--{{ idx }}" class="btn_edit"><a href="{{ url('shopping_shipping_edit_change', {'id': shipping.id}) }}" class="btn btn-default btn-sm btn-shipping-edit">変更</a></p>
+                                {% endif %}
                             </div>
-                            {% if is_granted('ROLE_USER') %}
-                            <p id="shopping_confirm_box__edit_button--{{ idx }}" class="btn_edit"><a href="{{ url('shopping_shipping_change', {'id': shipping.id}) }}" class="btn btn-default btn-sm btn-shipping">変更</a></p>
-                            {% else %}
-                            <p id="shopping_confirm_box__edit_button--{{ idx }}" class="btn_edit"><a href="{{ url('shopping_shipping_edit_change', {'id': shipping.id}) }}" class="btn btn-default btn-sm btn-shipping-edit">変更</a></p>
-                            {% endif %}
-                        </div>
-                        {% if loop.last == false%}<hr>{% endif %}
-                    {% endfor %}
-                    {% if BaseInfo.optionMultipleShipping %}
-                        <hr>
-                        <div><a id="shopping_confirm_box__button_edit_multiple"  href="{{ url('shopping_shipping_multiple_change') }}" class="btn btn-default btn-sm btn-shipping-multiple">お届け先を追加する</a></div>
+                            {% if loop.last == false%}<hr>{% endif %}
+                        {% endfor %}
+                        {% if BaseInfo.optionMultipleShipping %}
+                            <hr>
+                            <div><a id="shopping_confirm_box__button_edit_multiple"  href="{{ url('shopping_shipping_multiple_change') }}" class="btn btn-default btn-sm btn-shipping-multiple">お届け先を追加する</a></div>
+                        {% endif %}
                     {% endif %}
 
                     <h2 class="heading02">お支払方法</h2>
