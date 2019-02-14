@@ -91,7 +91,6 @@ class PayPalExpressEvent
      */
     public function onRenderPayPalExpressShoppingBefore(FilterResponseEvent $event)
     {
-
         $Order = $this->app['eccube.plugin.service.paypal_express']->getOrder();
 
         $request = $event->getRequest();
@@ -109,9 +108,17 @@ class PayPalExpressEvent
             if ($Order) {
                 // PayPalが選択されたらフォームのactionを書き換え
                 $Payment = $Order->getPayment();
+                if ($request->request->has("shopping")) {
+                    $shoppingInput = $request->request->get("shopping");
+                    if (isset($shoppingInput["payment"])) {
+                        $PaymentId = $shoppingInput["payment"];
+                    }
+                } else if ($Payment) {
+                    $PaymentId = $Payment->getId();
+                }
 
                 if ($Payment) {
-                    if ($Payment->getId() == $PayPalExpress->getPaymentId()) {
+                    if ($PaymentId == $PayPalExpress->getPaymentId()) {
 
                         $html = $this->getHtmlShopping($request, $response, $PayPalExpress);
                         $response->setContent($html);

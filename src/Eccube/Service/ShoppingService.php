@@ -860,7 +860,7 @@ class ShoppingService
     {
         // 受注情報を更新
         $Order->setOrderDate(new \DateTime());
-        $OrderStatus = $this->app['eccube.repository.order_status']->find($this->app['config']['order_new']);
+        $OrderStatus = $this->app['eccube.repository.order_status']->find($this->app['config']['order_pay_wait']);
         $this->setOrderStatus($Order, $OrderStatus);
 
     }
@@ -1112,14 +1112,15 @@ class ShoppingService
         $Order->setMessage($data['message']);
 
         // お届け先情報を更新
-        $shippings = $data['shippings'];
-        foreach ($shippings as $Shipping) {
+        if (isset($data['shippings'])) {
+            $shippings = $data['shippings'];
+            foreach ($shippings as $Shipping) {
 
-            $deliveryTime = $Shipping->getDeliveryTime();
-            if (!empty($deliveryTime)) {
-                $Shipping->setShippingDeliveryTime($deliveryTime->getDeliveryTime());
+                $deliveryTime = $Shipping->getDeliveryTime();
+                if (!empty($deliveryTime)) {
+                    $Shipping->setShippingDeliveryTime($deliveryTime->getDeliveryTime());
+                }
             }
-
         }
 
     }

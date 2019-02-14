@@ -239,7 +239,10 @@ class EccubeServiceProvider implements ServiceProviderInterface
             return $app['orm.em']->getRepository('Eccube\Entity\Flyer');
         });
         $app['eccube.repository.questionnaire'] = $app->share(function () use ($app) {
-            return $app['orm.em']->getRepository('Eccube\Entity\Questionnaire');
+            $questionnaireRepository = $app['orm.em']->getRepository('Eccube\Entity\Questionnaire');
+            $questionnaireRepository->setApplication($app);
+
+            return $questionnaireRepository;
         });
         $app['eccube.repository.questionnaire_attachment'] = $app->share(function () use ($app) {
             return $app['orm.em']->getRepository('Eccube\Entity\QuestionnaireAttachment');

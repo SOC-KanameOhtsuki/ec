@@ -138,7 +138,7 @@ class FrontControllerProvider implements ControllerProviderInterface
 
         // questionnaire
         $c->match('/block/questionnaire', '\Eccube\Controller\Block\QuestionnaireController::index')->bind('block_questionnaire');
-        $c->match('/questionnaire', '\Eccube\Controller\QuestionnaireController::index')->bind('questionnaire');
+        $c->match('/questionnaire/{id}', '\Eccube\Controller\QuestionnaireController::index')->assert('id', '\d+')->bind('questionnaire');
 
         return $c;
     }

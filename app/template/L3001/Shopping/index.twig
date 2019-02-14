@@ -310,7 +310,7 @@ $(function() {
                                 {% endif %}
                             {% for key, child in form.payment %}
                             <li>
-                                {{ form_widget(child, {'attr': {'class': 'payment' }}) }}
+                                {{ form_widget(child, {'attr': {'class': 'payment prevention-mask' }}) }}
                                 {% if form.payment.vars.choices[key].data.payment_image is not null %}
                                 <img src="{{ app.config.image_save_urlpath }}/{{ form.payment.vars.choices[key].data.payment_image }}">
                                 {% endif %}

@@ -552,9 +552,12 @@ class PayPalExpressController
 
         $PayPalExpress = $app['eccube.plugin.repository.paypal_express']->find(1);
 
-        $expressCheckoutNvp = new PayPalExpressCheckoutNvp($app, $PayPalExpress);
-
-        $url = $expressCheckoutNvp->setExpressCheckout($param, $Order);
+        if ($Order->getTotalPrice() > 0) {
+            $expressCheckoutNvp = new PayPalExpressCheckoutNvp($app, $PayPalExpress);
+            $url = $expressCheckoutNvp->setExpressCheckout($param, $Order);
+        } else {
+            $url = $app->url('/');
+        }
 
         return $app->redirect($url);
 

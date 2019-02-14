@@ -7,6 +7,9 @@ eccube.event.render.shopping_login.before:
 eccube.event.render.shopping_nonmember.before:
   - [onRenderPayPalExpressShoppingNonmemberBefore, NORMAL]
 
+eccube.event.render.shopping_payment.before:
+  - [onRenderPayPalExpressShoppingBefore, NORMAL]
+
 eccube.event.render.shopping.before:
   - [onRenderPayPalExpressShoppingBefore, NORMAL]
 

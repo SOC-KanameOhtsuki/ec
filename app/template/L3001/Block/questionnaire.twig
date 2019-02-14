@@ -21,6 +21,7 @@ This file is Customised
     });
 </script>
 <div id="questionnaire_area" class="row">
+{% if QuestionnaireList %}
     <div class="category_header col-xs-12">
         <h2 class="heading01">アンケート</h2>
     </div>
@@ -30,28 +31,29 @@ This file is Customised
                 <dl>
                     <dt>
                         <span class="date">
-                            {{ Questionnaire.date|date("Y/m/d") }}
-                        </span>
-                        <span class="news_title">
-                            {{ Questionnaire.title }}
-                        </span>
-                        {% if Questionnaire.comment or Questionnaire.url %}
-                            <span class="angle-circle">
-                                <svg class="cb cb-angle-down"><use xlink:href="#cb-angle-down" /></svg>
-                            </span>
-                        {% endif %}
-                    </dt>
-                    {% if Questionnaire.comment or Questionnaire.url %}
-                        <dd>{{ Questionnaire.comment|raw|nl2br}}
-                            {% if Questionnaire.url %}<br>
-                                <a href="{{ Questionnaire.url }}" {% if Questionnaire.link_method == '1' %}target="_blank"{% endif %}>
-                                    詳しくはこちら
-                                </a>
+                            {% if Questionnaire.application_period_from and Questionnaire.application_period_to %}
+                                {{ Questionnaire.application_period_from|date("Y/m/d") }}～{{ Questionnaire.application_period_to|date("Y/m/d") }}
+                            {% elseif Questionnaire.application_period_from %}
+                                {{ Questionnaire.application_period_from|date("Y/m/d") }}～
+                            {% elseif Questionnaire.application_period_to %}
+                                ～{{ Questionnaire.application_period_to|date("Y/m/d") }}
+                            {% else %}
+                                (回答期限なし)
                             {% endif %}
-                        </dd>
-                    {% endif %}
+                        </span>
+                        <span class="questionnaire_title">
+                            {{ Questionnaire.name }}
+                        </span>
+                        <span class="angle-circle">
+                            <svg class="cb cb-angle-down"><use xlink:href="#cb-angle-down" /></svg>
+                        </span>
+                    </dt>
+                    <dd>
+                        <span style="overflow: hidden;white-space: nowrap;text-overflow: ellipsis;"><a href="{{ url('questionnaire', {'id': Questionnaire.id}) }}">回答はこちらから</a></span>
+                    </dd>
                 </dl>
             {% endfor %}
         </div><!--/questionnairelist-->
     </div><!--/accordion-->
+{% endif %}
 </div><!--/questionnaire_area-->

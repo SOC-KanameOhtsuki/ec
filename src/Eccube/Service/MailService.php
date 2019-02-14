@@ -241,9 +241,6 @@ class MailService
             if ($Product == null) {
                 continue;
             }
-            if($flg ==0 && $kifu_no_pub[ $Product->getId()] ==1){
-                $flg=1;
-            }
             $ProductCategories = $Product->getProductCategories();
             if (isset($ProductCategories)) {
                 foreach ($ProductCategories as $ProductCategory) {

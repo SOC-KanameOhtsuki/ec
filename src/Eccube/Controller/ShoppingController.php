@@ -234,6 +234,26 @@ class ShoppingController extends AbstractController
         $app['eccube.event.dispatcher']->dispatch(EccubeEvents::FRONT_SHOPPING_CONFIRM_INITIALIZE, $event);
 
         $form = $builder->getForm();
+        $OrderDetails = $Order->getOrderDetails();
+        foreach ($OrderDetails as $OrderDetail) {
+            $Product = $OrderDetail->getProduct();
+            if ($Product == null) {
+                continue;
+            }
+            $ProductCategories = $Product->getProductCategories();
+            if (isset($ProductCategories)) {
+                foreach ($ProductCategories as $ProductCategory) {
+                    // 7 = 年会費, 6 = 映像, 2 = 寄付, 1 = 講習/研修/講演会
+                    if ($ProductCategory->getCategoryId() == 1 
+                        || $ProductCategory->getCategoryId() == 2 
+                        || $ProductCategory->getCategoryId() == 6 
+                        || $ProductCategory->getCategoryId() == 7) {
+                        $form->remove('shippings');
+                        break;
+                    }
+                }
+            }
+        }
 
         $form->handleRequest($request);
 
@@ -247,7 +267,9 @@ class ShoppingController extends AbstractController
             $em->getConnection()->beginTransaction();
             try {
                 // 支払方法を検証
-                $this->checkPaymentType($Order, $data);
+                if ($form->has('shippings')) {
+                    $this->checkPaymentType($Order, $data);
+                }
                 // お問い合わせ、配送時間などのフォーム項目をセット
                 $app['eccube.service.shopping']->setFormData($Order, $data);
                 // 購入処理
@@ -336,6 +358,9 @@ class ShoppingController extends AbstractController
 
             // 完了画面表示
             return $app->redirect($app->url('shopping_complete'));
+        }
+        foreach ($form->getErrors(true) as $Error) { 
+            log_info('error:', array($Error->getOrigin()->getName(), $Error->getMessage()));
         }
 
         log_info('購入チェックエラー', array($Order->getId()));
@@ -462,6 +487,26 @@ class ShoppingController extends AbstractController
         $app['eccube.event.dispatcher']->dispatch(EccubeEvents::FRONT_SHOPPING_DELIVERY_INITIALIZE, $event);
 
         $form = $builder->getForm();
+        $OrderDetails = $Order->getOrderDetails();
+        foreach ($OrderDetails as $OrderDetail) {
+            $Product = $OrderDetail->getProduct();
+            if ($Product == null) {
+                continue;
+            }
+            $ProductCategories = $Product->getProductCategories();
+            if (isset($ProductCategories)) {
+                foreach ($ProductCategories as $ProductCategory) {
+                    // 7 = 年会費, 6 = 映像, 2 = 寄付, 1 = 講習/研修/講演会
+                    if ($ProductCategory->getCategoryId() == 1 
+                        || $ProductCategory->getCategoryId() == 2 
+                        || $ProductCategory->getCategoryId() == 6 
+                        || $ProductCategory->getCategoryId() == 7) {
+                        $form->remove('shippings');
+                        break;
+                    }
+                }
+            }
+        }
 
         $form->handleRequest($request);
 
@@ -583,6 +628,26 @@ class ShoppingController extends AbstractController
         $app['eccube.event.dispatcher']->dispatch(EccubeEvents::FRONT_SHOPPING_PAYMENT_INITIALIZE, $event);
 
         $form = $builder->getForm();
+        $OrderDetails = $Order->getOrderDetails();
+        foreach ($OrderDetails as $OrderDetail) {
+            $Product = $OrderDetail->getProduct();
+            if ($Product == null) {
+                continue;
+            }
+            $ProductCategories = $Product->getProductCategories();
+            if (isset($ProductCategories)) {
+                foreach ($ProductCategories as $ProductCategory) {
+                    // 7 = 年会費, 6 = 映像, 2 = 寄付, 1 = 講習/研修/講演会
+                    if ($ProductCategory->getCategoryId() == 1 
+                        || $ProductCategory->getCategoryId() == 2 
+                        || $ProductCategory->getCategoryId() == 6 
+                        || $ProductCategory->getCategoryId() == 7) {
+                        $form->remove('shippings');
+                        break;
+                    }
+                }
+            }
+        }
 
         $form->handleRequest($request);
 
@@ -678,6 +743,26 @@ class ShoppingController extends AbstractController
         $app['eccube.event.dispatcher']->dispatch(EccubeEvents::FRONT_SHOPPING_SHIPPING_CHANGE_INITIALIZE, $event);
 
         $form = $builder->getForm();
+        $OrderDetails = $Order->getOrderDetails();
+        foreach ($OrderDetails as $OrderDetail) {
+            $Product = $OrderDetail->getProduct();
+            if ($Product == null) {
+                continue;
+            }
+            $ProductCategories = $Product->getProductCategories();
+            if (isset($ProductCategories)) {
+                foreach ($ProductCategories as $ProductCategory) {
+                    // 7 = 年会費, 6 = 映像, 2 = 寄付, 1 = 講習/研修/講演会
+                    if ($ProductCategory->getCategoryId() == 1 
+                        || $ProductCategory->getCategoryId() == 2 
+                        || $ProductCategory->getCategoryId() == 6 
+                        || $ProductCategory->getCategoryId() == 7) {
+                        $form->remove('shippings');
+                        break;
+                    }
+                }
+            }
+        }
 
         $form->handleRequest($request);
 
@@ -941,6 +1026,26 @@ class ShoppingController extends AbstractController
         $app['eccube.event.dispatcher']->dispatch(EccubeEvents::FRONT_SHOPPING_SHIPPING_EDIT_INITIALIZE, $event);
 
         $form = $builder->getForm();
+        $OrderDetails = $Order->getOrderDetails();
+        foreach ($OrderDetails as $OrderDetail) {
+            $Product = $OrderDetail->getProduct();
+            if ($Product == null) {
+                continue;
+            }
+            $ProductCategories = $Product->getProductCategories();
+            if (isset($ProductCategories)) {
+                foreach ($ProductCategories as $ProductCategory) {
+                    // 7 = 年会費, 6 = 映像, 2 = 寄付, 1 = 講習/研修/講演会
+                    if ($ProductCategory->getCategoryId() == 1 
+                        || $ProductCategory->getCategoryId() == 2 
+                        || $ProductCategory->getCategoryId() == 6 
+                        || $ProductCategory->getCategoryId() == 7) {
+                        $form->remove('shippings');
+                        break;
+                    }
+                }
+            }
+        }
 
         $form->handleRequest($request);
 
@@ -1270,6 +1375,26 @@ class ShoppingController extends AbstractController
         $app['eccube.event.dispatcher']->dispatch(EccubeEvents::FRONT_SHOPPING_SHIPPING_MULTIPLE_CHANGE_INITIALIZE, $event);
 
         $form = $builder->getForm();
+        $OrderDetails = $Order->getOrderDetails();
+        foreach ($OrderDetails as $OrderDetail) {
+            $Product = $OrderDetail->getProduct();
+            if ($Product == null) {
+                continue;
+            }
+            $ProductCategories = $Product->getProductCategories();
+            if (isset($ProductCategories)) {
+                foreach ($ProductCategories as $ProductCategory) {
+                    // 7 = 年会費, 6 = 映像, 2 = 寄付, 1 = 講習/研修/講演会
+                    if ($ProductCategory->getCategoryId() == 1 
+                        || $ProductCategory->getCategoryId() == 2 
+                        || $ProductCategory->getCategoryId() == 6 
+                        || $ProductCategory->getCategoryId() == 7) {
+                        $form->remove('shippings');
+                        break;
+                    }
+                }
+            }
+        }
 
         $form->handleRequest($request);
 
