@@ -38,6 +38,7 @@ $(function() {
         AjaxZip3.zip2addr('order[zip][zip01]', 'order[zip][zip02]', 'order[address][pref]', 'order[address][addr01]');
     });
 
+    {% if Order.id is not empty %}
     // 入力可能受注ステータスを制限
     if ("{{ form.vars.value.payment_method }}" == "Paypal決済" 
         || "{{ form.vars.value.payment_method }}" == "PayPal エクスプレスチェックアウト" 
@@ -63,6 +64,7 @@ $(function() {
             $("#order_OrderStatus").prop("disabled", true);
         }
     }
+    {% endif %}
 
     // 注文者情報をコピー
     $('.copyCustomerToShippingButton').on('click', function() {
