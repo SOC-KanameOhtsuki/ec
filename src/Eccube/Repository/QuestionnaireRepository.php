@@ -12,6 +12,14 @@ use Doctrine\ORM\EntityRepository;
  */
 class QuestionnaireRepository extends EntityRepository
 {
+
+    protected $app;
+
+    public function setApplication($app)
+    {
+        $this->app = $app;
+    }
+
     /**
      * get query builder.
      *
@@ -111,4 +119,22 @@ class QuestionnaireRepository extends EntityRepository
         return $qb;
     }
 
+    public function getQuestionnaireList($app = null)
+    {
+        $nowDate = date('Y-m-d H:i:s');
+        $qb = $this->createQueryBuilder('q');
+        $qb->where('q.del_flg = 0')
+            ->andWhere("q.application_period_from IS NULL OR q.application_period_from <= '" . $nowDate . "'")
+            ->andWhere("q.application_period_to IS NULL OR q.application_period_to >= '" . $nowDate . "'")
+            ->addOrderBy('q.application_period_from', 'ASC')
+            ->addOrderBy('q.application_period_to', 'ASC')
+            ->addOrderBy('q.id', 'ASC');
+        file_put_contents("/var/www/ec_ohtsuki/app/log/debug.log", "Use:".(is_null($app->user())?get_class($app->user()):"null")."\n", FILE_APPEND);
+        if (!is_null($app)) {
+            $qb->andWhere($qb->expr()->in('q.Target', ':targets'))
+                ->setParameter('targets', $app->getCustomerTarget());
+        }
+
+        return $qb->getQuery()->getResult();
+    }
 }

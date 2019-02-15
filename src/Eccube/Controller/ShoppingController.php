@@ -202,6 +202,7 @@ class ShoppingController extends AbstractController
     public function confirm(Application $app, Request $request)
     {
         $cartService = $app['eccube.service.cart'];
+        $wSESSION = $app['request']->getSession();
 
         // カートチェック
         if (!$cartService->isLocked()) {
@@ -259,6 +260,12 @@ class ShoppingController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $data = $form->getData();
+            $kifu_no_pub= $wSESSION->get('kifu_no_pub');
+            $OrderDetails = $Order->getOrderDetails();
+            foreach ($OrderDetails as $OrderDetail) {
+                $OrderDetail->setKifuNoPub($kifu_no_pub[$OrderDetail->getProduct()->getId()]);
+                $OrderDetail->setOrder($Order);
+            }
 
             log_info('購入処理開始', array($Order->getId()));
 
@@ -330,10 +337,6 @@ class ShoppingController extends AbstractController
             $Order_id = $Order->getId();
             $flg=0;
 
-            // 寄付公開可否　　1個でも非公開ならすべて公開しない
-            if($flg==1){
-              $Order->setKifuNoPub(1);
-            }
             $app['session']->remove('kifu_no_pub'); 
             $em->persist($Order);
             $em->flush();
@@ -386,7 +389,6 @@ class ShoppingController extends AbstractController
             }
         }
 
-        $wSESSION = $app['request']->getSession();
         $kifu_no_pub= $wSESSION->get('kifu_no_pub');
         return $app->render('Shopping/index.twig', array(
             'form' => $form->createView(),
