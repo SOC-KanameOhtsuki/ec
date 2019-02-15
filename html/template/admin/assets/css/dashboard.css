@@ -3306,3 +3306,7 @@ a[id^="delete_choice"]:hover {
 #result_list_join_not {
     width: 70px;
 } 
+
+#order_OrderStatus.unselectable {
+    background-color: #eee;
+}

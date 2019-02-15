@@ -38,31 +38,89 @@ $(function() {
         AjaxZip3.zip2addr('order[zip][zip01]', 'order[zip][zip02]', 'order[address][pref]', 'order[address][addr01]');
     });
 
-    {% if Order.id is not empty %}
     // 入力可能受注ステータスを制限
-    if ("{{ form.vars.value.payment_method }}" == "Paypal決済" 
-        || "{{ form.vars.value.payment_method }}" == "PayPal エクスプレスチェックアウト" 
-        || "{{ form.vars.value.payment_method }}" == "コンビニ決済") {
-        if ({{ Order.OrderStatus.id }} == 5 || {{ Order.OrderStatus.id }} == 6) {
-            $("#order_OrderStatus").children("option[value=7]").remove();
+    {% if Order.id is not empty %}
+    if ($('#order_Payment option:selected').text() == "Paypal決済" 
+        || $('#order_Payment option:selected').text() == "PayPal エクスプレスチェックアウト" 
+        || $('#order_Payment option:selected').text() == "コンビニ決済") {
+        $("#order_OrderStatus").children("option[value=4]").remove();
+        $("#order_OrderStatus").children("option[value=7]").remove();
+        $("#order_OrderStatus").children("option[value=8]").remove();
+    } else if ($('#order_Payment option:selected').text() == "郵便振込") {
+        $("#order_OrderStatus").children("option[value=4]").remove();
+        $("#order_OrderStatus").children("option[value=7]").remove();
+        $("#order_OrderStatus").children("option[value=8]").remove();
+    }
+        {% if form.vars.data.OrderStatus %}
+        if ({{ form.vars.data.OrderStatus.id }} != 1) {
             $("#order_OrderStatus").children("option[value=1]").remove();
-            $("#order_OrderStatus").children("option[value=2]").remove();
-            $("#order_OrderStatus").children("option[value=4]").remove();
-            $("#order_OrderStatus").children("option[value=8]").remove();
-            $("#order_OrderStatus").prop("disabled", false);
-        } else {
-            $("#order_OrderStatus").prop("disabled", true);
         }
-    } else if ("{{ form.vars.value.payment_method }}" == "郵便振込") {
-        if ({{ Order.OrderStatus.id }} == 2 || {{ Order.OrderStatus.id }} == 5 || {{ Order.OrderStatus.id }} == 6) {
-            $("#order_OrderStatus").children("option[value=7]").remove();
-            $("#order_OrderStatus").children("option[value=1]").remove();
-            $("#order_OrderStatus").children("option[value=4]").remove();
-            $("#order_OrderStatus").children("option[value=8]").remove();
-            $("#order_OrderStatus").prop("disabled", false);
-        } else {
-            $("#order_OrderStatus").prop("disabled", true);
+        if ($('#order_Payment option:selected').text() == "Paypal決済" 
+            || $('#order_Payment option:selected').text() == "PayPal エクスプレスチェックアウト" 
+            || $('#order_Payment option:selected').text() == "コンビニ決済") {
+            if ({{ form.vars.data.OrderStatus.id }} == 2) {
+                $("#order_OrderStatus").addClass('unselectable');
+                $("#order_OrderStatus").attr('unselectable', 'on')
+                                    .css('user-select', 'none')
+                                    .css('-moz-user-select', 'none')
+                                    .css('-khtml-user-select', 'none')
+                                    .css('-webkit-user-select', 'none')
+                                    .on('selectstart', false)
+                                    .on('contextmenu', false)
+                                    .on('keydown', false)
+                                    .on('mousedown', false);
+            } else {
+                $("#order_OrderStatus").children("option[value=2]").remove();
+                $("#order_OrderStatus").removeClass('unselectable');
+                $("#order_OrderStatus").attr('unselectable', '')
+                                    .css('user-select', '')
+                                    .css('-moz-user-select', '')
+                                    .css('-khtml-user-select', '')
+                                    .css('-webkit-user-select', '')
+                                    .off('selectstart', false)
+                                    .off('contextmenu', false)
+                                    .off('keydown', false)
+                                    .off('mousedown', false);
+            }
+        } else if ($('#order_Payment option:selected').text() == "郵便振込") {
+            if ({{ form.vars.data.OrderStatus.id }} == 2) {
+                $("#order_OrderStatus").addClass('unselectable');
+                $("#order_OrderStatus").attr('unselectable', 'on')
+                                    .css('user-select', 'none')
+                                    .css('-moz-user-select', 'none')
+                                    .css('-khtml-user-select', 'none')
+                                    .css('-webkit-user-select', 'none')
+                                    .on('selectstart', false)
+                                    .on('contextmenu', false)
+                                    .on('keydown', false)
+                                    .on('mousedown', false);
+            } else {
+                $("#order_OrderStatus").children("option[value=2]").remove();
+                $("#order_OrderStatus").removeClass('unselectable');
+                $("#order_OrderStatus").attr('unselectable', '')
+                                    .css('user-select', '')
+                                    .css('-moz-user-select', '')
+                                    .css('-khtml-user-select', '')
+                                    .css('-webkit-user-select', '')
+                                    .off('selectstart', false)
+                                    .off('contextmenu', false)
+                                    .off('keydown', false)
+                                    .off('mousedown', false);
+            }
         }
+        {% endif %}
+    if ($('#order_Payment option:selected').text() == "Paypal決済" 
+        || $('#order_Payment option:selected').text() == "PayPal エクスプレスチェックアウト" 
+        || $('#order_Payment option:selected').text() == "コンビニ決済") {
+        $("#order_OrderStatus").children("option[value=1]").remove();
+        $("#order_OrderStatus").children("option[value=4]").remove();
+        $("#order_OrderStatus").children("option[value=7]").remove();
+        $("#order_OrderStatus").children("option[value=8]").remove();
+    } else if ($('#order_Payment option:selected').text() == "郵便振込") {
+        $("#order_OrderStatus").children("option[value=1]").remove();
+        $("#order_OrderStatus").children("option[value=4]").remove();
+        $("#order_OrderStatus").children("option[value=7]").remove();
+        $("#order_OrderStatus").children("option[value=8]").remove();
     }
     {% endif %}
 
@@ -230,7 +288,11 @@ $(function() {
             }
         }
     }
-
+    // 支払方法変更
+    $('#order_Payment').on('change', function() {
+        // 受注ステータスの入力制限更新のためsubmit
+        setModeAndSubmit('payment_change');
+    });
 });
 var setModeAndSubmit = function(mode, keyname, keyid) {
     document.form1.modal.value = mode;
@@ -421,6 +483,12 @@ var setModeAndSubmit = function(mode, keyname, keyid) {
                                     {{ form_widget(orderDetailForm.class_category_name2) }}
                                     {{ form_widget(orderDetailForm.tax_rule) }}
                                     <div id="product_info_list__item_detail--{{ loop.index }}" class="item_detail">
+                                        {% set is_donation = false %}
+                                        {% for ProductCategory in orderDetailForm.vars.data.Product.ProductCategories %}
+                                            {% if ProductCategory.category_id == 2 %}
+                                            {% set is_donation = true %}
+                                            {% endif %}
+                                        {% endfor %}
                                         <div id="product_info_list__detail_name--{{ loop.index }}" class="item_name_area">
                                             <strong id="product_info_list__product_name--{{ loop.index }}" class="item_name">{{ orderDetailForm.vars.value.product_name }}</strong><br>
                                             <span id="product_info_list__product_code--{{ loop.index }}" class="item_id small">{{ orderDetailForm.vars.value.product_code }}</span>
@@ -439,13 +507,13 @@ var setModeAndSubmit = function(mode, keyname, keyid) {
                                             </span>
                                         </div>
                                         <div class="row">
-                                            <div id="product_info_list__price--{{ loop.index }}" class="col-md-4 col-lg-3 form-group form-inline text-right">
+                                            <div id="product_info_list__price--{{ loop.index }}" class="col-md-3 col-lg-2 form-group form-inline text-right">
                                                 <span class="input-group item_price col-xs-8 col-sm-6 col-md-12">
                                                     {{ form_widget(orderDetailForm.price) }}
                                                     {{ form_errors(orderDetailForm.price) }}
                                                 </span>
                                             </div>
-                                            <div class="col-md-4 col-lg-3 form-group form-inline text-right">
+                                            <div class="col-md-3 col-lg-2 form-group form-inline text-right">
                                                 <span id="product_info_list__quantity--{{ loop.index }}" class="item_quantity">
                                                     {% set detail_id = orderDetailForm.vars.value.id %}
                                                     {% if arrOldOrder.OrderDetails[detail_id] is defined %}
@@ -461,7 +529,7 @@ var setModeAndSubmit = function(mode, keyname, keyid) {
                                                     {{ form_errors(orderDetailForm.quantity) }}
                                                 </span>
                                             </div>
-                                            <div class="col-md-4 col-lg-3 form-group form-inline text-right">
+                                            <div class="col-md-3 col-lg-2 form-group form-inline text-right">
                                                 <span id="product_info_list__tax_rate--{{ loop.index }}" class="item_tax">
                                                     税率：
                                                     <span class="input-group">
@@ -471,7 +539,23 @@ var setModeAndSubmit = function(mode, keyname, keyid) {
                                                     </span>
                                                 </span>
                                             </div>
-                                            <div id="product_info_list__total_price--{{ loop.index }}" class="col-md-12 col-lg-3 item_subtotal text-right">
+                                            <div class="col-md-3 col-lg-2 form-group form-inline text-right">
+                                                {% if is_donation %}
+                                                <span id="product_info_list__kifu_no_pub--{{ loop.index }}" class="item_kifu_no_pub">
+                                                {% else %}
+                                                <span id="product_info_list__kifu_no_pub--{{ loop.index }}" class="item_kifu_no_pub" style="visibility:hidden;">
+                                                {% endif %}
+                                                    <span class="input-group" style="padding: 6px 2px;">
+                                                    {% if orderDetailForm.vars.data.kifu_no_pub == 0 %}
+                                                        {{ form_widget(orderDetailForm.kifu_no_pub) }}
+                                                    {% else %}
+                                                        {{ form_widget(orderDetailForm.kifu_no_pub, { 'checked': 'checked' }) }}
+                                                    {% endif %}
+                                                    {{ form_errors(orderDetailForm.kifu_no_pub) }}
+                                                    </span>
+                                                </span>
+                                            </div>
+                                            <div id="product_info_list__total_price--{{ loop.index }}" class="col-md-12 col-lg-2 item_subtotal text-right">
                                                 <span>小計：</span> {{ orderDetailForm.vars.value.total_price|price }}
                                             </div>
                                         </div>
@@ -524,13 +608,6 @@ var setModeAndSubmit = function(mode, keyname, keyid) {
                     </div>
                 </div>
             </div>
-            {% if Order.kifu_no_pub==1 %}
-            <div  class="box ">
-                <div  class="box-header" style="font-size:120%;">
-                ※寄付者名簿：　寄付者名簿非公開
-                </div><!-- /.box-header -->
-            </div>
-            {% endif %}
 
             {# お支払情報 #}
             <div id="payment_info_box" class="box accordion">

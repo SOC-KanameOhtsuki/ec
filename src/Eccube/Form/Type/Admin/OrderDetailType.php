@@ -94,6 +94,11 @@ class OrderDetailType extends AbstractType
                     )),
                 )
             ))
+            ->add('kifu_no_pub', 'checkbox', array(
+                'required' => false,
+                'label' => '名簿非掲載',
+                'mapped' => false,
+            ))
             ->add('product_name', 'hidden')
             ->add('product_code', 'hidden')
             ->add('class_name1', 'hidden')

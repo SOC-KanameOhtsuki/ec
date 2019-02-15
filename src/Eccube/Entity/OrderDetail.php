@@ -505,4 +505,32 @@ class OrderDetail extends \Eccube\Entity\AbstractEntity
     {
         return $this->class_name2;
     }
+
+    /**
+     * @var integer
+     */
+    private $kifu_no_pub = 0;
+
+    /**
+     * Set kifu_no_pub
+     *
+     * @param integer $kifuNoPub
+     * @return OrderDetail
+     */
+    public function setKifuNoPub($kifuNoPub)
+    {
+        $this->kifu_no_pub = $kifuNoPub;
+
+        return $this;
+    }
+
+    /**
+     * Get kifu_no_pub
+     *
+     * @return integer 
+     */
+    public function getKifuNoPub()
+    {
+        return $this->kifu_no_pub;
+    }
 }

@@ -129,8 +129,6 @@ class EditController extends AbstractController
             switch ($request->get('mode')) {
                 case 'register':
                     log_info('受注登録開始', array($TargetOrder->getId()));
-                    $request_data = $request->request->all();
-                    log_info('入力データ：', array(print_r($request_data, true)));
 
                     if ($TargetOrder->getTotal() > $app['config']['max_total_fee']) {
                         log_info('受注登録入力チェックエラー', array($TargetOrder->getId()));
@@ -153,7 +151,6 @@ class EditController extends AbstractController
                             }
                         }
 
-
                         // 受注日/発送日/入金日の更新.
                         $this->updateDate($app, $TargetOrder, $OriginOrder);
 
@@ -164,10 +161,17 @@ class EditController extends AbstractController
                             }
                         }
 
+                        $input_kifu_no_pub = array();
+                        $input_order = $request->get('order');
+                        foreach($input_order['OrderDetails'] as $InputOrderDetail) {
+                            $input_kifu_no_pub[$InputOrderDetail['Product']] = 
+                                (isset($InputOrderDetail['kifu_no_pub'])?$InputOrderDetail['kifu_no_pub']:0);
+                        }
 
                         if ($BaseInfo->getOptionMultipleShipping() == Constant::ENABLED) {
                             foreach ($TargetOrder->getOrderDetails() as $OrderDetail) {
                                 /** @var $OrderDetail \Eccube\Entity\OrderDetail */
+                                $OrderDetail->setKifuNoPub($input_kifu_no_pub[$OrderDetail->getProduct()->getId()]);
                                 $OrderDetail->setOrder($TargetOrder);
                             }
 
@@ -201,6 +205,7 @@ class EditController extends AbstractController
 
                             foreach ($TargetOrder->getOrderDetails() as $OrderDetail) {
                                 /** @var $OrderDetail \Eccube\Entity\OrderDetail */
+                                $OrderDetail->setKifuNoPub($input_kifu_no_pub[$OrderDetail->getProduct()->getId()]);
                                 $OrderDetail->setOrder($TargetOrder);
 
                                 $NewShipmentItem = new ShipmentItem();

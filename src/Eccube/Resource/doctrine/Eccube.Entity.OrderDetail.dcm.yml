@@ -53,6 +53,12 @@ Eccube\Entity\OrderDetail:
             type: smallint
             nullable: true
             unsigned: false
+        kifu_no_pub:
+            type: smallint
+            nullable: true
+            unsigned: false
+            options:
+                default: 0
     manyToOne:
         Order:
             targetEntity: Eccube\Entity\Order
