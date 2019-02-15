@@ -265,6 +265,7 @@ class ShoppingController extends AbstractController
             foreach ($OrderDetails as $OrderDetail) {
                 $OrderDetail->setKifuNoPub($kifu_no_pub[$OrderDetail->getProduct()->getId()]);
                 $OrderDetail->setOrder($Order);
+                $app['orm.em']->persist($OrderDetail);
             }
 
             log_info('購入処理開始', array($Order->getId()));
@@ -329,8 +330,6 @@ class ShoppingController extends AbstractController
             // 受注IDをセッションにセット
             $app['session']->set($this->sessionOrderKey, $Order->getId());
 
-            // 年会費、動画、寄付　購入者に対し購入内容の確認メールを送信            
-            $needDelivery = true;
             //#41 掲載可否
             $wSESSION = $app['request']->getSession();
             $kifu_no_pub= $wSESSION->get('kifu_no_pub');

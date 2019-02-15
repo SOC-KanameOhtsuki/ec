@@ -235,6 +235,7 @@ class MailService
     {
         log_info('受注メール送信開始');
 
+        $needDelivery = true;
         $OrderDetails = $Order->getOrderDetails();
         foreach ($OrderDetails as $OrderDetail) {
             $Product = $OrderDetail->getProduct();
