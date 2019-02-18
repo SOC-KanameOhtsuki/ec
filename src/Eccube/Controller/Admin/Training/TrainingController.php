@@ -508,8 +508,6 @@ class TrainingController extends AbstractController
         $pageMaxis = $app['eccube.repository.master.page_max']->findAll();
         $attendanceDenialReasons = $app['eccube.repository.master.attendance_denial_reason']->findAll();
 
-
-
         // 表示件数は順番で取得する、1.SESSION 2.設定ファイル
         $page_count = $session->get('eccube.admin.student.search.page_count', $app['config']['default_page_count']);
         // 表示件数
@@ -1971,9 +1969,11 @@ class TrainingController extends AbstractController
     {
         $customerIds = explode(",", $request->get('customerIds'));
         $AttendanceStatus = $app['eccube.repository.master.attendance_status']->find(2);
-        $ProductTraining = $app['eccube.repository.product_training']->find($request->get('id'));
+        $ProductTraining = $app['eccube.repository.product_training']->getProductTrainingByProductId($request->get('id'));
+        $denyedIds = array();
 
         foreach ($customerIds as $customerId) {
+            log_info('否認開始', array($customerId));
             $Customer = $app['eccube.repository.customer']->find($customerId);
 
             if ($Customer == null || $ProductTraining == null) {
@@ -1981,9 +1981,6 @@ class TrainingController extends AbstractController
             }
 
             $AttendanceHistory = $app['eccube.repository.attendance_history']->getAttendanceHistory($Customer, $ProductTraining);
-
-            if ($AttendanceHistory->getAttendanceStatus()->getId() == $AttendanceStatus->getId())
-                continue;
             
             if (!$AttendanceHistory) {
                 $AttendanceHistory = new \Eccube\Entity\AttendanceHistory();
@@ -1995,24 +1992,29 @@ class TrainingController extends AbstractController
                 $app['orm.em']->persist($AttendanceHistory);
                 $app['orm.em']->flush();
                 continue;
+            } else if ($AttendanceHistory->getAttendanceStatus()->getId() == $AttendanceStatus->getId()) {
+                continue;
             }
 
             $AttendanceHistory->setAttendanceStatus($AttendanceStatus);
             $AttendanceHistory->setUpdateDate(Date('Y-m-d H:i:s'));
 
             $app['orm.em']->flush();
+            $denyedIds[] = $customerId;
         }
 
-        return $app->json(array('message' => 'success'), 200);
+        return $app->json(array('message' => 'success', 'denyed' => $denyedIds), 200);
     }
 
     public function bulkCertified(Application $app, Request $request)
     {
         $customerIds = explode(",", $request->get('customerIds'));
         $AttendanceStatus = $app['eccube.repository.master.attendance_status']->find(1);
-        $ProductTraining = $app['eccube.repository.product_training']->find($request->get('id'));
+        $ProductTraining = $app['eccube.repository.product_training']->getProductTrainingByProductId($request->get('id'));
+        $certifiedIds = array();
 
         foreach ($customerIds as $customerId) {
+            log_info('認定開始', array($customerId));
             $Customer = $app['eccube.repository.customer']->find($customerId);
 
             if ($Customer == null || $ProductTraining == null) {
@@ -2041,39 +2043,38 @@ class TrainingController extends AbstractController
             $CustomerInfo = $app['eccube.repository.customer_basic_info']->getCustomerBasicInfoByCustomer($Customer);
             $InfoStatus = $app['eccube.repository.customer_basic_info_status']->find(1);
 
-            if ($CustomerInfo == null) 
+            if ($CustomerInfo == null) {
                 continue;
-
-            $code = sprintf('%d', $Customer->getId());
-            for ($i = 0; $i < (7 - strlen($code)); $i++) {
-                $code = sprintf("0%s", $code);
             }
+
+            $code = sprintf('%07d', $Customer->getId());
 
             if ($Customer->getPref() == null) {
                 $code = sprintf("00%s", $code);
             } else {
-
-                $code = sprintf(($Customer->getPref()->getRank() < 10 ? "JPN-0%d%s" : "JPN-%d%s"), $Customer->getPref()->getRank(), $code);;
+                $code = sprintf(($Customer->getPref()->getRank() < 10 ? "JPN0%d%s" : "JPN%d%s"), $Customer->getPref()->getRank(), $code);
             }
 
             $CustomerInfo->setStatus($InfoStatus);
             $CustomerInfo->setCustomerNumber($code);
-            $CustomerInfo->setCustomerPinCode("" + rand(10000000, 99999999));
+            $CustomerInfo->setCustomerPinCode(rand(10000000, 99999999));
             $CustomerInfo->setLastPayMembershipYear($ProductTraining->getTimeStartYear());
             $CustomerInfo->setMembershipExpired(new \DateTime(Date('Y-m-d', strtotime(sprintf("03/31/%d", ((int)($ProductTraining->getTimeStartYear()) + 1))))));
             $CustomerInfo->setRegularMemberPromoted(new \DateTime(date('Y-m-d H:i:s')));
             $CustomerInfo->setUpdateDate(date('Y-m-d H:i:s'));
+            $app['orm.em']->persist($CustomerInfo);
 
             $app['orm.em']->flush();
+            $certifiedIds[] = $customerId;
         }
 
-        return $app->json(array('message' => 'success'), 200);
+        return $app->json(array('message' => 'success', 'certified' => $certifiedIds), 200);
     }
 
     public function setDenyReason(Application $app, Request $request)
     {
         $AttendanceDenialReason = $app['eccube.repository.master.attendance_denial_reason']->find($request->get('denialId'));
-        $ProductTraining = $app['eccube.repository.product_training']->find($request->get('id'));
+        $ProductTraining = $app['eccube.repository.product_training']->getProductTrainingByProductId($request->get('id'));
         $Customer = $app['eccube.repository.customer']->find($request->get('customerId'));
 
         if ($Customer == null || $ProductTraining == null) {

@@ -22,7 +22,7 @@ This file is Custom File
       var checkall = $('#check-all').prop('checked');
       if (checkall) {
         $('input[id^=check-]').prop('checked', true);
-        } else {
+      } else {
         $('input[id^=check-]').prop('checked', false);
       }
     });
@@ -65,13 +65,22 @@ This file is Custom File
         $('#customAlert').hide();
 
         var Ids = "";
+        var isMixed = false;
         $.each($('#customerTable tr td:first-child > input'), function() {
-            if ($(this).prop('checked')) {
+            if ($(this).prop('checked') && $('#attendance_set_' + $(this).data('id')).val() == 0) {
                 Ids += (Ids == "" ? $(this).data('id') : ("," + $(this).data('id')));
-            }   
+            } else {
+                isMixed = true;
+            }
         });
-        
+
         if (Ids == "") {
+            $('#customAlert').empty();
+            if (isMixed) {
+                $('#customAlert').append("<strong>警告!</strong> 処理可能な対象を選択してください。");
+            } else {
+                $('#customAlert').append("<strong>警告!</strong> 対象を選択してください。");
+            }
             $('#customAlert').show();
             setTimeout(function() {
                 $('#customAlert').hide();
@@ -83,12 +92,34 @@ This file is Custom File
                 customerIds: Ids
             }, function(response) {
                 $('#result_list_main__all_output_menu').attr('class', 'dropdown');
-                Ids.split(",").forEach(function(id) {
+                response.denyed.forEach(function(id) {
                     $('#approveOrDenial-' + id).show();
                     $('#approveStatus-' + id).html('');
                     $('#approveStatus-' + id).append($('<span>').attr('class', 'badge progress-bar-danger').text('否認')); 
+                    $('#check-' + id).prop('checked', false);
+                    $('#attendance_set_' + id).val(1);
                 });
+                $('#check-all').prop('checked', false);
                 $('#loadingModal').modal('hide');
+                if (response.denyed < Ids.split(',').length) {
+                    $('#customAlert').empty();
+                    $('#customAlert').append("<strong>警告!</strong> 一括否認を実行しましたが、エラーが発生しています。");
+                    $('#customAlert').show();
+                    setTimeout(function() {
+                        $('#customAlert').hide();
+                    }, 3000);
+                } else {
+                    $('#customInfoAlert').empty();
+                    if (isMixed) {
+                        $('#customInfoAlert').append(" 処理可能なものに対して否認しました。");
+                    } else {
+                        $('#customInfoAlert').append(" 一括否認しました。");
+                    }
+                    $('#customInfoAlert').show();
+                    setTimeout(function() {
+                        $('#customInfoAlert').hide();
+                    }, 3000);
+                }
             });
         }
     });
@@ -96,13 +127,22 @@ This file is Custom File
         $('#customAlert').hide();
 
         var Ids = "";
+        var isMixed = false;
         $.each($('#customerTable tr td:first-child > input'), function() {
-            if ($(this).prop('checked')) {
+            if ($(this).prop('checked') && $('#attendance_set_' + $(this).data('id')).val() == 0) {
                 Ids += (Ids == "" ? $(this).data('id') : ("," + $(this).data('id')));
-            }   
+            } else {
+                isMixed = true;
+            }
         });
-        
+
         if (Ids == "") {
+            $('#customAlert').empty();
+            if (isMixed) {
+                $('#customAlert').append("<strong>警告!</strong> 処理可能な対象を選択してください。");
+            } else {
+                $('#customAlert').append("<strong>警告!</strong> 対象を選択してください。");
+            }
             $('#customAlert').show();
             setTimeout(function() {
                 $('#customAlert').hide();
@@ -114,12 +154,34 @@ This file is Custom File
                 customerIds: Ids
             }, function(response) {
                 $('#result_list_main__all_output_menu').attr('class', 'dropdown');
-                Ids.split(",").forEach(function(id) {
+                response.certified.forEach(function(id) {
                     $('#approveOrDenial-' + id).hide();
                     $('#approveStatus-' + id).html('');
                     $('#approveStatus-' + id).append($('<span>').attr('class', 'badge progress-bar-success').text('認定')); 
+                    $('#check-' + id).prop('checked', false);
+                    $('#attendance_set_' + id).val(1);
                 });
+                $('#check-all').prop('checked', false);
                 $('#loadingModal').modal('hide');
+                if (response.certified < Ids.split(',').length) {
+                    $('#customAlert').empty();
+                    $('#customAlert').append("<strong>警告!</strong> 一括認定を実行しましたが、エラーが発生しています。");
+                    $('#customAlert').show();
+                    setTimeout(function() {
+                        $('#customAlert').hide();
+                    }, 3000);
+                } else {
+                    $('#customInfoAlert').empty();
+                    if (isMixed) {
+                        $('#customInfoAlert').append(" 処理可能なものに対して認定しました。");
+                    } else {
+                        $('#customInfoAlert').append(" 一括認定しました。");
+                    }
+                    $('#customInfoAlert').show();
+                    setTimeout(function() {
+                        $('#customInfoAlert').hide();
+                    }, 3000);
+                }
             });
         }
     });
@@ -187,8 +249,9 @@ This file is Custom File
         <h3 class="box-title">検索結果 <span class="normal"><strong>{{ pagination.totalItemCount }} 件</strong> が該当しました</span></h3>
       </div><!-- /.box-header -->
       <div id="result_list_main__body" class="box-body">
+        <div id="customInfoAlert" class="alert alert-info" style="display: none;">
+        </div>
         <div id="customAlert" class="alert alert-warning" style="display: none;">
-          <strong>警告!</strong> アイテムを選択ください。
         </div>
         <div id="result_list_main__menu" class="row">
           <div class="col-md-12">
@@ -259,13 +322,27 @@ This file is Custom File
                             <td id="result_list_main__tel--{{ Customer.id }}" class="member_tel">{{ Customer.tel01 }}-{{ Customer.tel02 }}-{{ Customer.tel03 }}</td>
                             <td id="result_list_main__mail--{{ Customer.id }}" class="member_mail">{{ Customer.email }}</td>
                             <td class="col-md-1 col-sm-1 text-center" id="approveStatus-{{Customer.id}}">
-                                {% if Customer.AttendanceHistory == null %}
+                                {% set attendanceStatus = '' %}
+                                {% set certified = false %}
+                                {% if Customer.AttendanceHistories %}
+                                    {% for AttendanceHistory in Customer.AttendanceHistories %}
+                                        {% if AttendanceHistory.AttendanceStatus.id == 1 %}
+                                            {% set attendanceStatus = AttendanceHistory.AttendanceStatus.name %}
+                                            {% set certified = true %}
+                                        {% elseif certified == false %}
+                                            {% set attendanceStatus = AttendanceHistory.AttendanceStatus.name %}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                                {% if attendanceStatus == '' %}
+                                    <input type="hidden" id="attendance_set_{{ Customer.id }}" name="attendance_set_{{ Customer.id }}" value="0">
                                     <span class="badge progress-bar-secondary">未定</span>
                                 {% else %}
-                                    {% if Customer.AttendanceHistory.AttendanceStatus.id == 1 %}
-                                        <span class="badge progress-bar-success">{{Customer.AttendanceHistory.AttendanceStatus.name}}</span>
+                                    <input type="hidden" id="attendance_set_{{ Customer.id }}" name="attendance_set_{{ Customer.id }}" value="1">
+                                    {% if certified %}
+                                        <span class="badge progress-bar-success">{{ attendanceStatus }}</span>
                                     {% else %}
-                                        <span class="badge progress-bar-danger">{{Customer.AttendanceHistory.AttendanceStatus.name}}</span>
+                                        <span class="badge progress-bar-danger">{{ attendanceStatus }}</span>
                                     {% endif %}
                                 {% endif %}
                             </td>

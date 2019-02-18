@@ -87,4 +87,14 @@ class ProductTrainingRepository extends EntityRepository
         }
         return $Areas;
     }
+
+    public function getProductTrainingByProductId($pruductId)
+    {
+        return $this->createQueryBuilder('pt')
+                ->leftJoin('pt.Product', 'p')
+                ->where('p.id = :pruductId')
+                ->setParameter('pruductId', $pruductId)
+                ->getQuery()
+                ->getOneOrNullResult();
+    }
 }
