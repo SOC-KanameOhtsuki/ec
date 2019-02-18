@@ -21,13 +21,21 @@ class CustomerBasicInfoRepository extends EntityRepository
                 ->getOneOrNullResult();
     }
 
-    public function getCustomerBasicInfoByExemption(\Eccube\Entity\Master\ExemptionType $ExemptionType)
+    public function getCustomerBasicInfoByMembershipExemption(\Eccube\Entity\Master\ExemptionType $ExemptionType)
     {
 
         return $this->createQueryBuilder("c")
-                ->where("c.ExemptionType = :ExemptionType")
+                ->where("c.MembershipExemption = :ExemptionType")
                 ->setParameter('ExemptionType', $ExemptionType)
                 ->getQuery()
                 ->getResult();
+    }
+
+    public function clearMembershipExemption()
+    {
+        $em = $this->getEntityManager();
+        $sql = "UPDATE dtb_customer_basic_info SET dtb_customer_basic_info.membership_exemption = 1;";
+        $result = $em->getConnection()->executeQuery($sql, array());
+        return $result;
     }
 }
