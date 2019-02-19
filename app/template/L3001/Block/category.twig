@@ -19,6 +19,45 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #}
+
+{#
+{% macro tree(Category) %}
+        <li class="nav-item dropdown"><!-- ここからドロップダウン -->
+        {% if Category.id < 2 %}
+        <a href="{{ url('product_training_list') }}">
+        {% else %}
+        <a href="{{ url('product_list') }}?category_id={{ Category.id }}">
+        {% endif %}
+            {{ Category.name }}
+        </a>
+        {% if Category.children|length > 0 %}
+            <ul>
+            {% for ChildCategory in Category.children %}
+                    {{ _self.tree(ChildCategory) }}
+            {% endfor %}
+            </ul>
+        {% endif %}
+        </li>
+{% endmacro %}
+
+<div class="container my-5">
+  <nav id="category" class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <a class="navbar-brand" href="#">ブランド</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="ナビゲーション切替">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav">
+      {% for Category in Categories %}
+        {{ _self.tree(Category) }}
+      {% endfor %}
+      </ul>
+    </div>
+  </nav>
+</div>
+#}
+
+
 {% macro tree(Category) %}
     <li>
         {% if Category.id < 2 %}

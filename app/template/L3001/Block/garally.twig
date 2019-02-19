@@ -19,24 +19,105 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #}
+
 <div class="row">
     <div class="category_header col-xs-12">
-        <h2 class="heading01">GALLERY</h2>
+        <h2 class="heading01">目的別メニュー</h2>
     </div>
-    <div class="item_gallery col-xs-12">
-        <ul class="item_gallery_list row">
-            <li class="col-sm-2 col-xs-4"><a href="#" class="item_photo"><img src="{{ app.config.front_urlpath }}/img/top/gallery-img01.jpg"></a></li>
-            <li class="col-sm-2 col-xs-4"><a href="#" class="item_photo"><img src="{{ app.config.front_urlpath }}/img/top/gallery-img02.jpg"></a></li>
-            <li class="col-sm-2 col-xs-4"><a href="#" class="item_photo"><img src="{{ app.config.front_urlpath }}/img/top/gallery-img03.jpg"></a></li>
-            <li class="col-sm-2 col-xs-4"><a href="#" class="item_photo"><img src="{{ app.config.front_urlpath }}/img/top/gallery-img04.jpg"></a></li>
-            <li class="col-sm-2 col-xs-4"><a href="#" class="item_photo"><img src="{{ app.config.front_urlpath }}/img/top/gallery-img05.jpg"></a></li>
-            <li class="col-sm-2 col-xs-4"><a href="#" class="item_photo"><img src="{{ app.config.front_urlpath }}/img/top/gallery-img06.jpg"></a></li>
-            <li class="col-sm-2 col-xs-4"><a href="#" class="item_photo"><img src="{{ app.config.front_urlpath }}/img/top/gallery-img07.jpg"></a></li>
-            <li class="col-sm-2 col-xs-4"><a href="#" class="item_photo"><img src="{{ app.config.front_urlpath }}/img/top/gallery-img08.jpg"></a></li>
-            <li class="col-sm-2 col-xs-4"><a href="#" class="item_photo"><img src="{{ app.config.front_urlpath }}/img/top/gallery-img09.jpg"></a></li>
-            <li class="col-sm-2 col-xs-4"><a href="#" class="item_photo"><img src="{{ app.config.front_urlpath }}/img/top/gallery-img10.jpg"></a></li>
-            <li class="col-sm-2 col-xs-4"><a href="#" class="item_photo"><img src="{{ app.config.front_urlpath }}/img/top/gallery-img11.jpg"></a></li>
-            <li class="col-sm-2 col-xs-4"><a href="#" class="item_photo"><img src="{{ app.config.front_urlpath }}/img/top/gallery-img12.jpg"></a></li>
-        </ul>
-    </div><!--item_gallery-->
 </div><!--row-->
+
+<style type="text/css">
+.card-deck {
+    display:-ms-flexbox; display:flex; -ms-flex-direction:column; flex-direction:column
+ }
+ .card-deck .card {
+    margin-bottom:15px
+ }
+@media (min-width:576px) {
+    .card-deck {
+        -ms-flex-flow:row wrap; flex-flow:row wrap; margin-right:-15px; margin-left:-15px
+    }
+    .card-deck .card {
+        display:-ms-flexbox; display:flex; -ms-flex:1 0 0%; flex:1 0 0%; -ms-flex-direction:column; flex-direction:column; margin-right:15px; margin-bottom:0;margin-left:15px
+    }
+}
+</style>
+
+<!-- カードグループ１ -->
+<div class="container">
+  <!-- カードグループ：card-group -->
+  <div class="card-deck" >
+    <!-- サポーター -->
+    <div class="card">
+      <a href="http://fumanet.com/user_data/user_cat1"><img class="card-img-top" src="{{ app.config.user_data_urlpath }}/top_cat/cat5.gif"></a>
+      <div class="card-body">
+        <h4 class="card-title">サポーター</h4>
+        <p class="card-text">サポーターとして活動するための参考動画やお役立ち情報が参照できます。</p>
+      </div>
+    </div>
+    <!-- インストラクター -->
+    <div class="card">
+      <a href="http://fumanet.com/user_data/user_cat2"><img class="card-img-top" src="{{ app.config.user_data_urlpath }}/top_cat/cat5.gif"></a>
+      <div class="card-body">
+        <h4 class="card-title">インストラクター</h4>
+        <p class="card-text">インストラクターとして活動するための参考動画やお役立ち情報が参照できます。</p>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- / カードグループ -->
+
+<!-- カードグループ２ -->
+<div class="container">
+  <!-- カードグループ：card-group -->
+  <div class="card-deck" >
+    <!-- 地域でとりくむ -->
+    <div class="card">
+      <a href="http://fumanet.com/user_data/user_cat3"><img class="card-img-top" src="{{ app.config.user_data_urlpath }}/top_cat/cat5.gif"></a>
+      <div class="card-body">
+        <h4 class="card-title">地域で取り組む</h4>
+        <p class="card-text">地域で活用するための参考動画やお役立ち情報が参照できます。</p>
+      </div>
+    </div>
+    <!-- 家庭でとりくむ -->
+    <div class="card">
+      <a href="http://fumanet.com/user_data/user_cat4"><img class="card-img-top" src="{{ app.config.user_data_urlpath }}/top_cat/cat5.gif"></a>
+      <div class="card-body">
+        <h4 class="card-title">家庭でとりくむ</h4>
+        <p class="card-text">家庭で活用するための参考動画やお役立ち情報が参照できます。</p>
+      </div>
+    </div>
+    <!-- 施設・病院でとりくむ -->
+    <div class="card">
+      <a href="http://fumanet.com/user_data/user_cat5"><img class="card-img-top" src="{{ app.config.user_data_urlpath }}/top_cat/cat5.gif"></a>
+      <div class="card-body">
+        <h4 class="card-title">病院や施設</h4>
+        <p class="card-text">施設や病院で活用するための参考動画やお役立ち情報が参照できます。</p>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- / カードグループ -->
+
+<!-- カードグループ３ -->
+<div class="container">
+  <div class="card-deck" >
+    <!-- 研修会・講習会を受講する -->
+    <div class="card">
+      <a href="http://fumanet.com/user_data/user_cat6"><img class="card-img-top" src="{{ app.config.user_data_urlpath }}/top_cat/cat5.gif"></a>
+      <div class="card-body">
+        <h4 class="card-title">研修会・講習会を受講する</h4>
+        <p class="card-text">開催予定の研修会・講習会情報です。</p>
+      </div>
+    </div>
+    <!-- 寄付・年会費・入会 -->
+    <div class="card">
+      <a href="http://fumanet.com/user_data/user_cat7"><img class="card-img-top" src="{{ app.config.user_data_urlpath }}/top_cat/cat5.gif"></a>
+      <div class="card-body">
+        <h4 class="card-title">寄付・年会費・入会</h4>
+        <p class="card-text">寄付・年会費・入会に関するご案内です。</p>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- / カードグループ -->
