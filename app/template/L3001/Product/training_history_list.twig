@@ -9,7 +9,7 @@ This file is Customized file
 {% endblock %}
 
 {% block main %}
-    <div style="text-align: right;">
+    <div style="text-align: right;" class="font10">
     現在申し込み可能な講習会は<a href="{{ url('product_training_list') }}">こちら</a>
     </div><!--/row-->
     <div class="row">
@@ -18,26 +18,26 @@ This file is Customized file
     <form name="form1" id="form1" method="post" action="?">
         <div class="training_search form-inline pc col-xs-12">
             <div class="form-group" style="width:20%;">
-                <label>年</label>
+                <label class="font10">年</label>
                 {{ form_widget(search_form.year) }}
             </div>
             <div class="form-group" style="width:20%;">
-                <label>月</label>
+                <label class="font10">月</label>
                 {{ form_widget(search_form.month) }}
             </div>
             <div class="form-group" style="width:55%;">
-                <label>地域</label>
+                <label class="font10">地域</label>
                 {{ form_widget(search_form.area) }}
             </div>
         </div>
         <div class="training_search form-inline pc col-xs-12">
-            <button type="submit" class="btn btn-success btn-block btn-lg">絞込み</button>
+            <button type="submit" class="font10 btn btn-success btn-block btn-lg">絞込み</button>
         </div>
     </form>
     <div id="result_info_box" class="row">
     {% if 0 < tainingCnt %}
             <form name="page_navi_top" id="page_navi_top" action="?">
-                <table width="920" cellpadding="0" cellspacing="0" style="margin:0 0px 20px;">
+                <table width="920" cellpadding="0" cellspacing="0" style="margin:auto ;">
                     <tbody>
                         <tr>
                             <td valign="top" align="center">
@@ -78,19 +78,19 @@ This file is Customized file
                     <br>
                     {% for form in forms %}
                         {% if 0 < form.ProductsCount %}
-                        <table width="900" cellpadding="1" cellspacing="3">
+                        <table width="100%" cellpadding="1" cellspacing="3" style="min-width :900px;">
                             <tbody>
                                 <tr>
-                                    <td id="training{{ form.TrainingType.id }}">{{ form.TrainingType.name }}</td>
+                                    <td id="training{{ form.TrainingType.id }}" class="font10">{{ form.TrainingType.name }}</td>
                                 </tr>
                             </tbody>
                         </table>
-                        <table class="font10" width="900" cellspacing="1" cellpadding="3" bgcolor="#717EAA" style="border-collapse: separate;border-spacing: 1px 1px;">
+                        <table class="font10" width="100%" cellspacing="1" cellpadding="3" bgcolor="#717EAA" style="min-width :900px;border-collapse: separate;border-spacing: 1px 1px;">
                             <tbody class="callink">
                                 <tr>
-                                    <td nowrap="" bgcolor="#D8DEEC" align="center">地域</td>
-                                    <td nowrap="" bgcolor="#D8DEEC" align="center">日付</td>
-                                    <td nowrap="" bgcolor="#D8DEEC" align="center">会場</td>
+                                    <td nowrap="" bgcolor="#D8DEEC" align="center" class="font10">地域</td>
+                                    <td nowrap="" bgcolor="#D8DEEC" align="center" class="font10">日付</td>
+                                    <td nowrap="" bgcolor="#D8DEEC" align="center" class="font10">会場</td>
                                 </tr>
                                 {% for product in form['Product'] %}
                                 <tr onmouseover="setPointer(this, '#F9F1DA', '#ffffff')" onmouseout="setPointer(this, '#ffffff', '#ffffff')" bgcolor="#ffffff">
