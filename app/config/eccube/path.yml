@@ -8,7 +8,7 @@ questionnaire_attachment_path: /upload/questionnaire_attachment/
 root_dir: /var/www/fumanet.com
 root_urlpath: null
 template_code: L3001
-admin_route: ecTrial
+admin_route: admin_fumanet
 user_data_route: user_data
 public_path: /html
 public_path_realdir: /var/www/fumanet.com/html
