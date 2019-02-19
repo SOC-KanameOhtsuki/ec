@@ -9,7 +9,7 @@ This file is Customized file
 {% endblock %}
 
 {% block main %}
-    <div style="text-align: right;">
+    <div style="text-align: right;" class="font10">
     過去の講習会は<a href="{{ url('product_training_history_list') }}">こちら</a>
     </div>
     <div class="row">
@@ -18,26 +18,26 @@ This file is Customized file
     <form name="form1" id="form1" method="post" action="?">
         <div class="training_search form-inline pc col-xs-12">
             <div class="form-group" style="width:20%;">
-                <label>年</label>
+                <label class="font10">年</label>
                 {{ form_widget(search_form.year) }}
             </div>
             <div class="form-group" style="width:20%;">
-                <label>月</label>
+                <label class="font10">月</label>
                 {{ form_widget(search_form.month) }}
             </div>
             <div class="form-group" style="width:55%;">
-                <label>地域</label>
+                <label class="font10">地域</label>
                 {{ form_widget(search_form.area) }}
             </div>
         </div>
         <div class="training_search form-inline pc col-xs-12">
-            <button type="submit" class="btn btn-success btn-block btn-lg">絞込み</button>
+            <button type="submit" class="font10 btn btn-success btn-block btn-lg">絞込み</button>
         </div>
     </form>
     <div id="result_info_box" class="row">
     {% if 0 < tainingCnt %}
             <form name="page_navi_top" id="page_navi_top" action="?">
-                <table width="920" cellpadding="0" cellspacing="0" style="margin:0 0px 20px;">
+                <table width="920" cellpadding="0" cellspacing="0" style="margin:auto ;">
                     <tbody>
                         <tr>
                             <td valign="top" align="center">
@@ -53,14 +53,14 @@ This file is Customized file
                                                             {% if 0 < headerInfo.0.ProductsCount %}
                                                                 <td><a href=#training{{ headerInfo.0.id }}>{{ headerInfo.0.name }}</a></td>
                                                             {% else %}
-                                                                <td><font color=#aaaaaa>{{ headerInfo.0.name }}</font></td>
+                                                                <td class="font10"><font color=#aaaaaa>{{ headerInfo.0.name }}</font></td>
                                                             {% endif %}
                                                             <td align=center><b>｜</b></td>
                                                             {% if headerInfo.1 %}
                                                                 {% if 0 < headerInfo.1.ProductsCount %}
-                                                                    <td><a href=#training{{ headerInfo.1.id }}>{{ headerInfo.1.name }}</a></td>
+                                                                    <td class="font10"><a href=#training{{ headerInfo.1.id }}>{{ headerInfo.1.name }}</a></td>
                                                                 {% else %}
-                                                                    <td><font color=#aaaaaa>{{ headerInfo.1.name }}</font></td>
+                                                                    <td class="font10"><font color=#aaaaaa>{{ headerInfo.1.name }}</font></td>
                                                                 {% endif %}
                                                             {% endif %}
                                                         </tr>
@@ -72,23 +72,23 @@ This file is Customized file
                                                 <table cellpadding="0" cellspacing="0" class="font10" bgcolor="#FCEEDF">
                                                     <tbody>
                                                         <tr>
-                                                            <td colspan="2" align="center" bgcolor="#F9DBBA">定員の記号</td>
+                                                            <td colspan="2" align="center" bgcolor="#F9DBBA" class="font10">定員の記号</td>
                                                         </tr>
                                                         <tr>
-                                                            <td>◎</td>
-                                                            <td>：充分余裕が有ります </td>
+                                                            <td class="font10">◎</td>
+                                                            <td class="font10">：充分余裕が有ります </td>
                                                         </tr>
                                                         <tr>
-                                                            <td>○</td>
-                                                            <td>：少し余裕が有ります</td>
+                                                            <td class="font10">○</td>
+                                                            <td class="font10">：少し余裕が有ります</td>
                                                         </tr>
                                                         <tr>
-                                                            <td>△</td>
-                                                            <td>：残りわずかです</td>
+                                                            <td class="font10">△</td>
+                                                            <td class="font10">：残りわずかです</td>
                                                         </tr>
                                                         <tr>
-                                                            <td>Ｘ</td>
-                                                            <td>：定員に満たしています</td>
+                                                            <td class="font10">Ｘ</td>
+                                                            <td class="font10">：定員に満たしています</td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
@@ -101,20 +101,20 @@ This file is Customized file
                     </tbody>
                     {% for form in forms %}
                         {% if 0 < form.ProductsCount %}
-                        <table width="900" cellpadding="1" cellspacing="3">
+                        <table width="100%" cellpadding="1" cellspacing="3" style="min-width :900px;">
                             <tbody>
                                 <tr>
-                                    <td id="training{{ form.TrainingType.id }}">{{ form.TrainingType.name }}</td>
+                                    <td id="training{{ form.TrainingType.id }}" class="font10">{{ form.TrainingType.name }}</td>
                                 </tr>
                             </tbody>
                         </table>
-                        <table class="font10" width="900" cellspacing="1" cellpadding="3" bgcolor="#717EAA" style="border-collapse: separate;border-spacing: 1px 1px;">
+                        <table class="font10" width="100%" cellspacing="1" cellpadding="3" bgcolor="#717EAA" style="min-width :900px;border-collapse: separate;border-spacing: 1px 1px;">
                             <tbody class="callink">
                                 <tr>
-                                    <td nowrap="" bgcolor="#D8DEEC" align="center">地域</td>
-                                    <td nowrap="" bgcolor="#D8DEEC" align="center">日付</td>
-                                    <td nowrap="" bgcolor="#D8DEEC" align="center">会場</td>
-                                    <td nowrap="" bgcolor="#D8DEEC" align="center">定員</td>
+                                    <td nowrap="" bgcolor="#D8DEEC" align="center" class="font10">地域</td>
+                                    <td nowrap="" bgcolor="#D8DEEC" align="center" class="font10">日付</td>
+                                    <td nowrap="" bgcolor="#D8DEEC" align="center" class="font10">会場</td>
+                                    <td nowrap="" bgcolor="#D8DEEC" align="center" class="font10">定員</td>
                                 </tr>
                                 {% for product in form['Product'] %}
                                 <tr onmouseover="setPointer(this, '#F9F1DA', '#ffffff')" onmouseout="setPointer(this, '#ffffff', '#ffffff')" bgcolor="#ffffff">
@@ -122,13 +122,13 @@ This file is Customized file
                                     <td nowrap="" bgcolor="#ffffff"><a href="{{ url('product_detail', {'id': product.id}) }}">{{ form['Training_Date'][product.id] }}</a></td>
                                     <td width="100%" bgcolor="#ffffff"><a href="{{ url('product_detail', {'id': product.id}) }}">{{ product.ProductTraining.place }}（{{ product.ProductTraining.addr01 }}{{ product.ProductTraining.addr02 }}）</a></td>
                                     {% if product.ProductClasses.0.stock < 1 %}
-                                        <td bgcolor="#ffffff" align="center">×</td>
+                                        <td bgcolor="#ffffff" align="center" class="font10">×</td>
                                     {% elseif product.ProductClasses.0.stock < 50 %}
-                                        <td bgcolor="#ffffff" align="center">△</td>
+                                        <td bgcolor="#ffffff" align="center" class="font10">△</td>
                                     {% elseif product.ProductClasses.0.stock < 100 %}
-                                        <td bgcolor="#ffffff" align="center">○</td>
+                                        <td bgcolor="#ffffff" align="center" class="font10">○</td>
                                     {% else %}
-                                        <td bgcolor="#ffffff" align="center">◎</td>
+                                        <td bgcolor="#ffffff" align="center" class="font10">◎</td>
                                     {% endif %}
                                 </tr>
                                 {% endfor %}
@@ -143,6 +143,6 @@ This file is Customized file
             </form>
         </div>
     {% else %}
-        <p class="errormsg text-danger">現在、有効な講習会情報は存在しません。</p>
+        <p class="errormsg text-danger" class="font10">現在、有効な講習会情報は存在しません。</p>
     {% endif %}
 {% endblock %}

@@ -1,0 +1,49 @@
+{#
+This file is Custmized File.
+#}
+{% extends 'default_frame.twig' %}
+
+{% set body_class = 'questionnaire_page' %}
+
+{% block javascript %}
+<script>
+</script>
+{% endblock %}
+
+{% block main %}
+    <!-- ▼questionnaire_detail▼ -->
+    <div id="questionnaire_detail">
+        <div id="detail_wrap" class="row">
+            <!--★タイトル★-->
+            <div id="title_area">
+                <h1 id="detail_description_box__name" class="item_name col-xs-12">{{ Questionnaire.name }}</h1>
+            </div>
+            <!--★説明★-->
+            <div id="description_area">
+                <p style="text-align: left;word-wrap: break-word;padding:32px;">{{ Questionnaire.description }}</p>
+            </div>
+            <!--★添付ファイル★-->
+            <div id="attachment_area" class="col-xs-12 col-sm-6">
+                {% if Questionnaire.QuestionnaireAttachments %}
+                    {% for QuestionnaireAttachment in Questionnaire.QuestionnaireAttachments %}
+                    <div>
+                        <a herf="{{ app.request.getSchemeAndHttpHost() }}{{ app.config.questionnaire_attachment_save_urlpath }}/{{Questionnair=eAttachment.file_name}}" style="position: relative;">{{QuestionnaireAttachment.label}}</a>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <section id="answer_area" class="col-xs-12 col-sm-6">
+                <!--★回答項目★-->
+                {% for QuestionnaireDetail in Questionnaire.QuestionnaireDetails %}
+                    {{ dump(QuestionnaireDetail) }}
+                    {% for QuestionnaireDetailChoice in QuestionnaireDetail.QuestionnaireDetailChoices %}
+                    {% endfor %}
+                </div><!-- /.item_detail -->
+                {% endfor %}
+            </section>
+            <!--詳細ここまで-->
+        </div>
+    </div>
+    <!-- ▲questionnaire_detail▲ -->
+{% endblock %}

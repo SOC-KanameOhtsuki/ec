@@ -1,0 +1,52 @@
+{#
+This file is Custmized File.
+#}
+{% extends 'default_frame.twig' %}
+
+{% set body_class = 'questionnaire_page' %}
+
+{% block javascript %}
+<script>
+</script>
+{% endblock %}
+
+{% block main %}
+    <!-- ▼questionnaire_detail▼ -->
+    <div id="questionnaire_detail">
+        <div id="detail_wrap" class="row">
+            <!--★タイトル★-->
+            <div id="title_area" style="border-bottom: 3px solid #000000;display: flex;margin: 10px;">
+                <h1 id="detail_description_box__name" class="item_name col-xs-12">{{ Questionnaire.name }}</h1>
+            </div>
+            <!--★説明★-->
+            <div id="description_area">
+                <p style="text-align: left;word-wrap: break-word;padding:32px;">{{ Questionnaire.description }}</p>
+            </div>
+            <!--★添付ファイル★-->
+            <div id="attachment_area" class="col-xs-12 col-sm-6">
+                {% if Questionnaire.QuestionnaireAttachments %}
+                    {% for QuestionnaireAttachment in Questionnaire.QuestionnaireAttachments %}
+                    <div>
+                        <a herf="{{ app.request.getSchemeAndHttpHost() }}{{ app.config.questionnaire_attachment_save_urlpath }}/{{ QuestionnaireAttachment.file_name }}" style="position: relative;">{{ QuestionnaireAttachment.label }}</a>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <section id="answer_area" class="col-xs-12 col-sm-6">
+                <!--★回答項目★-->
+                {% for QuestionnaireDetail in Questionnaire.QuestionnaireDetails %}
+                <div id="answer_{{ loop.index }}" class="col-xs-12 col-sm-6">
+                    {{ QuestionnaireDetail.detail_name }}
+                    {% for QuestionnaireDetailChoice in QuestionnaireDetail.QuestionnaireDetailChoices %}
+                    <div id="answer_choice_{{ loop.index }}" class="col-xs-12 col-sm-6">
+                    {{ dump(QuestionnaireDetailChoice) }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </section>
+        </div>
+    </div>
+    <!-- ▲questionnaire_detail▲ -->
+{% endblock %}

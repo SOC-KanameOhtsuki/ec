@@ -1,0 +1,45 @@
+{#
+This file Customized File.
+#}
+{% extends frame %}
+
+{% set body_class = body %}
+
+{% block main %}
+   <h1 class="page-heading">ふまねっと会員ログイン</h1>
+    <div class="container-fluid">
+        <form name="second_login" id="second_login" method="post" action="{{ url('second_login') }}" onsubmit="return eccube.checkSecondLoginFormInputted('second_login')">
+            {{ form_row(form._token) }}
+            <input type="hidden" name="_target_path" value="{{ targetPath }}" />
+            <input type="hidden" name="_form_frame" value="{{ frame }}" />
+            <input type="hidden" name="_form_body" value="{{ body }}" />
+            <div id="login_box" class="row">
+                <div id="mypage_login_wrap" class="col-sm-8 col-sm-offset-2">
+                    <div id="mypage_login_box" class="column">
+
+                        <div id="mypage_login_box__body" class="column_inner clearfix">
+                            <div class="icon icon-media-lg"><svg class="cb cb-user"><use xlink:href="#cb-user" /></svg></div>
+                            <div id="mypage_login_box__login_menber_id" class="form-group">
+                                {{ form_widget(form.login_menber_id, {'attr': {'style' : 'ime-mode: disabled;', 'placeholder' : 'ふまねっと会員ID', 'autofocus': true}}) }}
+                            </div>
+                            <div id="mypage_login_box__login_pin" class="form-group">
+                                {{ form_widget(form.login_pin,  {'attr': {'placeholder' : 'PINコード' }}) }}
+                            </div>
+                            {% if error %}
+                                <div id="customer_box__error_message" class="form-group">
+                                    <span class="text-danger">{{ error|trans|raw }}</span>
+                                </div>
+                            {% endif %}
+                            <div id="mypage_login__login_button" class="btn_area">
+                                <p><button type="submit" class="btn btn-success btn-block btn-lg">ログイン</button></p>
+                                <ul id="mypage_login__login_menu" >
+                                    <li><a onclick="eccube.cancelSecondLogin('second_login')">通常会員でログインします</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div><!-- /.col -->
+            </div><!-- /.row -->
+        </form>
+    </div>
+{% endblock %}
