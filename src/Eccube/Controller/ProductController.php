@@ -81,6 +81,29 @@ class ProductController
         // paginator
         $searchData = $searchForm->getData();
         $qb = $app['eccube.repository.product']->getQueryBuilderBySearchData($searchData);
+        $qb->andWhere($qb->expr()->in('p.Target', ':targets'))
+            ->setParameter('targets', $app->getCustomerTarget());
+        if ($app->getCustomerType() != $app['config']['customer_type_guest']) {
+            // 年会費は、支払済み年度、および、正会員になった年以前は対象外
+            $subQuery = $app['eccube.repository.product_membership']->createQueryBuilder('pm')
+                    ->select('pmp.id')
+                    ->leftJoin('pm.Product', 'pmp')
+                    ->groupBy('pmp.id');
+            $customerBasicInfo = $app->user()->getCustomerBasicInfo();
+            if ($customerBasicInfo) {
+                $promotedYear = $customerBasicInfo->getRegularMemberPromoted();
+                if ($promotedYear) {
+                    $subQuery->andWhere('pm.membership_year <= :promotedYear');
+                    $qb->setParameter('promotedYear', (int)date('Y', strtotime($promotedYear)));
+                }
+                $lastPayMembershipYear = $customerBasicInfo->getLastPayMembershipYear();
+                if ($lastPayMembershipYear) {
+                    $subQuery->andWhere('pm.membership_year <= :lastPayMembershipYear');
+                    $qb->setParameter('lastPayMembershipYear', $lastPayMembershipYear);
+                }
+            }
+            $qb->andWhere("p.id NOT IN ({$subQuery->getDQL()})");
+        }
 
         $event = new EventArgs(
             array(

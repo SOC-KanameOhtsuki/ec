@@ -157,7 +157,9 @@ class ProductRepository extends EntityRepository
     public function getQueryBuilderBySearchData($searchData)
     {
         $qb = $this->createQueryBuilder('p')
-            ->andWhere('p.Status = 1');
+            ->andWhere('p.Status = 1')
+            ->innerJoin('p.ProductCategories', 'pct')
+            ->innerJoin('pct.Category', 'c');
 
         // category
         $categoryJoin = false;
@@ -165,8 +167,6 @@ class ProductRepository extends EntityRepository
             $Categories = $searchData['category_id']->getSelfAndDescendants();
             if ($Categories) {
                 $qb
-                    ->innerJoin('p.ProductCategories', 'pct')
-                    ->innerJoin('pct.Category', 'c')
                     ->andWhere($qb->expr()->in('pct.Category', ':Categories'))
                     ->setParameter('Categories', $Categories);
                 $categoryJoin = true;
