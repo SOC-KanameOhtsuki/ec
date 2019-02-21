@@ -164,7 +164,7 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
         // CusotmerId
         if (!empty($searchData['customer_id']) && $searchData['customer_id']) {
             $qb
-                ->andWhere('c.customer_id = :customer_id')
+                ->andWhere('c.id = :customer_id')
                 ->setParameter('customer_id', $searchData['customer_id']);
         }
 

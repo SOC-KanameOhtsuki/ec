@@ -1991,6 +1991,7 @@ class TrainingController extends AbstractController
 
                 $app['orm.em']->persist($AttendanceHistory);
                 $app['orm.em']->flush();
+                $denyedIds[] = $customerId;
                 continue;
             } else if ($AttendanceHistory->getAttendanceStatus()->getId() == $AttendanceStatus->getId()) {
                 continue;
