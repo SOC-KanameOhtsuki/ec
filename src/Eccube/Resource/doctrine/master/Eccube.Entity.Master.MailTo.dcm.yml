@@ -1,0 +1,19 @@
+Eccube\Entity\Master\MailTo:
+    type: entity
+    table: mtb_mail_to
+    repositoryClass: Eccube\Repository\Master\MailToRepository
+    id:
+        id:
+            type: smallint
+            nullable: false
+            unsigned: false
+            id: true
+    fields:
+        name:
+            type: text
+            nullable: true
+        rank:
+            type: smallint
+            nullable: false
+            unsigned: false
+    lifecycleCallbacks: {  }

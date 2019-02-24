@@ -46,98 +46,21 @@ class CustomerType extends AbstractType
         $config = $this->config;
 
         $builder
-            ->add('name', 'name', array(
-                'required' => true,
-            ))
-            ->add('kana', 'kana', array(
-                'required' => true,
-            ))
-            ->add('company_name', 'text', array(
-                'required' => false,
-                'constraints' => array(
-                    new Assert\Length(array(
-                        'max' => $config['stext_len'],
-                    ))
-                ),
-            ))
-            ->add('zip', 'zip', array(
-                'required' => true,
-            ))
-            ->add('address', 'address', array(
-                'required' => true,
-            ))
-            ->add('tel', 'tel', array(
-                'required' => true,
-            ))
-            ->add('fax', 'tel', array(
-                'required' => false,
-            ))
-            ->add('mobilephone', 'tel', array(
-                'required' => false,
-            ))
-            ->add('email', 'email', array(
-                'required' => false,
-                'constraints' => array(
-                    // configでこの辺りは変えられる方が良さそう
-                    new Assert\Email(array('strict' => true)),
-                    new Assert\Regex(array(
-                        'pattern' => '/^[[:graph:][:space:]]+$/i',
-                        'message' => 'form.type.graph.invalid',
-                    )),
-                ),
+            // 自宅住所
+            ->add('home_address', 'admin_customer_address', array(
+                'mapped' => false,
+                'name_required' => true,
+                'address_required' => true,
+                'zip_required' => true,
+                'tel_required' => true,
+                'email_required' => true,
             ))
             ->add('sex', 'sex', array(
                 'required' => false,
             ))
-            ->add('office_name', 'text', array(
-                'required' => false,
-                'label' => '勤務先名',
-                'constraints' => array(
-                    new Assert\Length(array(
-                        'max' => $config['stext_len'],
-                    ))
-                ),
+            // 勤務先住所
+            ->add('office_address', 'admin_customer_address', array(
                 'mapped' => false,
-            ))
-            ->add('office_address', 'address', array(
-                'required' => false,
-                'mapped' => false,
-            ))
-            ->add('office_zip', 'zip', array(
-                'required' => false,
-                'mapped' => false,
-                'zip01_options' => [
-                    'mapped' => false,
-                ],
-                'zip02_options' => [
-                    'mapped' => false,
-                ],
-            ))
-            ->add('office_tel', 'tel', array(
-                'required' => false,
-                'mapped' => false,
-                'tel01_options' => [
-                    'mapped' => false,
-                ],
-                'tel02_options' => [
-                    'mapped' => false,
-                ],
-                'tel03_options' => [
-                    'mapped' => false,
-                ],
-            ))
-            ->add('office_fax', 'tel', array(
-                'required' => false,
-                'mapped' => false,
-                'tel01_options' => [
-                    'mapped' => false,
-                ],
-                'tel02_options' => [
-                    'mapped' => false,
-                ],
-                'tel03_options' => [
-                    'mapped' => false,
-                ],
             ))
             ->add('job', 'job', array(
                 'required' => false,
@@ -221,7 +144,8 @@ class CustomerType extends AbstractType
             // 会員基本情報
             ->add('basic_info', 'admin_customer_basic_info', array(
                 'mapped' => false,
-            ));
+            ))
+        ;
     }
 
     /**

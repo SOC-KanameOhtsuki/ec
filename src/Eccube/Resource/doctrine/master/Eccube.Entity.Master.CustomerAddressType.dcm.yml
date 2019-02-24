@@ -1,0 +1,19 @@
+Eccube\Entity\Master\CustomerAddressType:
+    type: entity
+    table: mtb_customer_address_type
+    repositoryClass: Eccube\Repository\Master\CustomerAddressTypeRepository
+    id:
+        id:
+            type: smallint
+            nullable: false
+            unsigned: false
+            id: true
+    fields:
+        name:
+            type: text
+            nullable: true
+        rank:
+            type: smallint
+            nullable: false
+            unsigned: false
+    lifecycleCallbacks: {  }

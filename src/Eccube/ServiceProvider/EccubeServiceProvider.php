@@ -360,6 +360,12 @@ class EccubeServiceProvider implements ServiceProviderInterface
         $app['eccube.repository.shipping'] = $app->share(function () use ($app) {
             return $app['orm.em']->getRepository('Eccube\Entity\Shipping');
         });
+        $app['eccube.repository.billing_to'] = $app->share(function () use ($app) {
+            return $app['orm.em']->getRepository('Eccube\Entity\Master\BillingTo');
+        });
+        $app['eccube.repository.mail_to'] = $app->share(function () use ($app) {
+            return $app['orm.em']->getRepository('Eccube\Entity\Master\MailTo');
+        });
         $app['eccube.repository.customer_status'] = $app->share(function () use ($app) {
             return $app['orm.em']->getRepository('Eccube\Entity\Master\CustomerStatus');
         });
@@ -545,6 +551,7 @@ class EccubeServiceProvider implements ServiceProviderInterface
             $types[] = new \Eccube\Form\Type\Admin\ProductMembershipType($app);
             $types[] = new \Eccube\Form\Type\Admin\TrainingType($app);
             $types[] = new \Eccube\Form\Type\Admin\TrainingTypeType($app);
+            $types[] = new \Eccube\Form\Type\Admin\CustomerAddressType($app['config']);
             $types[] = new \Eccube\Form\Type\Admin\CustomerGroupType($app['config']);
             $types[] = new \Eccube\Form\Type\Admin\CustomerGroupRefType($app['config']);
             $types[] = new \Eccube\Form\Type\Admin\CustomerGroupCustomerType($app['config']);

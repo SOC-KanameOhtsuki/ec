@@ -38,33 +38,55 @@ class CustomerEditController extends AbstractController
     public function index(Application $app, Request $request, $id = null)
     {
         $app['orm.em']->getFilters()->enable('incomplete_order_status_hidden');
+        $isQrCodeRegisted = false;
+        $QrCode = null;
         // 編集
         if ($id) {
             $Customer = $app['orm.em']
                 ->getRepository('Eccube\Entity\Customer')
                 ->find($id);
-
             if (is_null($Customer)) {
                 throw new NotFoundHttpException();
             }
+            $HomeCustomerAddress = new \Eccube\Entity\CustomerAddress();
+            $OfficeAddress = new \Eccube\Entity\CustomerAddress();
+            $CustomerAddresses = $Customer->getCustomerAddresses();
+            if ($CustomerAddresses) {
+                foreach($CustomerAddresses as $CustomerAddress) {
+                    if (!is_null($CustomerAddress->getAddressType())) {
+                        if ($CustomerAddress->getAddressType()->getId() == 1) {
+                            $HomeCustomerAddress = $CustomerAddress;
+                        } else if ($CustomerAddress->getAddressType()->getId() == 2) {
+                            $OfficeAddress = $CustomerAddress;
+                        }
+                    } else {
+                        log_info('NULL AddressType:', array($CustomerAddress->getId()));
+                    }
+                }
+            }
+
             if (is_null($Customer->getCustomerGroup())) {
                 $CustomerGroup = new \Eccube\Entity\CustomerGroup();
             } else {
                 $CustomerGroup = $Customer->getCustomerGroup();
             }
             $CustomerImages = $Customer->getCustomerImages();
-            $QrCode = null;
             if (!is_null($Customer->getCustomerBasicInfo())) {
                 $customerId = $Customer->getCustomerBasicInfo()->getCustomerNumber();
                 log_info('会員番号:' . $customerId, array($Customer->getId()));
                 if ((0 < strlen($customerId)) && (!is_null($customerId))) {
-                    log_info('QRコード発行開始', array($Customer->getId()));
                     if (!is_null($Customer->getCustomerQrs())) {
                         if (count($Customer->getCustomerQrs()) > 0) {
                             $QrCode = $Customer->getCustomerQrs()[0];
                         }
                     }
-                    if (is_null($QrCode)) {
+                    if (!is_null($QrCode)) {
+                        if (file_exists($app['config']['customer_image_save_realdir'] . "/" . $QrCode->getFileName())) {
+                            $isQrCodeRegisted = true;
+                        }
+                    }
+                    if (!$isQrCodeRegisted) {
+                        log_info('QRコード発行開始', array($Customer->getId()));
                         $qrCodeImg = file_get_contents($app['config']['qr_code_get_url'] . $customerId);
                         if ($qrCodeImg !== false) {
                             $fileName = date('mdHis').uniqid('_') . '.jpg';
@@ -75,6 +97,7 @@ class CustomerEditController extends AbstractController
                                 $QrCode->setRank(1);
                                 $app['orm.em']->persist($QrCode);
                                 $app['orm.em']->flush();
+                                $isQrCodeRegisted = true;
                             };
                         }
                     }
@@ -86,7 +109,8 @@ class CustomerEditController extends AbstractController
             // 新規登録
         } else {
             $Customer = $app['eccube.repository.customer']->newCustomer();
-            $CustomerAddress = new \Eccube\Entity\CustomerAddress();
+            $HomeCustomerAddress = new \Eccube\Entity\CustomerAddress();
+            $OfficeAddress = new \Eccube\Entity\CustomerAddress();
             $CustomerBasicInfo = new \Eccube\Entity\CustomerBasicInfo();
             $CustomerGroup = new \Eccube\Entity\CustomerGroup();
             $Customer->setBuyTimes(0);
@@ -112,6 +136,14 @@ class CustomerEditController extends AbstractController
 
         $form = $builder->getForm();
         $form['basic_info']->setData($Customer->getCustomerBasicInfo());
+        // 自宅住所
+        $form['home_address']->setData($HomeCustomerAddress);
+        $form->get('home_address')->remove('company_name');
+        // 勤務先住所
+        $form['office_address']->setData($OfficeAddress);
+        $form->get('office_address')->remove('name');
+        $form->get('office_address')->remove('kana');
+        $form->get('office_address')->remove('mobilephone');
 
         // ファイルの登録
         $images = array();
@@ -125,7 +157,6 @@ class CustomerEditController extends AbstractController
             $form->handleRequest($request);
             if ($form->isValid()) {
                 log_info('会員登録開始', array($Customer->getId()));
-
                 if ($Customer->getId() === null) {
                     $Customer->setSalt(
                         $app['eccube.repository.customer']->createSalt(5)
@@ -133,32 +164,54 @@ class CustomerEditController extends AbstractController
                     $Customer->setSecretKey(
                         $app['eccube.repository.customer']->getUniqueSecretKey($app)
                     );
-
-                    $CustomerAddress->setName01($Customer->getName01())
-                        ->setName02($Customer->getName02())
-                        ->setKana01($Customer->getKana01())
-                        ->setKana02($Customer->getKana02())
-                        ->setCompanyName($Customer->getCompanyName())
-                        ->setZip01($Customer->getZip01())
-                        ->setZip02($Customer->getZip02())
-                        ->setZipcode($Customer->getZip01() . $Customer->getZip02())
-                        ->setPref($Customer->getPref())
-                        ->setAddr01($Customer->getAddr01())
-                        ->setAddr02($Customer->getAddr02())
-                        ->setTel01($Customer->getTel01())
-                        ->setTel02($Customer->getTel02())
-                        ->setTel03($Customer->getTel03())
-                        ->setFax01($Customer->getFax01())
-                        ->setFax02($Customer->getFax02())
-                        ->setFax03($Customer->getFax03())
-                        ->setFax01($Customer->getFax01())
-                        ->setFax02($Customer->getFax02())
-                        ->setFax03($Customer->getFax03())
-                        ->setDelFlg(Constant::DISABLED)
-                        ->setCustomer($Customer);
-
-                    $app['orm.em']->persist($CustomerAddress);
                 }
+
+                $HomeCustomerAddress->setCustomer($Customer)
+                        ->setAddressType($app['orm.em']->getRepository('Eccube\Entity\Master\CustomerAddressType')->find(1))
+                        ->setZipcode($HomeCustomerAddress->getZip01() . $HomeCustomerAddress->getZip02())
+                        ->setCompanyName($OfficeAddress->getCompanyName());
+
+                $app['orm.em']->persist($HomeCustomerAddress);
+                if ((1 < strlen($OfficeAddress->getCompanyName())) ||
+                    (1 < strlen($OfficeAddress->getZip01())) ||
+                    (1 < strlen($OfficeAddress->getZip02())) ||
+                    (1 < strlen($OfficeAddress->getPref())) ||
+                    (1 < strlen($OfficeAddress->getAddr01())) ||
+                    (1 < strlen($OfficeAddress->getAddr02())) ||
+                    (1 < strlen($OfficeAddress->getTel01())) ||
+                    (1 < strlen($OfficeAddress->getTel02())) ||
+                    (1 < strlen($OfficeAddress->getTel03())) ||
+                    (1 < strlen($OfficeAddress->getFax01())) ||
+                    (1 < strlen($OfficeAddress->getFax02())) ||
+                    (1 < strlen($OfficeAddress->getFax03()))) {
+                    $OfficeAddress->setCustomer($Customer)
+                        ->setAddressType($app['orm.em']->getRepository('Eccube\Entity\Master\CustomerAddressType')->find(2))
+                        ->setZipcode($OfficeAddress->getZip01() . $OfficeAddress->getZip02());
+                    $app['orm.em']->persist($OfficeAddress);
+                } else if ($OfficeAddress->getId() !== null) {
+                    $app['orm.em']->remove($OfficeAddress);
+                }
+
+                $Customer->setName01($HomeCustomerAddress->getName01())
+                    ->setName02($HomeCustomerAddress->getName02())
+                    ->setKana01($HomeCustomerAddress->getKana01())
+                    ->setKana02($HomeCustomerAddress->getKana02())
+                    ->setCompanyName($OfficeAddress->getCompanyName())
+                    ->setZip01($HomeCustomerAddress->getZip01())
+                    ->setZip02($HomeCustomerAddress->getZip02())
+                    ->setZipcode($HomeCustomerAddress->getZip01() . $Customer->getZip02())
+                    ->setPref($HomeCustomerAddress->getPref())
+                    ->setAddr01($HomeCustomerAddress->getAddr01())
+                    ->setAddr02($HomeCustomerAddress->getAddr02())
+                    ->setTel01($HomeCustomerAddress->getTel01())
+                    ->setTel02($HomeCustomerAddress->getTel02())
+                    ->setTel03($HomeCustomerAddress->getTel03())
+                    ->setFax01($HomeCustomerAddress->getFax01())
+                    ->setFax02($HomeCustomerAddress->getFax02())
+                    ->setFax03($HomeCustomerAddress->getFax03())
+                    ->setMobilephone01($HomeCustomerAddress->getMobilephone01())
+                    ->setMobilephone02($HomeCustomerAddress->getMobilephone02())
+                    ->setMobilephone03($HomeCustomerAddress->getMobilephone03());
 
                 if ($Customer->getPassword() === $app['config']['default_password']) {
                     $Customer->setPassword($previous_password);
@@ -210,6 +263,31 @@ class CustomerEditController extends AbstractController
                 $CustomerBasicInfo = $form['basic_info']->getData();
                 $CustomerBasicInfo->setCustomer($Customer);
                 $app['orm.em']->persist($CustomerBasicInfo);
+                if ($isQrCodeRegisted) {
+                    log_info('(旧)QRコード削除', array($Customer->getId()));
+                    $fs = new Filesystem();
+                    $fs->remove($app['config']['customer_image_save_realdir'].'/'.$QrCode->getFileName());
+                    $app['orm.em']->remove($QrCode);
+                }
+                $customerId = $CustomerBasicInfo->getCustomerNumber();
+                if ((0 < strlen($customerId)) && (!is_null($customerId))) {
+                    log_info('会員番号:' . $customerId, array($Customer->getId()));
+                    log_info('QRコード発行開始', array($Customer->getId()));
+                    $qrCodeImg = file_get_contents($app['config']['qr_code_get_url'] . $customerId);
+                    if ($qrCodeImg !== false) {
+                        $fileName = date('mdHis').uniqid('_') . '.jpg';
+                        if (file_put_contents($app['config']['customer_image_save_realdir'] . "/" . $fileName, $qrCodeImg) !== false) {
+                            $QrCode = new \Eccube\Entity\CustomerQr();
+                            $QrCode->setCustomer($Customer);
+                            $QrCode->setFileName($fileName);
+                            $QrCode->setRank(1);
+                            $app['orm.em']->persist($QrCode);
+                            $app['orm.em']->flush();
+                            $isQrCodeRegisted = true;
+                        };
+                    }
+                }
+
                 $request_data = $request->request->all();
                 $CustomerGroup = null;
                 if (isset($request_data['admin_customer']['belongs_group_id'])) {

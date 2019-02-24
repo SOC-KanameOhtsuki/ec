@@ -737,4 +737,200 @@ class CustomerAddress extends \Eccube\Entity\AbstractEntity
     {
         return $this->Pref;
     }
+    /**
+     * @var \Eccube\Entity\Master\CustomerAddressType
+     */
+    private $AddressType;
+
+
+    /**
+     * Set AddressType
+     *
+     * @param \Eccube\Entity\Master\CustomerAddressType $addressType
+     * @return CustomerAddress
+     */
+    public function setAddressType(\Eccube\Entity\Master\CustomerAddressType $addressType = null)
+    {
+        $this->AddressType = $addressType;
+
+        return $this;
+    }
+
+    /**
+     * Get AddressType
+     *
+     * @return \Eccube\Entity\Master\CustomerAddressType 
+     */
+    public function getAddressType()
+    {
+        return $this->AddressType;
+    }
+    /**
+     * @var \Eccube\Entity\Master\MailTo
+     */
+    private $MailTo;
+
+    /**
+     * @var \Eccube\Entity\Master\BillingTo
+     */
+    private $BillingTo;
+
+
+    /**
+     * Set MailTo
+     *
+     * @param \Eccube\Entity\Master\MailTo $mailTo
+     * @return CustomerAddress
+     */
+    public function setMailTo(\Eccube\Entity\Master\MailTo $mailTo = null)
+    {
+        $this->MailTo = $mailTo;
+
+        return $this;
+    }
+
+    /**
+     * Get MailTo
+     *
+     * @return \Eccube\Entity\Master\MailTo 
+     */
+    public function getMailTo()
+    {
+        return $this->MailTo;
+    }
+
+    /**
+     * Set BillingTo
+     *
+     * @param \Eccube\Entity\Master\BillingTo $billingTo
+     * @return CustomerAddress
+     */
+    public function setBillingTo(\Eccube\Entity\Master\BillingTo $billingTo = null)
+    {
+        $this->BillingTo = $billingTo;
+
+        return $this;
+    }
+
+    /**
+     * Get BillingTo
+     *
+     * @return \Eccube\Entity\Master\BillingTo 
+     */
+    public function getBillingTo()
+    {
+        return $this->BillingTo;
+    }
+    /**
+     * @var string
+     */
+    private $mobilephone01;
+
+    /**
+     * @var string
+     */
+    private $mobilephone02;
+
+    /**
+     * @var string
+     */
+    private $mobilephone03;
+
+
+    /**
+     * Set mobilephone01
+     *
+     * @param string $mobilephone01
+     * @return CustomerAddress
+     */
+    public function setMobilephone01($mobilephone01)
+    {
+        $this->mobilephone01 = $mobilephone01;
+
+        return $this;
+    }
+
+    /**
+     * Get mobilephone01
+     *
+     * @return string 
+     */
+    public function getMobilephone01()
+    {
+        return $this->mobilephone01;
+    }
+
+    /**
+     * Set mobilephone02
+     *
+     * @param string $mobilephone02
+     * @return CustomerAddress
+     */
+    public function setMobilephone02($mobilephone02)
+    {
+        $this->mobilephone02 = $mobilephone02;
+
+        return $this;
+    }
+
+    /**
+     * Get mobilephone02
+     *
+     * @return string 
+     */
+    public function getMobilephone02()
+    {
+        return $this->mobilephone02;
+    }
+
+    /**
+     * Set mobilephone03
+     *
+     * @param string $mobilephone03
+     * @return CustomerAddress
+     */
+    public function setMobilephone03($mobilephone03)
+    {
+        $this->mobilephone03 = $mobilephone03;
+
+        return $this;
+    }
+
+    /**
+     * Get mobilephone03
+     *
+     * @return string 
+     */
+    public function getMobilephone03()
+    {
+        return $this->mobilephone03;
+    }
+    /**
+     * @var string
+     */
+    private $email;
+
+
+    /**
+     * Set email
+     *
+     * @param string $email
+     * @return CustomerAddress
+     */
+    public function setEmail($email)
+    {
+        $this->email = $email;
+
+        return $this;
+    }
+
+    /**
+     * Get email
+     *
+     * @return string 
+     */
+    public function getEmail()
+    {
+        return $this->email;
+    }
 }

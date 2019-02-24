@@ -42,6 +42,9 @@ Eccube\Entity\CustomerAddress:
         addr02:
             type: text
             nullable: true
+        email:
+            type: text
+            nullable: false
         tel01:
             type: text
             nullable: true
@@ -58,6 +61,15 @@ Eccube\Entity\CustomerAddress:
             type: text
             nullable: true
         fax03:
+            type: text
+            nullable: true
+        mobilephone01:
+            type: text
+            nullable: true
+        mobilephone02:
+            type: text
+            nullable: true
+        mobilephone03:
             type: text
             nullable: true
         create_date:
@@ -89,5 +101,20 @@ Eccube\Entity\CustomerAddress:
             targetEntity: Eccube\Entity\Master\Pref
             joinColumn:
                 name: pref
+                referencedColumnName: id
+        AddressType:
+            targetEntity: Eccube\Entity\Master\CustomerAddressType
+            joinColumn:
+                name: address_type
+                referencedColumnName: id
+        MailTo:
+            targetEntity: Eccube\Entity\Master\MailTo
+            joinColumn:
+                name: mail_to
+                referencedColumnName: id
+        BillingTo:
+            targetEntity: Eccube\Entity\Master\BillingTo
+            joinColumn:
+                name: billing_to
                 referencedColumnName: id
     lifecycleCallbacks: {  }
