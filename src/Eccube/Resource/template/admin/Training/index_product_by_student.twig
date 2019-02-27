@@ -252,7 +252,6 @@ $(function() {
                             </div>
                             <div id="result_list__list" class="item_list">
                                 <div class="tableish tableish-striped">
-
                                     {% for Product in pagination %}
                                         <div id="result_list__item--{{ Product.id }}" class="item_box tr">
                                             <div id="result_list__id--{{ Product.id }}" class="item_id td">
@@ -272,6 +271,21 @@ $(function() {
                                                     {% if Product.code_min != Product.code_max %} ～ {{ Product.code_max }}
                                                     {% endif %}
                                                 </span>
+                                            </div>
+                                            <div id="result_list__date_start--{{ Product.id }}" class="item_detail td">
+                                                <a href="{{ url('admin_student', {'id' : Product.id}) }}">
+                                                    {{ Product.ProductTraining.training_date_start|date("Y/m/d H:i") }}
+                                                </a><br>
+                                            </div>
+                                            <div id="result_list__date_end--{{ Product.id }}" class="item_detail td">
+                                                <a href="{{ url('admin_student', {'id' : Product.id}) }}">
+                                                    {{ Product.ProductTraining.training_date_end|date("Y/m/d H:i") }}
+                                                </a><br>
+                                            </div>
+                                            <div id="result_list__type--{{ Product.id }}" class="item_detail td">
+                                                <a href="{{ url('admin_student', {'id' : Product.id}) }}">
+                                                    {{ Product.ProductTraining.TrainingType.name }}
+                                                </a><br>
                                             </div>
                                             <div id="result_list__item_menu_box--{{ Product.id }}"class="icon_edit td">
                                                 <div id="result_list__item_menu_toggle--{{ Product.id }}" class="dropdown">

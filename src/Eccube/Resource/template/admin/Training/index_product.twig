@@ -274,6 +274,21 @@ $(function() {
                                                     {% endif %}
                                                 </span>
                                             </div>
+                                            <div id="result_list__date_start--{{ Product.id }}" class="item_detail td">
+                                                <a href="{{ url('admin_training_edit', {'id' : Product.id}) }}">
+                                                    {{ Product.ProductTraining.training_date_start|date("Y/m/d H:i") }}
+                                                </a><br>
+                                            </div>
+                                            <div id="result_list__date_end--{{ Product.id }}" class="item_detail td">
+                                                <a href="{{ url('admin_training_edit', {'id' : Product.id}) }}">
+                                                    {{ Product.ProductTraining.training_date_end|date("Y/m/d H:i") }}
+                                                </a><br>
+                                            </div>
+                                            <div id="result_list__type--{{ Product.id }}" class="item_detail td">
+                                                <a href="{{ url('admin_training_edit', {'id' : Product.id}) }}">
+                                                    {{ Product.ProductTraining.TrainingType.name }}
+                                                </a><br>
+                                            </div>
                                             <div id="result_list__item_menu_box--{{ Product.id }}"class="icon_edit td">
                                                 <div id="result_list__item_menu_toggle--{{ Product.id }}" class="dropdown">
                                                     <a class="dropdown-toggle" data-toggle="dropdown"><svg class="cb cb-ellipsis-h"><use xlink:href="#cb-ellipsis-h"></svg></a>
