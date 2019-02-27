@@ -950,8 +950,17 @@ class TrainingController extends AbstractController
             $searchForm->handleRequest($request);
         }
 
+        $ExistStudents = false;
+        if ($Product->getId() !== null) {
+            $qb = $app['eccube.repository.customer']->getQueryBuilderBySearchTrainingProductIds($Product->getId());
+            if (0 < count($qb->getQuery()->getResult())) {
+                $ExistStudents = true;
+            }
+        }
+
         return $app->render('Training/edit_product.twig', array(
             'Product' => $Product,
+            'ExistStudents' => $ExistStudents,
             'form' => $form->createView(),
             'searchForm' => $searchForm->createView(),
             'id' => $id,
