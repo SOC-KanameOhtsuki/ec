@@ -3310,3 +3310,7 @@ a[id^="delete_choice"]:hover {
 #order_OrderStatus.unselectable {
     background-color: #eee;
 }
+
+#regist_product {
+    color: #fff;
+}
