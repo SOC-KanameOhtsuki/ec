@@ -305,7 +305,7 @@ class TrainingController extends AbstractController
 
                     $session->set('eccube.admin.product.search', $viewData);
 
-                    $qb = $app['eccube.repository.product']->getQueryBuilderBySearchDataForAdmin($searchData);
+                    $qb = $app['eccube.repository.product']->getQueryBuilderBySearchTrainingDataForAdmin($searchData);
 
                     $event = new EventArgs(
                         array(
@@ -502,6 +502,11 @@ class TrainingController extends AbstractController
         if (is_null($id)) {
             return $app->redirect($app->url('admin_pruduct_by_student', array()));
         }
+        $Product = $app['eccube.repository.product']->find($id);
+        if (!$Product) {
+            throw new NotFoundHttpException();
+        }
+
         $session = $app['session'];
 
         $pagination = array();
@@ -577,6 +582,7 @@ class TrainingController extends AbstractController
             'page_no' => $page_no,
             'page_status' => $page_status,
             'page_count' => $page_count,
+            'Product' => $Product,
             'ProductId' => $id,
             'attendanceDenialReasons' => $attendanceDenialReasons
         ));
