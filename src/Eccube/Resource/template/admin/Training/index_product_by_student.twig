@@ -301,11 +301,11 @@ $(function() {
                             </div>
                         </div><!-- /.box-body -->
                         {% if pagination.totalItemCount > 0 %}
-                            {% include "pager.twig" with { 'pages' : pagination.paginationData, 'routes' : 'admin_product_page' } %}
+                            {% include "pager.twig" with { 'pages' : pagination.paginationData, 'routes' : 'admin_pruduct_by_student_page' } %}
                         {% endif %}
                         {% else %}
                         <div id="result_list__header" class="box-header with-arrow">
-                            <h3 class="box-title">検索条件に該当するデータがありませんでした。</h3>
+                            <h3 class="box-title">現在申込者が存在する指定された条件の受講データはありません。</h3>
                         </div><!-- /.box-header -->
                         <div class="box-body no-padding">
                             <div class="row">
@@ -315,7 +315,7 @@ $(function() {
                                             {% if page_status is null %}
                                                 <a>すべて</a>
                                             {% else %}
-                                                <a href="{{ path('admin_product_page', {'page_no': page_no} ) }}">すべて</a>
+                                                <a href="{{ path('admin_pruduct_by_student_page', {'page_no': page_no} ) }}">すべて</a>
                                             {% endif %}
                                         </li>
                                         {% for disp in disps %}
@@ -323,7 +323,7 @@ $(function() {
                                                 {% if page_status == disp.id %}
                                                     <a>{{ disp.name|e }}</a>
                                                 {% else %}
-                                                    <a href="{{ path('admin_product_page', {'page_no': page_no, 'status': disp.id} ) }}">{{ disp.name|e }}</a>
+                                                    <a href="{{ path('admin_pruduct_by_student_page', {'page_no': page_no, 'status': disp.id} ) }}">{{ disp.name|e }}</a>
                                                 {% endif %}
                                             </li>
                                         {% endfor %}
@@ -331,7 +331,7 @@ $(function() {
                                             {% if page_status == app.config.admin_product_stock_status %}
                                                 <a>{{ app.translator.trans('admin.product.search.stock') }}</a>
                                             {% else %}
-                                                <a href="{{ path('admin_product_page', {'page_no': page_no, 'status': app.config.admin_product_stock_status} ) }}">{{ app.translator.trans('admin.product.search.stock') }}</a>
+                                                <a href="{{ path('admin_pruduct_by_student_page', {'page_no': page_no, 'status': app.config.admin_product_stock_status} ) }}">{{ app.translator.trans('admin.product.search.stock') }}</a>
                                             {% endif %}
                                         </li>
                                     </ul>
