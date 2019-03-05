@@ -139,12 +139,12 @@ class CustomerEditController extends AbstractController
         $form['basic_info']->setData($Customer->getCustomerBasicInfo());
         // 自宅住所
         $form['home_address']->setData($HomeCustomerAddress);
-        $form->get('home_address')->remove('company_name');
         // 勤務先住所
         $form['office_address']->setData($OfficeAddress);
         $form->get('office_address')->remove('name');
         $form->get('office_address')->remove('kana');
         $form->get('office_address')->remove('mobilephone');
+        $form->get('office_address')->remove('email');
 
         // ファイルの登録
         $images = array();
@@ -212,7 +212,8 @@ class CustomerEditController extends AbstractController
                     ->setFax03($HomeCustomerAddress->getFax03())
                     ->setMobilephone01($HomeCustomerAddress->getMobilephone01())
                     ->setMobilephone02($HomeCustomerAddress->getMobilephone02())
-                    ->setMobilephone03($HomeCustomerAddress->getMobilephone03());
+                    ->setMobilephone03($HomeCustomerAddress->getMobilephone03())
+                    ->setEmail($HomeCustomerAddress->getEmail());
 
                 if ($Customer->getPassword() === $app['config']['default_password']) {
                     $Customer->setPassword($previous_password);

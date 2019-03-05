@@ -100,6 +100,26 @@ class DeliveryController extends AbstractController
         $app['eccube.event.dispatcher']->dispatch(EccubeEvents::FRONT_MYPAGE_DELIVERY_EDIT_INITIALIZE, $event);
 
         $form = $builder->getForm();
+        $hasName = false;
+        $hasKana = false;
+        $hasMobilePhone = false;
+        $hasMail = false;
+        if ($CustomerAddress->getAddressType()->getId() == 1) {
+            $hasName = true;
+            $hasKana = true;
+            $hasMobilePhone = true;
+            $hasMail = true;
+        } else if ($CustomerAddress->getAddressType()->getId() == 2) {
+            $form->remove('name');
+            $form->remove('kana');
+            $form->remove('mobilephone');
+            $form->remove('email');
+        } else {
+            $hasName = true;
+            $hasKana = true;
+            $form->remove('mobilephone');
+            $form->remove('email');
+        }
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -131,6 +151,10 @@ class DeliveryController extends AbstractController
             'form' => $form->createView(),
             'parentPage' => $parentPage,
             'BaseInfo' => $BaseInfo,
+            'hasName' => $hasName,
+            'hasKana' => $hasKana,
+            'hasMobilePhone' => $hasMobilePhone,
+            'hasMail' => $hasMail,
         ));
     }
 

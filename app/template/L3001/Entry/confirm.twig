@@ -34,56 +34,98 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
                     {{ form_widget(form._token) }}
                     <div id="confirm_box__body_inner" class="dl_table">
                         <dl id="confirm_box__name">
-                            <dt>{{ form_label(form.name) }}</dt>
+                            <dt>{{ form_label(form.home_address.name) }}</dt>
                             <dd class="form-group input_name">
-                                {{ form_widget(form.name.name01, { attr : { placeholder: '姓' }}) }}
-                                {{ form_widget(form.name.name02, { attr : { placeholder: '名' }}) }}
+                                {{ form_widget(form.home_address.name.name01, { attr : { placeholder: '姓' }}) }}
+                                {{ form_widget(form.home_address.name.name02, { attr : { placeholder: '名' }}) }}
                             </dd>
                         </dl>
                         <dl id="confirm_box__kana">
-                            <dt>{{ form_label(form.kana) }}</dt>
+                            <dt>{{ form_label(form.home_address.kana) }}</dt>
                             <dd class="form-group input_name">
-                                {{ form_widget(form.kana.kana01, { attr : { placeholder: 'セイ' }}) }}
-                                {{ form_widget(form.kana.kana02, { attr : { placeholder: 'メイ' }}) }}
+                                {{ form_widget(form.home_address.kana.kana01, { attr : { placeholder: 'セイ' }}) }}
+                                {{ form_widget(form.home_address.kana.kana02, { attr : { placeholder: 'メイ' }}) }}
                             </dd>
                         </dl>
                         <dl id="confirm_box__company_name">
-                            <dt>{{ form_label(form.company_name) }}</dt>
+                            <dt>{{ form_label(form.home_address.company_name) }}</dt>
                             <dd class="form-group input_name">
-                                {{ form_widget(form.company_name) }}
+                                {{ form_widget(form.home_address.company_name) }}
                             </dd>
                         </dl>
                         <dl id="confirm_box__address_detail">
-                            <dt>{{ form_label(form.address) }}</dt>
+                            <dt>{{ form_label(form.home_address.address) }}</dt>
                             <dd>
-                                <div id="confirm_box__zip" class="form-group form-inline input_zip {% if form.zip.zip01.vars.errors is not empty or form.zip.zip02.vars.errors is not empty %}has-error{% endif %}">{{ form_widget(form.zip) }}</div>
-                                <div id="confirm_box__address" class="{% if form.address.pref.vars.errors is not empty or form.address.addr01.vars.errors is not empty or form.address.addr02.vars.errors is not empty %}has-error{% endif %}">
-                                    {{ form_widget(form.address) }}
+                                <div id="confirm_box__zip" class="form-group form-inline input_zip {% if form.home_address.zip.zip01.vars.errors is not empty or form.home_address.zip.zip02.vars.errors is not empty %}has-error{% endif %}">{{ form_widget(form.home_address.zip) }}</div>
+                                <div id="confirm_box__address" class="{% if form.home_address.address.pref.vars.errors is not empty or form.home_address.address.addr01.vars.errors is not empty or form.home_address.address.addr02.vars.errors is not empty %}has-error{% endif %}">
+                                    {{ form_widget(form.home_address.address) }}
                                 </div>
                             </dd>
                         </dl>
                         <dl id="confirm_box__tel">
-                            <dt>{{ form_label(form.tel) }}</dt>
+                            <dt>{{ form_label(form.home_address.tel) }}</dt>
                             <dd>
                                 <div class="form-inline form-group input_tel">
-                                    {{ form_widget(form.tel, {attr : {class : 'short'}}) }}
+                                    {{ form_widget(form.home_address.tel, {attr : {class : 'short'}}) }}
                                 </div>
                             </dd>
                         </dl>
                         <dl id="confirm_box__fax">
-                            <dt>{{ form_label(form.fax) }}</dt>
+                            <dt>{{ form_label(form.home_address.fax) }}</dt>
                             <dd>
                                 <div class="form-inline form-group input_tel">
-                                    {{ form_widget(form.fax, {attr : {class : 'short'}}) }}
+                                    {{ form_widget(form.home_address.fax, {attr : {class : 'short'}}) }}
+                                </div>
+                            </dd>
+                        </dl>
+                        <dl id="confirm_box__mobilephone">
+                            <dt>{{ form_label(form.home_address.mobilephone) }}</dt>
+                            <dd>
+                                <div class="form-inline form-group input_tel">
+                                    {{ form_widget(form.home_address.mobilephone, {attr : {class : 'short'}}) }}
                                 </div>
                             </dd>
                         </dl>
                         <dl id="confirm_box__email">
-                            <dt>{{ form_label(form.email) }}</dt>
+                            <dt>{{ form_label(form.home_address.email) }}</dt>
                             <dd>
                                 <div class="form-group">
-                                    {{ form_widget(form.email.first) }}
-                                    {{ form_widget(form.email.second, {freeze_display_text: false}) }}
+                                    {{ form_widget(form.home_address.email.first) }}
+                                    {{ form_widget(form.home_address.email.second, {freeze_display_text: false}) }}
+                                </div>
+                            </dd>
+                        </dl>
+
+                        <dl id="confirm_box__company_name">
+                            <dt><label class="control-label">勤務先名</label></dt>
+                            <dd class="form-group input_name">
+                                {{ form_widget(form.office_address.company_name) }}
+                            </dd>
+                        </dl>
+                        <dl id="confirm_box__address_detail">
+                            <dt><label class="control-label">勤務先住所</label></dt>
+                            <dd>
+                                <div id="confirm_box__zip" class="form-group form-inline input_zip {% if form.office_address.zip.zip01.vars.errors is not empty or form.office_address.zip.zip02.vars.errors is not empty %}has-error{% endif %}">
+                                〒&nbsp;{{ form_widget(form.office_address.zip.zip01) }}&nbsp;-&nbsp;{{- form_widget(form.office_address.zip.zip02) }}
+                                </div>
+                                <div id="confirm_box__address" class="{% if form.office_address.address.pref.vars.errors is not empty or form.office_address.address.addr01.vars.errors is not empty or form.office_address.address.addr02.vars.errors is not empty %}has-error{% endif %}">
+                                    {{ form_widget(form.office_address.address) }}
+                                </div>
+                            </dd>
+                        </dl>
+                        <dl id="confirm_box__tel">
+                            <dt><label class="control-label">勤務先電話番号</label></dt>
+                            <dd>
+                                <div class="form-inline form-group input_tel">
+                                    {{ form_widget(form.office_address.tel, {attr : {class : 'short'}}) }}
+                                </div>
+                            </dd>
+                        </dl>
+                        <dl id="confirm_box__fax">
+                            <dt><label class="control-label">勤務先FAX番号</label></dt>
+                            <dd>
+                                <div class="form-inline form-group input_tel">
+                                    {{ form_widget(form.office_address.fax, {attr : {class : 'short'}}) }}
                                 </div>
                             </dd>
                         </dl>

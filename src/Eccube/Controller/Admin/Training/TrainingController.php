@@ -2076,7 +2076,7 @@ class TrainingController extends AbstractController
             $CustomerInfo->setCustomerPinCode(rand(10000000, 99999999));
             $CustomerInfo->setLastPayMembershipYear($ProductTraining->getTimeStartYear());
             $CustomerInfo->setMembershipExpired(new \DateTime(Date('Y-m-d', strtotime(sprintf("03/31/%d", ((int)($ProductTraining->getTimeStartYear()) + 1))))));
-            $CustomerInfo->setRegularMemberPromoted(new \DateTime(date('Y-m-d H:i:s')));
+            $CustomerInfo->setRegularMemberPromoted(new \DateTime($ProductTraining->getTrainingDateStartDay()));
             $CustomerInfo->setUpdateDate(date('Y-m-d H:i:s'));
             $app['orm.em']->persist($CustomerInfo);
 

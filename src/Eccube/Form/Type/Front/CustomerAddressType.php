@@ -50,27 +50,46 @@ class CustomerAddressType extends AbstractType
     {
         $builder
             ->add('name', 'name', array(
-                'required' => true,
+                'required' => $options['name_required'],
             ))
             ->add('kana', 'kana', array(
-                'required' => true,
+                'required' => $options['kana_required'],
             ))
             ->add('company_name', 'text', array(
-                'required' => false,
+                'required' => $options['company_name_required'],
                 'constraints' => array(
                     new Assert\Length(array(
                         'max' => $this->config['stext_len'],
                     )),
                 ),
             ))
-            ->add('zip', 'zip')
-            ->add('address', 'address')
+            ->add('zip', 'zip', array(
+                'required' => $options['zip_required'],
+            ))
+            ->add('address', 'address', array(
+                'required' => $options['address_required'],
+            ))
             ->add('tel', 'tel', array(
-                'required' => true,
+                'required' => $options['tel_required'],
             ))
             ->add('fax', 'tel', array(
-                'required' => false,
-            ));
+                'required' => $options['fax_required'],
+            ))
+            ->add('mobilephone', 'tel', array(
+                'required' => $options['mobilephone_required'],
+            ))
+            ->add('email', 'repeated_email', array(
+                'required' => $options['email_required'],
+            ))
+        ;
+        $builder->setAttribute('kana_required', $options['kana_required']);
+        $builder->setAttribute('company_name_required', $options['company_name_required']);
+        $builder->setAttribute('address_required', $options['address_required']);
+        $builder->setAttribute('zip_required', $options['zip_required']);
+        $builder->setAttribute('tel_required', $options['tel_required']);
+        $builder->setAttribute('fax_required', $options['fax_required']);
+        $builder->setAttribute('mobilephone_required', $options['mobilephone_required']);
+        $builder->setAttribute('email_required', $options['email_required']);
     }
 
     /**
@@ -80,6 +99,15 @@ class CustomerAddressType extends AbstractType
     {
         $resolver->setDefaults(array(
             'data_class' => 'Eccube\Entity\CustomerAddress',
+            'name_required' => false,
+            'kana_required' => false,
+            'company_name_required' => false,
+            'address_required' => false,
+            'zip_required' => false,
+            'tel_required' => false,
+            'fax_required' => false,
+            'mobilephone_required' => false,
+            'email_required' => false,
         ));
     }
 

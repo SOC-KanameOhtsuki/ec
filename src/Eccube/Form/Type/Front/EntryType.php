@@ -45,29 +45,20 @@ class EntryType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('name', 'name', array(
-                'required' => true,
+            // 自宅住所
+            ->add('home_address', 'customer_address', array(
+                'mapped' => false,
+                'name_required' => true,
+                'kana_required' => true,
+                'address_required' => true,
+                'zip_required' => true,
+                'tel_required' => true,
+                'email_required' => true,
             ))
-            ->add('kana', 'kana', array(
-                'required' => true,
+            // 勤務先住所
+            ->add('office_address', 'customer_address', array(
+                'mapped' => false,
             ))
-            ->add('company_name', 'text', array(
-                'required' => false,
-                'constraints' => array(
-                    new Assert\Length(array(
-                        'max' => $this->config['stext_len'],
-                    )),
-                ),
-            ))
-            ->add('zip', 'zip')
-            ->add('address', 'address')
-            ->add('tel', 'tel', array(
-                'required' => true,
-            ))
-            ->add('fax', 'tel', array(
-                'required' => false,
-            ))
-            ->add('email', 'repeated_email')
             ->add('password', 'repeated_password')
             ->add('birth', 'birthday', array(
                 'required' => false,

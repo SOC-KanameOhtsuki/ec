@@ -53,6 +53,8 @@ class EntryController extends AbstractController
 
         /** @var $Customer \Eccube\Entity\Customer */
         $Customer = $app['eccube.repository.customer']->newCustomer();
+        $HomeCustomerAddress = new \Eccube\Entity\CustomerAddress();
+        $OfficeAddress = new \Eccube\Entity\CustomerAddress();
 
         /* @var $builder \Symfony\Component\Form\FormBuilderInterface */
         $builder = $app['form.factory']->createBuilder('entry', $Customer);
@@ -68,7 +70,14 @@ class EntryController extends AbstractController
 
         /* @var $form \Symfony\Component\Form\FormInterface */
         $form = $builder->getForm();
-
+        // 自宅住所
+        $form['home_address']->setData($HomeCustomerAddress);
+        // 勤務先住所
+        $form['office_address']->setData($OfficeAddress);
+        $form->get('office_address')->remove('name');
+        $form->get('office_address')->remove('kana');
+        $form->get('office_address')->remove('mobilephone');
+        $form->get('office_address')->remove('email');
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -97,19 +106,57 @@ class EntryController extends AbstractController
                             $app['eccube.repository.customer']->getUniqueSecretKey($app)
                         );
 
-                    $CustomerAddress = new \Eccube\Entity\CustomerAddress();
-                    $CustomerAddress
-                        ->setFromCustomer($Customer);
-
                     $CustomerBasicInfo = new \Eccube\Entity\CustomerBasicInfo();
                     $CustomerBasicInfo->setCustomer($Customer)
                                         ->setStatus($app['eccube.repository.customer_basic_info_status']->find($app['config']['initialize_customer_basicinfo_status']))
                                         ->setMembershipExemption($app['eccube.repository.master.exemption_type_type']->find($app['config']['initialize_exemption_type']))
                                         ->setInstructorType($app['eccube.repository.master.instructor_type']->find($app['config']['initialize_instructor_type']))
                                         ->setSupporterType($app['eccube.repository.master.supporter_type']->find($app['config']['initialize_supporter_type']));
-
+                    $Customer->setName01($HomeCustomerAddress->getName01())
+                        ->setName02($HomeCustomerAddress->getName02())
+                        ->setKana01($HomeCustomerAddress->getKana01())
+                        ->setKana02($HomeCustomerAddress->getKana02())
+                        ->setCompanyName($OfficeAddress->getCompanyName())
+                        ->setZip01($HomeCustomerAddress->getZip01())
+                        ->setZip02($HomeCustomerAddress->getZip02())
+                        ->setZipcode($HomeCustomerAddress->getZip01() . $Customer->getZip02())
+                        ->setPref($HomeCustomerAddress->getPref())
+                        ->setAddr01($HomeCustomerAddress->getAddr01())
+                        ->setAddr02($HomeCustomerAddress->getAddr02())
+                        ->setTel01($HomeCustomerAddress->getTel01())
+                        ->setTel02($HomeCustomerAddress->getTel02())
+                        ->setTel03($HomeCustomerAddress->getTel03())
+                        ->setFax01($HomeCustomerAddress->getFax01())
+                        ->setFax02($HomeCustomerAddress->getFax02())
+                        ->setFax03($HomeCustomerAddress->getFax03())
+                        ->setMobilephone01($HomeCustomerAddress->getMobilephone01())
+                        ->setMobilephone02($HomeCustomerAddress->getMobilephone02())
+                        ->setMobilephone03($HomeCustomerAddress->getMobilephone03())
+                        ->setEmail($HomeCustomerAddress->getEmail());
                     $app['orm.em']->persist($Customer);
-                    $app['orm.em']->persist($CustomerAddress);
+                    $HomeCustomerAddress->setCustomer($Customer)
+                            ->setAddressType($app['orm.em']->getRepository('Eccube\Entity\Master\CustomerAddressType')->find(1))
+                            ->setZipcode($HomeCustomerAddress->getZip01() . $HomeCustomerAddress->getZip02());
+                    $app['orm.em']->persist($HomeCustomerAddress);
+                    if ((1 < strlen($OfficeAddress->getCompanyName())) ||
+                        (1 < strlen($OfficeAddress->getZip01())) ||
+                        (1 < strlen($OfficeAddress->getZip02())) ||
+                        (1 < strlen($OfficeAddress->getPref())) ||
+                        (1 < strlen($OfficeAddress->getAddr01())) ||
+                        (1 < strlen($OfficeAddress->getAddr02())) ||
+                        (1 < strlen($OfficeAddress->getTel01())) ||
+                        (1 < strlen($OfficeAddress->getTel02())) ||
+                        (1 < strlen($OfficeAddress->getTel03())) ||
+                        (1 < strlen($OfficeAddress->getFax01())) ||
+                        (1 < strlen($OfficeAddress->getFax02())) ||
+                        (1 < strlen($OfficeAddress->getFax03()))) {
+                        $OfficeAddress->setCustomer($Customer)
+                            ->setAddressType($app['orm.em']->getRepository('Eccube\Entity\Master\CustomerAddressType')->find(2))
+                            ->setZipcode($OfficeAddress->getZip01() . $OfficeAddress->getZip02());
+                        $app['orm.em']->persist($OfficeAddress);
+                    } else if ($OfficeAddress->getId() !== null) {
+                        $app['orm.em']->remove($OfficeAddress);
+                    }
                     $app['orm.em']->persist($CustomerBasicInfo);
                     $app['orm.em']->flush();
 
@@ -119,7 +166,7 @@ class EntryController extends AbstractController
                         array(
                             'form' => $form,
                             'Customer' => $Customer,
-                            'CustomerAddress' => $CustomerAddress,
+                            'CustomerAddress' => $HomeCustomerAddress,
                         ),
                         $request
                     );
@@ -149,6 +196,10 @@ class EntryController extends AbstractController
 
                         return $app->redirect($activateUrl);
                     }
+            }
+        } else {
+            foreach ($form->getErrors(true) as $Error) { 
+                log_info('error:', array($Error->getOrigin()->getName(), $Error->getMessage()));
             }
         }
 

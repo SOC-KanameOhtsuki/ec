@@ -23,7 +23,7 @@ This file is Custmized File.
                 <p style="text-align: left;word-wrap: break-word;padding:32px;">{{ Questionnaire.description }}</p>
             </div>
             <!--★添付ファイル★-->
-            <div id="attachment_area" class="col-xs-12 col-sm-6">
+            <div id="attachment_area" style="width: 100%;">
                 {% if Questionnaire.QuestionnaireAttachments %}
                     {% for QuestionnaireAttachment in Questionnaire.QuestionnaireAttachments %}
                     <div>
@@ -33,14 +33,14 @@ This file is Custmized File.
                 {% endif %}
             </div>
 
-            <section id="answer_area" class="col-xs-12 col-sm-6">
+            <section id="answer_area" class="col-xs-12 col-sm-6" style="clear: none; display: inline-block;">
                 <!--★回答項目★-->
                 {% for QuestionnaireDetail in Questionnaire.QuestionnaireDetails %}
-                <div id="answer_{{ loop.index }}" class="col-xs-12 col-sm-6">
+                <div id="answer_{{ loop.index }}">
                     {{ QuestionnaireDetail.detail_name }}
                     {% for QuestionnaireDetailChoice in QuestionnaireDetail.QuestionnaireDetailChoices %}
-                    <div id="answer_choice_{{ loop.index }}" class="col-xs-12 col-sm-6">
-                    {{ dump(QuestionnaireDetailChoice) }}
+                    <div id="answer_choice_{{ loop.index }}">
+                        {{ QuestionnaireDetailChoice.choice_name }}
                     </div>
                     {% endfor %}
                 </div>
