@@ -18,7 +18,7 @@ class InstructorTypeType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        $options['sex_options']['required'] = $options['required'];
+        $options['instructor_type_options']['required'] = $options['required'];
     }
 
     public function configureOptions(OptionsResolver $resolver)
@@ -26,6 +26,7 @@ class InstructorTypeType extends AbstractType
         $resolver->setDefaults(array(
             'class' => 'Eccube\Entity\Master\InstructorType',
             'expanded' => true,
+            'empty_value' => '',
         ));
     }
 

@@ -326,10 +326,24 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
                 </div>
               </div>
               <div class="col-xs-6 col-sm-6">
-                <div id="search_box_main__bureau" class="form-group">
+                <div id="search_box_main__customer_basicinfo_bureau" class="form-group">
                   <label>振興局</label>
-                  {{ form_widget(searchForm.bureau) }}
-                  {{ form_errors(searchForm.bureau) }}
+                  {{ form_widget(searchForm.customer_basicinfo_bureau) }}
+                  {{ form_errors(searchForm.customer_basicinfo_bureau) }}
+                </div>
+              </div>
+              <div class="col-xs-6 col-sm-6">
+                <div id="search_box_main__customer_basicinfo_supporter_type" class="form-group">
+                  <label>サポータ資格</label>
+                  {{ form_widget(searchForm.customer_basicinfo_supporter_type) }}
+                  {{ form_errors(searchForm.customer_basicinfo_supporter_type) }}
+                </div>
+              </div>
+              <div class="col-xs-6 col-sm-6">
+                <div id="search_box_main__customer_basicinfo_bureau" class="form-group">
+                  <label>インストラクタ資格</label>
+                  {{ form_widget(searchForm.customer_basicinfo_instructor_type) }}
+                  {{ form_errors(searchForm.customer_basicinfo_instructor_type) }}
                 </div>
               </div>
               <div id="search_box_main__crate_date" class="col-xs-12 col-sm-6">

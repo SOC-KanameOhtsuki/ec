@@ -245,8 +245,22 @@ class SearchCustomerType extends AbstractType
                 'multiple' => true,
                 'empty_value' => false,
             ))
-            ->add('bureau', 'bureau', array(
+            ->add('customer_basicinfo_bureau', 'bureau', array(
                 'label' => '振興局',
+                'required' => false,
+                'multiple' => false,
+                'expanded' => false,
+                'constraints' => array(),
+            ))
+            ->add('customer_basicinfo_supporter_type', 'instructor_type', array(
+                'label' => 'サポータ資格',
+                'required' => false,
+                'multiple' => false,
+                'expanded' => false,
+                'constraints' => array(),
+            ))
+            ->add('customer_basicinfo_instructor_type', 'supporter_type', array(
+                'label' => 'インストラクタ資格',
                 'required' => false,
                 'multiple' => false,
                 'expanded' => false,

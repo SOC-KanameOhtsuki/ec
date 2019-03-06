@@ -18,7 +18,7 @@ class BureauType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        $options['sex_options']['required'] = $options['required'];
+        $options['bureau_options']['required'] = $options['required'];
     }
 
     public function configureOptions(OptionsResolver $resolver)
@@ -26,6 +26,7 @@ class BureauType extends AbstractType
         $resolver->setDefaults(array(
             'class' => 'Eccube\Entity\Master\Bureau',
             'expanded' => true,
+            'empty_value' => '',
         ));
     }
 

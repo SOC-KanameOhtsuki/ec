@@ -324,11 +324,25 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
                 ->setParameter('statuses', $searchData['customer_basicinfo_status']);
         }
 
-        // bureau
-        if (!empty($searchData['bureau']) && $searchData['bureau']) {
+        // Bureau
+        if (!empty($searchData['customer_basicinfo_bureau']) && $searchData['customer_basicinfo_bureau']) {
             $qb
                 ->andWhere('bc.Bureau = :bureau')
-                ->setParameter('bureau', $searchData['bureau']->getId());
+                ->setParameter('bureau', $searchData['customer_basicinfo_bureau']->getId());
+        }
+
+        // SupporterType
+        if (!empty($searchData['customer_basicinfo_supporter_type']) && $searchData['customer_basicinfo_supporter_type']) {
+            $qb
+                ->andWhere('bc.SupporterType = :supporterType')
+                ->setParameter('supporterType', $searchData['customer_basicinfo_supporter_type']->getId());
+        }
+
+        // InstructorType
+        if (!empty($searchData['customer_basicinfo_instructor_type']) && $searchData['customer_basicinfo_instructor_type']) {
+            $qb
+                ->andWhere('bc.InstructorType = :instructorType')
+                ->setParameter('instructorType', $searchData['customer_basicinfo_instructor_type']->getId());
         }
 
         // buy_product_name、buy_product_code
@@ -537,11 +551,25 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
                 $params['statuses' . $subQueryIndex] = $searchData['searchData']['customer_basicinfo_status'];
             }
 
-            // bureau
-            if (!empty($searchData['bureau']) && $searchData['bureau']) {
+            // Bureau
+            if (!empty($searchData['customer_basicinfo_bureau']) && $searchData['customer_basicinfo_bureau']) {
                 $subQuery
                     ->andWhere('bc' . $subQueryIndex . '.Bureau = :bureau');
-                $params['statuses' . $subQueryIndex] = $searchData['searchData']['bureau'];
+                $params['bureau' . $subQueryIndex] = $searchData['searchData']['customer_basicinfo_bureau'];
+            }
+
+            // SupporterType
+            if (!empty($searchData['customer_basicinfo_supporter_type']) && $searchData['customer_basicinfo_supporter_type']) {
+                $subQuery
+                    ->andWhere('bc' . $subQueryIndex . '.SupporterType = :supporterType');
+                $params['supporterType' . $subQueryIndex] = $searchData['searchData']['customer_basicinfo_supporter_type'];
+            }
+
+            // InstructorType
+            if (!empty($searchData['customer_basicinfo_instructor_type']) && $searchData['customer_basicinfo_instructor_type']) {
+                $subQuery
+                    ->andWhere('bc' . $subQueryIndex . '.InstructorType = :instructorType');
+                $params['instructorType' . $subQueryIndex] = $searchData['searchData']['customer_basicinfo_instructor_type'];
             }
 
             // buy_product_name、buy_product_code

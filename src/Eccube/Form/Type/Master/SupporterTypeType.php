@@ -18,7 +18,7 @@ class SupporterTypeType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        $options['sex_options']['required'] = $options['required'];
+        $options['supporter_type_options']['required'] = $options['required'];
     }
 
     public function configureOptions(OptionsResolver $resolver)
@@ -26,6 +26,7 @@ class SupporterTypeType extends AbstractType
         $resolver->setDefaults(array(
             'class' => 'Eccube\Entity\Master\SupporterType',
             'expanded' => true,
+            'empty_value' => '',
         ));
     }
 
