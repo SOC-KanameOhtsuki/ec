@@ -355,11 +355,15 @@ class ProductRepository extends EntityRepository
     public function getQueryBuilderBySearchTrainingDataForAdmin($searchData)
     {
         $qb = $this->createQueryBuilder('p')
+            ->select('p, (CASE WHEN ptj.id IS NULL THEN 2 ELSE 1 END) AS HIDDEN priority')
             ->innerJoin('p.ProductTraining', 'pt')
             ->innerJoin('pt.TrainingType', 'tt')
             ->innerJoin('p.ProductClasses', 'pc')
             ->innerJoin('p.ProductCategories', 'pct')
             ->innerJoin('pct.Category', 'c')
+            ->leftJoin('Eccube\Entity\ProductTraining', 'ptj', 'WITH', 'pt.id = ptj.id AND ptj.training_date_start >= :start_date AND ptj.training_date_start <= :end_date')
+            ->setParameter('start_date', date('Y-m-d 00:00:00', strtotime('-14 day')))
+            ->setParameter('end_date', date('Y-m-d 23:59:59', strtotime('+2 month')))
             ->andWhere('pct.Category = 1');
 
         // multi
@@ -488,9 +492,9 @@ class ProductRepository extends EntityRepository
 
         // Order By
         $qb
-            ->orderBy('tt.rank', 'ASC')
+            ->orderBy('priority', 'ASC')
             ->addOrderBy('pt.training_date_start', 'DESC')
-            ->addOrderBy('p.update_date', 'DESC');
+            ->addOrderBy('pt.place_kana', 'ASC');
 
         return $qb;
     }
