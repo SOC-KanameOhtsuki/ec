@@ -202,6 +202,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
                             </div>
                         </dd>
                     </dl>
+                    <dl id="detail_box__nobulletin">
+                        <dt>{{ form_label(form.nobulletin) }}</dt>
+                        <dd>
+                            <div class="form-group form-inline">
+                                {{ form_widget(form.nobulletin) }}
+                                {{ form_errors(form.nobulletin) }}
+                            </div>
+                        </dd>
+                    </dl>
                 </div>
                 {% for f in form %}
                     {% if f.vars.name matches '[^plg*]' %}

@@ -80,6 +80,11 @@ class EntryType extends AbstractType
             ->add('job', 'job', array(
                 'required' => false,
             ))
+            ->add('nobulletin', 'nobulletin_type', array(
+                'label' => '機関紙お届け',
+                'required' => false,
+                'mapped' => false,
+            ))
             ->add('save', 'submit', array('label' => 'この内容で登録する'));
     }
 

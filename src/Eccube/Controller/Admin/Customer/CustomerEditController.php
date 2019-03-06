@@ -136,7 +136,7 @@ class CustomerEditController extends AbstractController
         $app['eccube.event.dispatcher']->dispatch(EccubeEvents::ADMIN_CUSTOMER_EDIT_INDEX_INITIALIZE, $event);
 
         $form = $builder->getForm();
-        $form['basic_info']->setData($Customer->getCustomerBasicInfo());
+        $form['nobulletin']->setData($Customer->getCustomerBasicInfo()->getNobulletin());
         // 自宅住所
         $form['home_address']->setData($HomeCustomerAddress);
         // 勤務先住所

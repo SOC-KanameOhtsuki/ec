@@ -86,6 +86,7 @@ class ChangeController extends AbstractController
         $form->get('office_address')->remove('kana');
         $form->get('office_address')->remove('mobilephone');
         $form->get('office_address')->remove('email');
+        $form['nobulletin']->setData($Customer->getCustomerBasicInfo()->getNobulletin());
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -124,6 +125,9 @@ class ChangeController extends AbstractController
                 ->setMobilephone03($HomeCustomerAddress->getMobilephone03())
                 ->setEmail($HomeCustomerAddress->getEmail());
             $app['orm.em']->persist($Customer);
+            $CustomerBasicInfo = $Customer->getCustomerBasicInfo();
+            $CustomerBasicInfo->setNobulletin($form->get('nobulletin')->getData());
+            $app['orm.em']->persist($CustomerBasicInfo);
             $HomeCustomerAddress->setCustomer($Customer)
                     ->setAddressType($app['orm.em']->getRepository('Eccube\Entity\Master\CustomerAddressType')->find(1))
                     ->setZipcode($HomeCustomerAddress->getZip01() . $HomeCustomerAddress->getZip02());
