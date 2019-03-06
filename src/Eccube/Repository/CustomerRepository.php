@@ -324,6 +324,13 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
                 ->setParameter('statuses', $searchData['customer_basicinfo_status']);
         }
 
+        // bureau
+        if (!empty($searchData['bureau']) && $searchData['bureau']) {
+            $qb
+                ->andWhere('bc.Bureau = :bureau')
+                ->setParameter('bureau', $searchData['bureau']->getId());
+        }
+
         // buy_product_name、buy_product_code
         if (isset($searchData['buy_product_code']) && Str::isNotBlank($searchData['buy_product_code'])) {
             $qb
@@ -528,6 +535,13 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
                 $subQuery
                     ->andWhere($subQuery->expr()->in('bc' . $subQueryIndex . '.Status', ':statuses' . $subQueryIndex));
                 $params['statuses' . $subQueryIndex] = $searchData['searchData']['customer_basicinfo_status'];
+            }
+
+            // bureau
+            if (!empty($searchData['bureau']) && $searchData['bureau']) {
+                $subQuery
+                    ->andWhere('bc' . $subQueryIndex . '.Bureau = :bureau');
+                $params['statuses' . $subQueryIndex] = $searchData['searchData']['bureau'];
             }
 
             // buy_product_name、buy_product_code

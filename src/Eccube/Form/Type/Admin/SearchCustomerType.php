@@ -245,6 +245,13 @@ class SearchCustomerType extends AbstractType
                 'multiple' => true,
                 'empty_value' => false,
             ))
+            ->add('bureau', 'bureau', array(
+                'label' => '振興局',
+                'required' => false,
+                'multiple' => false,
+                'expanded' => false,
+                'constraints' => array(),
+            ))
         ;
     }
 
