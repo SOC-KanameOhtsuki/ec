@@ -93,6 +93,13 @@ class SearchCustomerType extends AbstractType
                 'label' => '都道府県',
                 'required' => false,
             ))
+            ->add('address', 'text', array(
+                'label' => '市町村名',
+                'required' => false,
+                'constraints' => array(
+                    new Assert\Length(array('max' => $config['stext_len'])),
+                ),
+            ))
             ->add('sex', 'sex', array(
                 'label' => '性別',
                 'required' => false,

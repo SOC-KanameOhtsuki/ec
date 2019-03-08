@@ -175,6 +175,13 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
                 ->setParameter('pref', $searchData['pref']->getId());
         }
 
+        // Address
+        if (isset($searchData['address']) && Str::isNotBlank($searchData['address'])) {
+            $qb
+                ->andWhere('c.addr01 LIKE :address')
+                ->setParameter('address', '%' . $searchData['address'] . '%');
+        }
+
         // sex
         if (!empty($searchData['sex']) && count($searchData['sex']) > 0) {
             $sexs = array();
@@ -401,6 +408,13 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
                 $subQuery
                     ->andWhere($alias.'.Pref = :pref' . $subQueryIndex);
                     $params['pref' . $subQueryIndex] = $searchData['searchData']['pref']->getId();
+            }
+
+            // Address
+            if (isset($searchData['address']) && Str::isNotBlank($searchData['address'])) {
+                $subQuery
+                    ->andWhere($alias.'.addr01 LIKE :address' . $subQueryIndex);
+                    $params['address' . $subQueryIndex] = '%' . $searchData['searchData']['address'] . '%';
             }
 
             // sex
