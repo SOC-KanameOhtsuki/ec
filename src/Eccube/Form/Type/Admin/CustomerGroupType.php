@@ -33,20 +33,28 @@ class CustomerGroupType extends AbstractType
                 'constraints' => array(
                     new Assert\NotBlank(),
                     new Assert\Length(array(
-                        'max' => $this->config['name_len'],
+                        'max' => $this->config['group_name_len'],
                     )),
                 )
             ))
             ->add('kana', 'text', array(
-                'required' => true,
+                'required' => false,
                 'constraints' => array(
                     new Assert\Regex(array(
                         'pattern' => "/^[ァ-ヶｦ-ﾟー]+$/u",
                     )),
                     new Assert\Length(array(
-                        'max' => $this->config['kana_len'],
+                        'max' => $this->config['group_kana_len'],
                     )),
                 )
+            ))
+            ->add('paper_send_to_bool', 'checkbox', array(
+                'label' => '機関紙を発行する',
+                'required' => false,
+            ))
+            ->add('membership_individual_bool', 'checkbox', array(
+                'label' => '個人宛に年会費を請求する',
+                'required' => false,
             ))
             ->add('send_to_zip', 'zip', array(
                 'required' => false,
@@ -54,13 +62,13 @@ class CustomerGroupType extends AbstractType
                 'zip02_name' => 'send_to_zip02',
             ))
             ->add('send_to_address', 'address', array(
-                'required' => true,
+                'required' => false,
                 'pref_name' => 'send_to_pref',
                 'addr01_name' => 'send_to_addr01',
                 'addr02_name' => 'send_to_addr02',
             ))
             ->add('send_to_tel', 'tel', array(
-                'required' => true,
+                'required' => false,
                 'tel01_name' => 'send_to_tel01',
                 'tel02_name' => 'send_to_tel02',
                 'tel03_name' => 'send_to_tel03',
@@ -72,9 +80,8 @@ class CustomerGroupType extends AbstractType
                 'tel03_name' => 'send_to_fax03',
             ))
             ->add('send_to_email', 'email', array(
-                'required' => true,
+                'required' => false,
                 'constraints' => array(
-                    new Assert\NotBlank(),
                     // configでこの辺りは変えられる方が良さそう
                     new Assert\Email(array('strict' => true)),
                     new Assert\Regex(array(
@@ -84,7 +91,7 @@ class CustomerGroupType extends AbstractType
                 ),
             ))
             ->add('bill_to', 'text', array(
-                'required' => true,
+                'required' => false,
                 'constraints' => array(
                     new Assert\NotBlank(),
                     new Assert\Length(array(
@@ -93,18 +100,18 @@ class CustomerGroupType extends AbstractType
                 )
             ))
             ->add('bill_to_zip', 'zip', array(
-                'required' => true,
+                'required' => false,
                 'zip01_name' => 'bill_to_zip01',
                 'zip02_name' => 'bill_to_zip02',
             ))
             ->add('bill_to_address', 'address', array(
-                'required' => true,
+                'required' => false,
                 'pref_name' => 'bill_to_pref',
                 'addr01_name' => 'bill_to_addr01',
                 'addr02_name' => 'bill_to_addr02',
             ))
             ->add('bill_to_tel', 'tel', array(
-                'required' => true,
+                'required' => false,
                 'tel01_name' => 'bill_to_tel01',
                 'tel02_name' => 'bill_to_tel02',
                 'tel03_name' => 'bill_to_tel03',
@@ -118,7 +125,6 @@ class CustomerGroupType extends AbstractType
             ->add('bill_to_email', 'email', array(
                 'required' => false,
                 'constraints' => array(
-                    new Assert\NotBlank(),
                     // configでこの辺りは変えられる方が良さそう
                     new Assert\Email(array('strict' => true)),
                     new Assert\Regex(array(
