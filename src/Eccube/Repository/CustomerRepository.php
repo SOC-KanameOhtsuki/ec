@@ -145,6 +145,7 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
         $qb = $this->createQueryBuilder('c')
             ->select('c')
             ->leftJoin('c.CustomerBasicInfo', 'bc')
+            ->leftJoin('c.CustomerGroup', 'cg')
             ->andWhere('c.del_flg = 0');
 
         if (isset($searchData['multi']) && Str::isNotBlank($searchData['multi'])) {
@@ -310,6 +311,13 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
                 ->setParameter('statuses', $searchData['customer_status']);
         }
 
+        // CustomerGroup
+        if (!empty($searchData['customer_group']) && $searchData['customer_group']) {
+            $qb
+                ->andWhere('cg.name LIKE :customer_group')
+                ->setParameter('customer_group', '%' . $searchData['customer_group'] . '%');
+        }
+
         // CustomerNumber
         if (!empty($searchData['customer_number']) && $searchData['customer_number']) {
             $qb
@@ -372,6 +380,7 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
         $qb = $this->createQueryBuilder('c')
             ->select('c')
             ->leftJoin('c.CustomerBasicInfo', 'bc')
+            ->leftJoin('c.CustomerGroup', 'cg')
             ->andWhere('c.del_flg = 0');
 
         $subQueryIndex = 1;
@@ -542,6 +551,13 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
                 $subQuery
                     ->andWhere($subQuery->expr()->in($alias.'.Status', ':statuses' . $subQueryIndex));
                 $params['statuses' . $subQueryIndex] = $searchData['searchData']['customer_status'];
+            }
+
+            // CustomerGroup
+            if (!empty($searchData['customer_group']) && $searchData['customer_group']) {
+                $subQuery
+                    ->andWhere('cg' . $subQueryIndex . '.name LIKE :customer_group' . $subQueryIndex);
+                $params['customer_group' . $subQueryIndex] = '%' . $searchData['searchData']['customer_group'] . '%';
             }
 
             // CustomerNumber

@@ -244,6 +244,13 @@ class SearchCustomerType extends AbstractType
                 'multiple' => true,
                 'empty_value' => false,
             ))
+            ->add('customer_group', 'text', array(
+                'label' => '会員グループ',
+                'required' => false,
+                'constraints' => array(
+                    new Assert\Length(array('max' => $config['stext_len'])),
+                ),
+            ))
             ->add('customer_basicinfo_status', 'choice', array(
                 'label' => '会員ステータス',
                 'required' => false,

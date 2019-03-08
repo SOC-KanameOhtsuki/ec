@@ -326,7 +326,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
                 </div>
               </div>
               <div class="col-xs-6 col-md-4">
-                <div id="search_box_main__customer_id" class="form-group">
+                <div id="search_box_main__address" class="form-group">
                   <label>市町村名</label>
                   {{ form_widget(searchForm.address) }}
                 </div>
@@ -350,6 +350,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
                   <label>インストラクタ資格</label>
                   {{ form_widget(searchForm.customer_basicinfo_instructor_type) }}
                   {{ form_errors(searchForm.customer_basicinfo_instructor_type) }}
+                </div>
+              </div>
+              <div class="col-xs-6 col-md-4">
+                <div id="search_box_main__customer_group" class="form-group">
+                  <label>おまとめ</label>
+                  {{ form_widget(searchForm.customer_group) }}
                 </div>
               </div>
               <div id="search_box_main__crate_date" class="col-xs-12 col-sm-6">
