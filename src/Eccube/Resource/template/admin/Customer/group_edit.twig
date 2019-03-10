@@ -88,6 +88,22 @@ function deleteCustomer(idx) {
                                 {{ form_errors(form.kana) }}
                             </div>
                         </div>
+                        {# 機関紙発行 #}
+                        <div id="detail_box__paper_send_to" class="form-group">
+                            <label class="col-sm-3 col-lg-2 control-label">機関紙発行</label>
+                            <div class="col-sm-9 col-lg-10 form-inline">
+                                {{ form_widget(form.paper_send_to_bool) }}
+                                {{ form_errors(form.paper_send_to_bool) }}
+                            </div>
+                        </div>
+                        {# 個人宛年会費請求 #}
+                        <div id="detail_box__membership_individual" class="form-group">
+                            <label class="col-sm-3 col-lg-2 control-label">個人宛年会費請求</label>
+                            <div class="col-sm-9 col-lg-10 form-inline">
+                                {{ form_widget(form.membership_individual_bool) }}
+                                {{ form_errors(form.membership_individual_bool) }}
+                            </div>
+                        </div>
                         {# 送付先住所：郵便番号 #}
                         <div id="detail_box__send_to_address" class="form-group">
                             <label class="col-sm-3 col-lg-2 control-label">送付先住所</label>

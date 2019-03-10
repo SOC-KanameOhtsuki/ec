@@ -993,4 +993,106 @@ class CustomerGroup extends \Eccube\Entity\AbstractEntity
     {
         return $this->order_date;
     }
+    /**
+     * @var integer
+     */
+    private $paper_send_to;
+
+    /**
+     * @var integer
+     */
+    private $membership_individual;
+
+
+    /**
+     * Set paper_send_to
+     *
+     * @param integer $paperSendTo
+     * @return CustomerGroup
+     */
+    public function setPaperSendTo($paperSendTo)
+    {
+        $this->paper_send_to = $paperSendTo;
+
+        return $this;
+    }
+
+    /**
+     * Set paper_send_to By boolean
+     *
+     * @param integer $paperSendTo
+     * @return CustomerGroup
+     */
+    public function setPaperSendToBool($paperSendToBool)
+    {
+        $this->paper_send_to = ($paperSendToBool?1:0);
+
+        return $this;
+    }
+
+    /**
+     * Get paper_send_to
+     *
+     * @return integer 
+     */
+    public function getPaperSendTo()
+    {
+        return $this->paper_send_to;
+    }
+
+    /**
+     * Get paper_send_to By boolean
+     *
+     * @return integer 
+     */
+    public function getPaperSendToBool()
+    {
+        return !($this->paper_send_to == 0);
+    }
+
+    /**
+     * Set membership_individual
+     *
+     * @param integer $membershipIndividual
+     * @return CustomerGroup
+     */
+    public function setMembershipIndividual($membershipIndividual)
+    {
+        $this->membership_individual = $membershipIndividual;
+
+        return $this;
+    }
+
+    /**
+     * Set membership_individual By boolean
+     *
+     * @param integer $membershipIndividual
+     * @return CustomerGroup
+     */
+    public function setMembershipIndividualBool($membershipIndividualBool)
+    {
+        $this->membership_individual = ($membershipIndividualBool?1:0);
+
+        return $this;
+    }
+
+    /**
+     * Get membership_individual
+     *
+     * @return integer 
+     */
+    public function getMembershipIndividual()
+    {
+        return $this->membership_individual;
+    }
+
+    /**
+     * Get membership_individual By boolean
+     *
+     * @return integer 
+     */
+    public function getMembershipIndividualBool()
+    {
+        return !($this->membership_individual == 0);
+    }
 }

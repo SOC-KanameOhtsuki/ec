@@ -278,6 +278,8 @@ csv_import_delimiter: ,
 csv_import_enclosure: '"'
 csv_import_escape: \
 owners_store_url: https://www.ec-cube.net/upgrade/api/index.php
+group_name_len: 30
+group_kana_len: 50
 name_len: 16
 kana_len: 25
 address1_len: 32

@@ -29,6 +29,12 @@ Eccube\Entity\CustomerGroup:
         kana:
             type: text
             nullable: true
+        paper_send_to:
+            type: integer
+            nullable: true
+        membership_individual:
+            type: integer
+            nullable: true
         send_to_zip01:
             type: text
             nullable: true
