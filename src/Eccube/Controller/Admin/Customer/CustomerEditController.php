@@ -114,6 +114,7 @@ class CustomerEditController extends AbstractController
             $CustomerBasicInfo = new \Eccube\Entity\CustomerBasicInfo();
             $CustomerBasicInfo->setStatus($app['orm.em']->getRepository('Eccube\Entity\Master\CustomerBasicInfoStatus')->find(4));
             $CustomerGroup = new \Eccube\Entity\CustomerGroup();
+            $Customer->setStatus($app['orm.em']->getRepository('Eccube\Entity\Master\CustomerStatus')->find(2));
             $Customer->setBuyTimes(0);
             $Customer->setBuyTotal(0);
             $Customer->setCustomerBasicInfo($CustomerBasicInfo);
