@@ -113,6 +113,10 @@ class CustomerEditController extends AbstractController
             $OfficeAddress = new \Eccube\Entity\CustomerAddress();
             $CustomerBasicInfo = new \Eccube\Entity\CustomerBasicInfo();
             $CustomerBasicInfo->setStatus($app['orm.em']->getRepository('Eccube\Entity\Master\CustomerBasicInfoStatus')->find(4));
+            $CustomerBasicInfo->setInstructorType($app['orm.em']->getRepository('Eccube\Entity\Master\InstructorType')->find(6));
+            $CustomerBasicInfo->setSupporterType($app['orm.em']->getRepository('Eccube\Entity\Master\SupporterType')->find(7));
+            $CustomerBasicInfo->setMembershipExemption($app['orm.em']->getRepository('Eccube\Entity\Master\ExemptionType')->find(2));
+            $CustomerBasicInfo->setNobulletin($app['orm.em']->getRepository('Eccube\Entity\Master\NobulletinType')->find(1));
             $CustomerGroup = new \Eccube\Entity\CustomerGroup();
             $Customer->setStatus($app['orm.em']->getRepository('Eccube\Entity\Master\CustomerStatus')->find(2));
             $Customer->setBuyTimes(0);
