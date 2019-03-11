@@ -193,4 +193,32 @@ class AttendanceHistory extends \Eccube\Entity\AbstractEntity
     {
         return $this->AttendanceDenialReason;
     }
+    /**
+     * @var integer
+     */
+    private $del_flg = '0';
+
+
+    /**
+     * Set del_flg
+     *
+     * @param integer $delFlg
+     * @return AttendanceHistory
+     */
+    public function setDelFlg($delFlg)
+    {
+        $this->del_flg = $delFlg;
+
+        return $this;
+    }
+
+    /**
+     * Get del_flg
+     *
+     * @return integer 
+     */
+    public function getDelFlg()
+    {
+        return $this->del_flg;
+    }
 }

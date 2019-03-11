@@ -12,6 +12,12 @@ Eccube\Entity\AttendanceHistory:
             generator:
                 strategy: AUTO
     fields:
+        del_flg:
+            type: smallint
+            nullable: false
+            unsigned: false
+            options:
+                default: '0'
         create_date:
             type: datetime
             nullable: false

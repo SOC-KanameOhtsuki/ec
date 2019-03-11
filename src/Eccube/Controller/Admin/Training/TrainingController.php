@@ -567,15 +567,6 @@ class TrainingController extends AbstractController
             );
         }
 
-        foreach ($pagination as $Customer) {
-            foreach ($Customer->getAttendanceHistories() as $history) {
-                if ($history->getProductTraining()->getId() == $id) {
-                    $Customer->setAttendanceHistory($history);
-                    break;
-                }
-            }
-        }
-
         return $app->render('Training/index_student.twig', array(
             'pagination' => $pagination,
             'pageMaxis' => $pageMaxis,
@@ -1984,14 +1975,21 @@ class TrainingController extends AbstractController
     {
         $customerIds = explode(",", $request->get('customerIds'));
         $AttendanceStatus = $app['eccube.repository.master.attendance_status']->find(2);
-        $ProductTraining = $app['eccube.repository.product_training']->getProductTrainingByProductId($request->get('id'));
+        $ProductTraining = null;
+        $Product = $app['eccube.repository.product']->find($request->get('id'));
+        if (!is_null($Product)) {
+            $ProductTraining = $Product->getProductTraining();
+        }
+        if (is_null($ProductTraining)) {
+            return $app->json(array('message' => 'error', 'canceled' => array()), 500);
+        }
         $denyedIds = array();
 
         foreach ($customerIds as $customerId) {
             log_info('否認開始', array($customerId));
             $Customer = $app['eccube.repository.customer']->find($customerId);
 
-            if ($Customer == null || $ProductTraining == null) {
+            if ($Customer == null) {
                 continue;
             }
 
@@ -2026,14 +2024,21 @@ class TrainingController extends AbstractController
     {
         $customerIds = explode(",", $request->get('customerIds'));
         $AttendanceStatus = $app['eccube.repository.master.attendance_status']->find(1);
-        $ProductTraining = $app['eccube.repository.product_training']->getProductTrainingByProductId($request->get('id'));
+        $ProductTraining = null;
+        $Product = $app['eccube.repository.product']->find($request->get('id'));
+        if (!is_null($Product)) {
+            $ProductTraining = $Product->getProductTraining();
+        }
+        if (is_null($ProductTraining)) {
+            return $app->json(array('message' => 'error', 'canceled' => array()), 500);
+        }
         $certifiedIds = array();
 
         foreach ($customerIds as $customerId) {
             log_info('認定開始', array($customerId));
             $Customer = $app['eccube.repository.customer']->find($customerId);
 
-            if ($Customer == null || $ProductTraining == null) {
+            if ($Customer == null) {
                 continue;
             }
 
@@ -2087,14 +2092,69 @@ class TrainingController extends AbstractController
         return $app->json(array('message' => 'success', 'certified' => $certifiedIds), 200);
     }
 
+    public function bulkCancel(Application $app, Request $request)
+    {
+        $ProductTraining = null;
+        $Product = $app['eccube.repository.product']->find($request->get('id'));
+        if (!is_null($Product)) {
+            $ProductTraining = $Product->getProductTraining();
+        }
+        if (is_null($ProductTraining)) {
+            return $app->json(array('message' => 'error', 'canceled' => array()), 500);
+        }
+        $customerIds = explode(",", $request->get('customerIds'));
+        $canceledIds = array();
+
+        foreach ($customerIds as $customerId) {
+            log_info('認定・否認キャンセル開始', array($customerId));
+            $Customer = $app['eccube.repository.customer']->find($customerId);
+
+            if (is_null($Customer)) {
+                continue;
+            }
+
+            // Setting Attendance_History table
+            $AttendanceHistory = $app['eccube.repository.attendance_history']->getAttendanceHistory($Customer, $ProductTraining);
+            if (!is_null($AttendanceHistory)) {
+                log_info('受講履歴更新', array($customerId));
+                $AttendanceHistory->setDelFlg(Constant::ENABLED);
+                $app['orm.em']->persist($AttendanceHistory);
+                $app['orm.em']->flush();
+
+                // Update Customer_Basic_info table
+                $CustomerInfo = $app['eccube.repository.customer_basic_info']->getCustomerBasicInfoByCustomer($Customer);
+                if ($CustomerInfo != null) {
+                    log_info('会員基本情報更新', array($customerId));
+                    $InfoStatus = $app['eccube.repository.customer_basic_info_status']->find(4);
+                    $CustomerInfo->setStatus($InfoStatus);
+                    $CustomerInfo->setCustomerNumber(null);
+                    $CustomerInfo->setCustomerPinCode(null);
+                    $CustomerInfo->setLastPayMembershipYear(null);
+                    $CustomerInfo->setMembershipExpired(null);
+                    $CustomerInfo->setRegularMemberPromoted(null);
+                    $CustomerInfo->setUpdateDate(date('Y-m-d H:i:s'));
+                    $app['orm.em']->persist($CustomerInfo);
+                }
+
+                $app['orm.em']->flush();
+                $canceledIds[] = $customerId;
+            }
+        }
+
+        return $app->json(array('message' => 'success', 'canceled' => $canceledIds), 200);
+    }
+
     public function setDenyReason(Application $app, Request $request)
     {
         $AttendanceDenialReason = $app['eccube.repository.master.attendance_denial_reason']->find($request->get('denialId'));
-        $ProductTraining = $app['eccube.repository.product_training']->getProductTrainingByProductId($request->get('id'));
+        $ProductTraining = null;
+        $Product = $app['eccube.repository.product']->find($request->get('id'));
+        if (!is_null($Product)) {
+            $ProductTraining = $Product->getProductTraining();
+        }
         $Customer = $app['eccube.repository.customer']->find($request->get('customerId'));
-
         if ($Customer == null || $ProductTraining == null) {
-            return $app->json(array('message' => 'invalid input'), 200);
+            return $app->json(array('message' => 'invalid input'), 500);
         }
 
         $AttendanceHistory = $app['eccube.repository.attendance_history']->getAttendanceHistory($Customer, $ProductTraining);

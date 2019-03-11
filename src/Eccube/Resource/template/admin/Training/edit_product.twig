@@ -172,12 +172,18 @@ This file is Customized File
         $("#admin_training_product_training_training_date_start").datetimepicker({
             locale: 'ja',
             format : 'YYYY/MM/DD HH:mm',
-            defaultDate: moment(dt.getFullYear() + "/" + (("00" + (dt.getMonth()+1)).slice(-2)) + "/" + ("00" + dt.getDate()).slice(-2) + " 10:00", 'YYYY-MM-DD HH:mm:ss')
+            defaultDate: moment(dt.getFullYear() + "/" + (("00" + (dt.getMonth()+1)).slice(-2)) + "/" + ("00" + dt.getDate()).slice(-2) + " 10:00", 'YYYY-MM-DD HH:mm:ss'),
+            show : function () {
+                        alert("show!");
+            }
         });
         $("#admin_training_product_training_training_date_end").datetimepicker({
             locale: 'ja',
             format : 'YYYY/MM/DD HH:mm',
-            defaultDate: moment(dt.getFullYear() + "/" + (("00" + (dt.getMonth()+1)).slice(-2)) + "/" + ("00" + dt.getDate()).slice(-2) + " 17:00", 'YYYY-MM-DD HH:mm:ss')
+            defaultDate: moment(dt.getFullYear() + "/" + (("00" + (dt.getMonth()+1)).slice(-2)) + "/" + ("00" + dt.getDate()).slice(-2) + " 17:00", 'YYYY-MM-DD HH:mm:ss'),
+            show : function () {
+                        alert("show!");
+            }
         });
         $("#admin_training_product_training_accept_limit_date").datetimepicker({
             locale: 'ja',

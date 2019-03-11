@@ -67,10 +67,12 @@ This file is Custom File
         var Ids = "";
         var isMixed = false;
         $.each($('#customerTable tr td:first-child > input'), function() {
-            if ($(this).prop('checked') && $('#attendance_set_' + $(this).data('id')).val() == 0) {
-                Ids += (Ids == "" ? $(this).data('id') : ("," + $(this).data('id')));
-            } else {
-                isMixed = true;
+            if ($(this).prop('checked')) {
+                if ($('#attendance_set_' + $(this).data('id')).val() == 0) {
+                    Ids += (Ids == "" ? $(this).data('id') : ("," + $(this).data('id')));
+                } else {
+                    isMixed = true;
+                }
             }
         });
 
@@ -90,7 +92,8 @@ This file is Custom File
             $.post("{{path('admin_training_bulk_deny')}}", {
                 id: {{ProductId}},
                 customerIds: Ids
-            }, function(response) {
+            })
+            .done( function(response) {
                 $('#result_list_main__all_output_menu').attr('class', 'dropdown');
                 response.denyed.forEach(function(id) {
                     $('#approveOrDenial-' + id).show();
@@ -100,13 +103,13 @@ This file is Custom File
                     $('#attendance_set_' + id).val(1);
                 });
                 $('#check-all').prop('checked', false);
-                $('#loadingModal').modal('hide');
                 if (response.denyed < Ids.split(',').length) {
                     $('#customAlert').empty();
                     $('#customAlert').append("<strong>警告!</strong> 一括否認を実行しましたが、エラーが発生しています。");
                     $('#customAlert').show();
                     setTimeout(function() {
                         $('#customAlert').hide();
+                        location.reload(false);
                     }, 3000);
                 } else {
                     $('#customInfoAlert').empty();
@@ -118,8 +121,20 @@ This file is Custom File
                     $('#customInfoAlert').show();
                     setTimeout(function() {
                         $('#customInfoAlert').hide();
+                        location.reload(false);
                     }, 3000);
                 }
+            })
+            .fail( function() {
+                $('#customAlert').empty();
+                $('#customAlert').append("<strong>警告!</strong> 一括認定を実行しましたが、エラーが発生しています。");
+                $('#customAlert').show();
+                setTimeout(function() {
+                    $('#customAlert').hide();
+                }, 3000);
+            })
+            .always( function() {
+                $('#loadingModal').modal('hide');
             });
         }
     });
@@ -129,10 +144,12 @@ This file is Custom File
         var Ids = "";
         var isMixed = false;
         $.each($('#customerTable tr td:first-child > input'), function() {
-            if ($(this).prop('checked') && $('#attendance_set_' + $(this).data('id')).val() == 0) {
-                Ids += (Ids == "" ? $(this).data('id') : ("," + $(this).data('id')));
-            } else {
-                isMixed = true;
+            if ($(this).prop('checked')) {
+                if ($('#attendance_set_' + $(this).data('id')).val() == 0) {
+                    Ids += (Ids == "" ? $(this).data('id') : ("," + $(this).data('id')));
+                } else {
+                    isMixed = true;
+                }
             }
         });
 
@@ -152,7 +169,8 @@ This file is Custom File
             $.post("{{path('admin_training_bulk_certified')}}", {
                 id: {{ProductId}},
                 customerIds: Ids
-            }, function(response) {
+            })
+            .done( function(response) {
                 $('#result_list_main__all_output_menu').attr('class', 'dropdown');
                 response.certified.forEach(function(id) {
                     $('#approveOrDenial-' + id).hide();
@@ -162,13 +180,13 @@ This file is Custom File
                     $('#attendance_set_' + id).val(1);
                 });
                 $('#check-all').prop('checked', false);
-                $('#loadingModal').modal('hide');
                 if (response.certified < Ids.split(',').length) {
                     $('#customAlert').empty();
                     $('#customAlert').append("<strong>警告!</strong> 一括認定を実行しましたが、エラーが発生しています。");
                     $('#customAlert').show();
                     setTimeout(function() {
                         $('#customAlert').hide();
+                        location.reload(false);
                     }, 3000);
                 } else {
                     $('#customInfoAlert').empty();
@@ -180,8 +198,98 @@ This file is Custom File
                     $('#customInfoAlert').show();
                     setTimeout(function() {
                         $('#customInfoAlert').hide();
+                        location.reload(false);
                     }, 3000);
                 }
+            })
+            .fail( function() {
+                $('#customAlert').empty();
+                $('#customAlert').append("<strong>警告!</strong> 一括認定を実行しましたが、エラーが発生しています。");
+                $('#customAlert').show();
+                setTimeout(function() {
+                    $('#customAlert').hide();
+                }, 3000);
+            })
+            .always( function() {
+                $('#loadingModal').modal('hide');
+            });
+        }
+    });
+    $('#bulk_cancel').click(function() {
+        $('#customAlert').hide();
+
+        var Ids = "";
+        var isMixed = false;
+        $.each($('#customerTable tr td:first-child > input'), function() {
+            if ($(this).prop('checked')) {
+                if ($('#attendance_set_' + $(this).data('id')).val() == 1) {
+                    Ids += (Ids == "" ? $(this).data('id') : ("," + $(this).data('id')));
+                } else {
+                    isMixed = true;
+                }
+            }
+        });
+
+        if (Ids == "") {
+            $('#customAlert').empty();
+            if (isMixed) {
+                $('#customAlert').append("<strong>警告!</strong> 処理可能な対象を選択してください。");
+            } else {
+                $('#customAlert').append("<strong>警告!</strong> 対象を選択してください。");
+            }
+            $('#customAlert').show();
+            setTimeout(function() {
+                $('#customAlert').hide();
+                location.reload(false);
+            }, 3000);
+        } else {
+            $('#loadingModal').modal('show');
+            $.post("{{path('admin_training_bulk_cancel')}}", {
+                id: {{ProductId}},
+                customerIds: Ids
+            })
+            .done( function(response) {
+                $('#result_list_main__all_output_menu').attr('class', 'dropdown');
+                response.canceled.forEach(function(id) {
+                    $('#approveOrDenial-' + id).hide();
+                    $('#approveStatus-' + id).html('');
+                    $('#approveStatus-' + id).append($('<span>').attr('class', 'badge progress-bar-secondary').text('未定')); 
+                    $('#check-' + id).prop('checked', false);
+                    $('#attendance_set_' + id).val(0);
+                });
+                $('#check-all').prop('checked', false);
+                if (response.canceled < Ids.split(',').length) {
+                    $('#customAlert').empty();
+                    $('#customAlert').append("<strong>警告!</strong> 認証・否認のキャンセルを実行しましたが、エラーが発生しています。");
+                    $('#customAlert').show();
+                    setTimeout(function() {
+                        $('#customAlert').hide();
+                        location.reload(false);
+                    }, 3000);
+                } else {
+                    $('#customInfoAlert').empty();
+                    if (isMixed) {
+                        $('#customInfoAlert').append("処理可能なものに対して認証・否認のキャンセルをしました。");
+                    } else {
+                        $('#customInfoAlert').append("認証・否認のキャンセルをしました。");
+                    }
+                    $('#customInfoAlert').show();
+                    setTimeout(function() {
+                        $('#customInfoAlert').hide();
+                        location.reload(false);
+                    }, 3000);
+                }
+            })
+            .fail( function() {
+                $('#customAlert').empty();
+                $('#customAlert').append("<strong>警告!</strong> 認証・否認のキャンセルを実行しましたが、エラーが発生しています。");
+                $('#customAlert').show();
+                setTimeout(function() {
+                    $('#customAlert').hide();
+                }, 3000);
+            })
+            .always( function() {
+                $('#loadingModal').modal('hide');
             });
         }
     });
@@ -229,7 +337,24 @@ This file is Custom File
             id: {{ProductId}},
             customerId: $(this).data('id'),
             denialId: $(this).val()
-        }, function(response) {
+        })
+        .done( function(response) {
+            $('#customInfoAlert').append("否認理由を設定しました。");
+            $('#customInfoAlert').show();
+            setTimeout(function() {
+                $('#customInfoAlert').hide();
+                location.reload(false);
+            }, 3000);
+        })
+        .fail( function() {
+            $('#customAlert').empty();
+            $('#customAlert').append("<strong>警告!</strong> 否認理由の設定でエラーが発生しました。");
+            $('#customAlert').show();
+            setTimeout(function() {
+                $('#customAlert').hide();
+            }, 3000);
+        })
+        .always( function() {
             $('#loadingModal').modal('hide');
         });
     })
@@ -279,6 +404,7 @@ This file is Custom File
                 <li><a id="certification_sendding_note" href="javascript:void(0);">資格認定証送付状</a></li>
                 <li><a id="bulk_deny" href="javascript:void(0);">否認登録</a></li>
                 <li><a id="bulk_certified" href="javascript:void(0);">一括認定</a></li>
+                <li><a id="bulk_cancel" href="javascript:void(0);">認定・否認キャンセル</a></li>
               </ul>
               </li>
               <li id="result_list_main__all_output_menu" class="dropdown">
@@ -322,16 +448,24 @@ This file is Custom File
                             <td id="result_list_main__name--{{ Customer.id }}" class="member_name"><a href="{{ url('admin_customer_edit', { 'id': Customer.id}) }}">{{ Customer.name01 }}&nbsp;{{ Customer.name02 }}</a></td>
                             <td id="result_list_main__tel--{{ Customer.id }}" class="member_tel">{{ Customer.tel01 }}-{{ Customer.tel02 }}-{{ Customer.tel03 }}</td>
                             <td id="result_list_main__mail--{{ Customer.id }}" class="member_mail">{{ Customer.email }}</td>
+                            {% set attendanceStatuIds = 0 %}
                             <td class="col-md-1 col-sm-1 text-center" id="approveStatus-{{Customer.id}}">
-                                {% set attendanceStatus = '' %}
+                                {% set attendanceStatus = null %}
+                                {% set attendanceReason = '' %}
                                 {% set certified = false %}
                                 {% if Customer.AttendanceHistories %}
                                     {% for AttendanceHistory in Customer.AttendanceHistories %}
-                                        {% if AttendanceHistory.AttendanceStatus.id == 1 %}
-                                            {% set attendanceStatus = AttendanceHistory.AttendanceStatus.name %}
-                                            {% set certified = true %}
-                                        {% elseif certified == false %}
-                                            {% set attendanceStatus = AttendanceHistory.AttendanceStatus.name %}
+                                        {% if AttendanceHistory.DelFlg == 0 %}
+                                            {% if AttendanceHistory.ProductTraining.id == Product.ProductTraining.id %}
+                                                {% if AttendanceHistory.AttendanceDenialReason %}
+                                                    {% set attendanceReason = AttendanceHistory.AttendanceDenialReason.id %}
+                                                {% endif %}
+                                                {% set attendanceStatuIds = AttendanceHistory.AttendanceStatus.id %}
+                                                {% set attendanceStatus = AttendanceHistory.AttendanceStatus.name %}
+                                                {% if AttendanceHistory.AttendanceStatus.id == 1 %}
+                                                    {% set certified = true %}
+                                                {% endif %}
+                                            {% endif %}
                                         {% endif %}
                                     {% endfor %}
                                 {% endif %}
@@ -348,7 +482,7 @@ This file is Custom File
                                 {% endif %}
                             </td>
                             <td class="col-md-2 col-sm-2">
-                                {% if Customer.AttendanceHistory != null and Customer.AttendanceHistory.AttendanceStatus.id == 2 %}
+                                {% if attendanceStatuIds == 2 %}
                                     <select class="form-control" id="approveOrDenial-{{Customer.id}}" data-id="{{Customer.id}}" name="approveOrDenials">
                                 {% else %}
                                     <select class="form-control" id="approveOrDenial-{{Customer.id}}" style="display: none;" data-id="{{Customer.id}}" name="approveOrDenials">
@@ -358,7 +492,7 @@ This file is Custom File
                                         {% if Customer.AttendanceHistory == null %}
                                             <option value="{{denial.id}}">{{denial.name}}</option>
                                         {% else %}
-                                            {% if Customer.AttendanceHistory.AttendanceDenialReason.id == denial.id %}
+                                            {% if attendanceReason and attendanceReason == denial.id %}
                                                 <option value="{{denial.id}}" selected>{{denial.name}}</option>
                                             {% else %}
                                                 <option value="{{denial.id}}">{{denial.name}}</option>

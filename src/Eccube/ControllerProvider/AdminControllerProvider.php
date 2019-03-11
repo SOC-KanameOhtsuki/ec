@@ -191,6 +191,7 @@ class AdminControllerProvider implements ControllerProviderInterface
         $c->post('/training/student/bulk_deny', '\Eccube\Controller\Admin\Training\TrainingController::bulkDeny')->bind('admin_training_bulk_deny');
         $c->post('/training/student/deny_reason', '\Eccube\Controller\Admin\Training\TrainingController::setDenyReason')->bind('admin_training_deny_reason');
         $c->post('/training/student/bulk_certified', '\Eccube\Controller\Admin\Training\TrainingController::bulkCertified')->bind('admin_training_bulk_certified');
+        $c->post('/training/student/bulk_cancel', '\Eccube\Controller\Admin\Training\TrainingController::bulkCancel')->bind('admin_training_bulk_cancel');
         $c->match('/training/flyer', '\Eccube\Controller\Admin\Training\TrainingController::indexFlyer')->bind('admin_training_flyer');
         $c->match('/training/flyer/page/{page_no}', '\Eccube\Controller\Admin\Training\TrainingController::indexFlyer')->assert('page_no', '\d+')->bind('admin_training_flyer_page');
         $c->post('/training/search/training/html', '\Eccube\Controller\Admin\Training\TrainingController::searchTrainingHtml')->bind('admin_flyer_search_training_html');
