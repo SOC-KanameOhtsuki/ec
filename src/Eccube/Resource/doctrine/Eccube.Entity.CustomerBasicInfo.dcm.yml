@@ -58,6 +58,16 @@ Eccube\Entity\CustomerBasicInfo:
             joinColumn:
                 name: nobulletin
                 referencedColumnName: id
+        Anonymous:
+            targetEntity: Eccube\Entity\Master\AnonymousType
+            joinColumn:
+                name: anonymous
+                referencedColumnName: id
+        AnonymousCompany:
+            targetEntity: Eccube\Entity\Master\AnonymousCompanyType
+            joinColumn:
+                name: anonymous_company
+                referencedColumnName: id
         InstructorType:
             targetEntity: Eccube\Entity\Master\InstructorType
             joinColumn:

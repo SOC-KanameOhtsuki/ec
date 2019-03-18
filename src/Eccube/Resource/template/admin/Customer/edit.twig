@@ -413,21 +413,6 @@
                                 {{ form_errors(form.office_address.fax.fax03) }}
                             </div>
                         </div>
-                        {# パスワード #}
-                        <div id="detail_box__password_first" class="form-group">
-                            {{ form_label(form.password.first) }}
-                            <div class="col-sm-9 col-lg-10">
-                                {{ form_widget(form.password.first, { type : 'password'}) }}
-                                {{ form_errors(form.password.first) }}
-                            </div>
-                        </div>
-                        <div id="detail_box__password_second" class="form-group">
-                            {{ form_label(form.password.second) }}
-                            <div class="col-sm-9 col-lg-10">
-                                {{ form_widget(form.password.second, { type : 'password'}) }}
-                                {{ form_errors(form.password.second) }}
-                            </div>
-                        </div>
                         <div class="extra-form">
                             {% for f in form.getIterator %}
                                 {% if f.vars.name matches '[^plg*]' %}
@@ -522,6 +507,22 @@
                             <div class="col-sm-9 col-lg-10">
                                 {{ form_widget(form.basic_info.nobulletin) }}
                                 {{ form_errors(form.basic_info.nobulletin) }}
+                            </div>
+                        </div>
+                        {# 名前掲載 #}
+                        <div id="detail_box__basic_info_anonymous" class="form-group">
+                            {{ form_label(form.basic_info.anonymous) }}
+                            <div class="col-sm-9 col-lg-10">
+                                {{ form_widget(form.basic_info.anonymous) }}
+                                {{ form_errors(form.basic_info.anonymous) }}
+                            </div>
+                        </div>
+                        {# 施設名掲載 #}
+                        <div id="detail_box__basic_info_anonymous_company" class="form-group">
+                            {{ form_label(form.basic_info.anonymous_company) }}
+                            <div class="col-sm-9 col-lg-10">
+                                {{ form_widget(form.basic_info.anonymous_company) }}
+                                {{ form_errors(form.basic_info.anonymous_company) }}
                             </div>
                         </div>
                         {# 振興局 #}

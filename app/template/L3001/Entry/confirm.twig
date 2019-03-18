@@ -129,13 +129,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
                                 </div>
                             </dd>
                         </dl>
-                        <dl id="confirm_box__password">
-                            <dt>{{ form_label(form.password) }}</dt>
+                        <dl id="confirm_box__customer_pin_code">
+                            <dt>{{ form_label(form.customer_pin_code) }}</dt>
                             <dd>
                                 <div class="form-group">
                                     ********
-                                    {{ form_widget(form.password.first, {freeze_display_text: false}) }}
-                                    {{ form_widget(form.password.second, {freeze_display_text: false}) }}
+                                    {{ form_widget(form.customer_pin_code.first, {freeze_display_text: false}) }}
+                                    {{ form_widget(form.customer_pin_code.second, {freeze_display_text: false}) }}
                                 </div>
                             </dd>
                         </dl>
@@ -170,6 +170,22 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
                             <dd>
                                 <div class="form-group form-inline">
                                     {{ form_widget(form.nobulletin) }}
+                                </div>
+                            </dd>
+                        </dl>
+                        <dl id="confirm_box__anonymous">
+                            <dt>{{ form_label(form.anonymous) }}</dt>
+                            <dd>
+                                <div class="form-group form-inline">
+                                    {{ form_widget(form.anonymous) }}
+                                </div>
+                            </dd>
+                        </dl>
+                        <dl id="confirm_box__anonymous_company">
+                            <dt>{{ form_label(form.anonymous_company) }}</dt>
+                            <dd>
+                                <div class="form-group form-inline">
+                                    {{ form_widget(form.anonymous_company) }}
                                 </div>
                             </dd>
                         </dl>

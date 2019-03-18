@@ -67,6 +67,18 @@ This file is Custom File
       });
     }
 
+    // PDF一括ダウンロード(匿名除外)
+    $('#pdf_all_without_anonymous').click(function() {
+        $("#dropdown-form").attr('action', "{{ url('admin_regular_member_all_export_without_anonymous') }}");
+        $("#dropdown-form").submit();
+    });
+
+    // PDF選択ダウンロード(匿名除外)
+    $('#pdf_select_without_anonymous').click(function() {
+        $("#dropdown-form").attr('action', "{{ url('admin_regular_member_select_export_without_anonymous') }}");
+        $("#dropdown-form").submit();
+    });
+
     // PDF一括ダウンロード
     $('#pdf_all').click(function() {
         $("#dropdown-form").attr('action', "{{ url('admin_regular_member_all_export') }}");
@@ -262,6 +274,8 @@ This file is Custom File
               <li id="result_list_main__pdf_menu" class="dropdown">
               <a class="dropdown-toggle" data-toggle="dropdown">PDFダウンロード<svg class="cb cb-angle-down icon_down"><use xlink:href="#cb-angle-down"></svg></a>
               <ul class="dropdown-menu">
+                <li><a id="pdf_all_without_anonymous" href="javascript:void(0);">PDF一括ダウンロード(匿名除外)</a></li>
+                <li><a id="pdf_select_without_anonymous" href="javascript:void(0);">PDF選択ダウンロード(匿名除外)</a></li>
                 <li><a id="pdf_all" href="javascript:void(0);">PDF一括ダウンロード</a></li>
                 <li><a id="pdf_select" href="javascript:void(0);">PDF選択ダウンロード</a></li>
               </ul>

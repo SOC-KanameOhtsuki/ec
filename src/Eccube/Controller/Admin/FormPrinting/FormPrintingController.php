@@ -1264,6 +1264,120 @@ class FormPrintingController extends AbstractController
         ));
     }
 
+    public function regularMemberListAllExportWithoutAnonymous(Application $app, Request $request = null)
+    {
+        // タイムアウトを無効にする.
+        set_time_limit(0);
+
+        // sql loggerを無効にする.
+        $em = $app['orm.em'];
+        $em->getConfiguration()->setSQLLogger(null);
+
+        $session = $request->getSession();
+        $viewData = $session->get('eccube.admin.customer.search');
+        if (is_null($viewData)) {
+            $app->addError('admin.regular_member_list_pdf.parameter.notfound', 'admin');
+            log_info('The Customer cannot found!');
+            return $app->redirect($app->url('admin_form_printing_regular_member_list'));
+        }
+
+        // sessionに保持されている検索条件を復元.
+        $builder = $app['form.factory']
+            ->createBuilder('admin_search_regular_member');
+        $searchForm = $builder->getForm();
+        $searchData = \Eccube\Util\FormUtil::submitAndGetData($searchForm, $viewData);
+
+        // サービスの取得
+        /* @var RegularMemberListPdfService $service */
+        $service = $app['eccube.service.regular_member_list_pdf'];
+
+        // 顧客情報取得
+        $customers = $app['eccube.repository.customer']->getQueryBuilderBySearchRegularMemberData($searchData, true)
+                ->getQuery()
+                ->getResult();
+        if (count($customers) == 0) {
+            $app->addError('admin.regular_member_list_pdf.parameter.notfound', 'admin');
+            log_info('The Customer cannot found!');
+            return $app->redirect($app->url('admin_form_printing_regular_member_list'));
+        }
+
+        // 顧客情報からPDFを作成する
+        $status = $service->makePdf($customers, true);
+
+        // 異常終了した場合の処理
+        if (!$status) {
+            $app->addError('admin.regular_member_list_pdf.download.failure', 'admin');
+            log_info('Unable to create pdf files! Process have problems!');
+            return $app->redirect($app->url('admin_form_printing_regular_member_list'));
+        }
+
+        // ダウンロードする
+        $response = new Response(
+            $service->outputPdf(),
+            200,
+            array('content-type' => 'application/pdf')
+        );
+
+        // レスポンスヘッダーにContent-Dispositionをセットし、ファイル名を指定
+        $response->headers->set('Content-Disposition', 'attachment; filename="'.$service->getPdfFileName().'"');
+        log_info('RegularMemberListPdf download success!', array('Customer:' => count($customers)));
+        return $response;
+    }
+
+    public function regularMemberListSelectExportWithoutAnonymous(Application $app, Request $request = null)
+    {
+        // タイムアウトを無効にする.
+        set_time_limit(0);
+
+        // sql loggerを無効にする.
+        $em = $app['orm.em'];
+        $em->getConfiguration()->setSQLLogger(null);
+
+        // requestから対象顧客IDの一覧を取得する.
+        $ids = $this->getIds($request);
+        if (count($ids) == 0) {
+            $app->addError('admin.regular_member_list_pdf.parameter.notfound', 'admin');
+            log_info('The Customer cannot found!');
+            return $app->redirect($app->url('admin_form_printing_regular_member_list'));
+        }
+
+        // サービスの取得
+        /* @var RegularMemberListPdfService $service */
+        $service = $app['eccube.service.regular_member_list_pdf'];
+
+        // 顧客情報取得
+        $customers = $app['eccube.repository.customer']->getQueryBuilderBySearchRegularMemberIds($ids, true)
+                ->getQuery()
+                ->getResult();
+        if (count($customers) == 0) {
+            $app->addError('admin.regular_member_list_pdf.parameter.notfound', 'admin');
+            log_info('The Customer cannot found!');
+            return $app->redirect($app->url('admin_form_printing_regular_member_list'));
+        }
+
+        // 顧客情報からPDFを作成する
+        $status = $service->makePdf($customers, true);
+
+        // 異常終了した場合の処理
+        if (!$status) {
+            $app->addError('admin.regular_member_list_pdf.download.failure', 'admin');
+            log_info('Unable to create pdf files! Process have problems!');
+            return $app->redirect($app->url('admin_form_printing_regular_member_list'));
+        }
+
+        // ダウンロードする
+        $response = new Response(
+            $service->outputPdf(),
+            200,
+            array('content-type' => 'application/pdf')
+        );
+
+        // レスポンスヘッダーにContent-Dispositionをセットし、ファイル名を指定
+        $response->headers->set('Content-Disposition', 'attachment; filename="'.$service->getPdfFileName().'"');
+        log_info('RegularMemberListPdf download success!', array('Customer ID' => implode(',', $this->getIds($request))));
+        return $response;
+    }
+
     public function regularMemberListAllExport(Application $app, Request $request = null)
     {
         // タイムアウトを無効にする.

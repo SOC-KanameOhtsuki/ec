@@ -105,7 +105,6 @@ class CustomerEditController extends AbstractController
             }
             // 編集用にデフォルトパスワードをセット
             $previous_password = $Customer->getPassword();
-            $Customer->setPassword($app['config']['default_password']);
             // 新規登録
         } else {
             $Customer = $app['eccube.repository.customer']->newCustomer();
@@ -117,6 +116,8 @@ class CustomerEditController extends AbstractController
             $CustomerBasicInfo->setSupporterType($app['orm.em']->getRepository('Eccube\Entity\Master\SupporterType')->find(7));
             $CustomerBasicInfo->setMembershipExemption($app['orm.em']->getRepository('Eccube\Entity\Master\ExemptionType')->find(2));
             $CustomerBasicInfo->setNobulletin($app['orm.em']->getRepository('Eccube\Entity\Master\NobulletinType')->find(1));
+            $CustomerBasicInfo->setAnonymous($app['orm.em']->getRepository('Eccube\Entity\Master\AnonymousType')->find(1));
+            $CustomerBasicInfo->setAnonymousCompany($app['orm.em']->getRepository('Eccube\Entity\Master\AnonymousCompanyType')->find(1));
             $CustomerGroup = new \Eccube\Entity\CustomerGroup();
             $Customer->setStatus($app['orm.em']->getRepository('Eccube\Entity\Master\CustomerStatus')->find(2));
             $Customer->setBuyTimes(0);

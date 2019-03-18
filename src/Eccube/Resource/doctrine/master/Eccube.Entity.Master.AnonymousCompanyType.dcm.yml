@@ -1,0 +1,19 @@
+Eccube\Entity\Master\AnonymousCompanyType:
+    type: entity
+    table: mtb_anonymous_company_type
+    repositoryClass: Eccube\Repository\Master\AnonymousCompanyTypeRepository
+    id:
+        id:
+            type: smallint
+            nullable: false
+            unsigned: false
+            id: true
+    fields:
+        name:
+            type: text
+            nullable: true
+        rank:
+            type: smallint
+            nullable: false
+            unsigned: false
+    lifecycleCallbacks: {  }

@@ -2357,6 +2357,20 @@ margin-top: 5px;
 #entry_nobulletin .radio input[type="radio"] {
 	margin-right: 10px;
 }
+#entry_anonymous .radio {
+	display: inline-block;
+	margin-right: 10px;
+}
+#entry_anonymous .radio input[type="radio"] {
+	margin-right: 10px;
+}
+#entry_anonymous_company .radio {
+	display: inline-block;
+	margin-right: 10px;
+}
+#entry_anonymous_company .radio input[type="radio"] {
+	margin-right: 10px;
+}
 
 .mypage .dl_table dt label {
 	font-weight: bold;

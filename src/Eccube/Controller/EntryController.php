@@ -100,7 +100,7 @@ class EntryController extends AbstractController
                             $app['eccube.repository.customer']->createSalt(5)
                         )
                         ->setPassword(
-                            $app['eccube.repository.customer']->encryptPassword($app, $Customer)
+                            $app['eccube.repository.customer']->encryptPassword($app, $Custome, $request->request->get('entry')['customer_pin_code']['first'])
                         )
                         ->setSecretKey(
                             $app['eccube.repository.customer']->getUniqueSecretKey($app)
@@ -110,9 +110,12 @@ class EntryController extends AbstractController
                     $CustomerBasicInfo->setCustomer($Customer)
                                         ->setStatus($app['eccube.repository.customer_basic_info_status']->find($app['config']['initialize_customer_basicinfo_status']))
                                         ->setNobulletin($form->get('nobulletin')->getData())
+                                        ->setAnonymous($form->get('anonymous')->getData())
+                                        ->setAnonymousCompany($form->get('anonymous_company')->getData())
                                         ->setMembershipExemption($app['eccube.repository.master.exemption_type_type']->find($app['config']['initialize_exemption_type']))
                                         ->setInstructorType($app['eccube.repository.master.instructor_type']->find($app['config']['initialize_instructor_type']))
-                                        ->setSupporterType($app['eccube.repository.master.supporter_type']->find($app['config']['initialize_supporter_type']));
+                                        ->setSupporterType($app['eccube.repository.master.supporter_type']->find($app['config']['initialize_supporter_type']))
+                                        ->setCustomerPinCode($request->request->get('entry')['customer_pin_code']['first']);
                     $Customer->setName01($HomeCustomerAddress->getName01())
                         ->setName02($HomeCustomerAddress->getName02())
                         ->setKana01($HomeCustomerAddress->getKana01())
@@ -166,8 +169,7 @@ class EntryController extends AbstractController
                         $customerNumber = sprintf($app['config']['temp_customer_number'], date('YmdHis'));
                         $existsCustomerBasicInfo = $app['eccube.repository.customer_basic_info']->findOneBy(array('customer_number' =>$customerNumber));
                     }
-                    $CustomerBasicInfo->setCustomerNumber($customerNumber)
-                                        ->setCustomerPinCode($request->request->get('entry')['password']['first']);
+                    $CustomerBasicInfo->setCustomerNumber($customerNumber);
                     $app['orm.em']->persist($CustomerBasicInfo);
                     $app['orm.em']->flush();
 

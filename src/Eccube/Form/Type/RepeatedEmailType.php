@@ -37,11 +37,10 @@ class RepeatedEmailType extends AbstractType
     {
         $resolver->setDefaults(array(
             'type' => 'email',
-            'required' => true,
+            'required' => false,
             'invalid_message' => 'form.member.email.invalid',
             'options' => array(
                 'constraints' => array(
-                    new Assert\NotBlank(),
                     new Assert\Email(array('strict' => true)),
                     new Assert\Regex(array(
                         'pattern' => '/^[[:graph:][:space:]]+$/i',

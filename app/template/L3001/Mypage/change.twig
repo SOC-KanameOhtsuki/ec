@@ -168,10 +168,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
                             </div>
                         </dd>
                     </dl>
-                    <dl id="detail_box__password">
-                        <dt>{{ form_label(form.password) }}</dt>
+                    {% if form.customer_pin_code %}
+                    <dl id="detail_box__customer_pin_code">
+                        <dt><label class="control-label required">パスワード</label><span class="required">必須</span></dt>
                         <dd>
-                            {% for passwordField in form.password %}
+                            {% for passwordField in form.customer_pin_code %}
                             <div class="form-group {% if passwordField.vars.errors is not empty %}has-error{% endif %}">
                                 {{ form_widget(passwordField, { type : 'password' }) }}
                                 {{ form_errors(passwordField) }}
@@ -179,6 +180,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
                             {% endfor %}
                         </dd>
                     </dl>
+                    {% endif %}
                 </div>
                 <div class="dl_table not_required">
                     <dl id="detail_box__birth">
@@ -214,6 +216,24 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
                             <div class="form-group form-inline">
                                 {{ form_widget(form.nobulletin) }}
                                 {{ form_errors(form.nobulletin) }}
+                            </div>
+                        </dd>
+                    </dl>
+                    <dl id="detail_box__anonymous">
+                        <dt>{{ form_label(form.anonymous) }}</dt>
+                        <dd>
+                            <div class="form-group form-inline">
+                                {{ form_widget(form.anonymous) }}
+                                {{ form_errors(form.anonymous) }}
+                            </div>
+                        </dd>
+                    </dl>
+                    <dl id="detail_box__anonymous_company">
+                        <dt>{{ form_label(form.anonymous_company) }}</dt>
+                        <dd>
+                            <div class="form-group form-inline">
+                                {{ form_widget(form.anonymous_company) }}
+                                {{ form_errors(form.anonymous_company) }}
                             </div>
                         </dd>
                     </dl>

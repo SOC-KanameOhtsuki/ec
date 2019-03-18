@@ -48,18 +48,14 @@ class EntryType extends AbstractType
             // 自宅住所
             ->add('home_address', 'customer_address', array(
                 'mapped' => false,
-                'name_required' => true,
-                'kana_required' => true,
-                'address_required' => true,
-                'zip_required' => true,
-                'tel_required' => true,
-                'email_required' => true,
             ))
             // 勤務先住所
             ->add('office_address', 'customer_address', array(
                 'mapped' => false,
             ))
-            ->add('password', 'repeated_password')
+            ->add('customer_pin_code', 'repeated_password', array(
+                'mapped' => false,
+            ))
             ->add('birth', 'birthday', array(
                 'required' => false,
                 'input' => 'datetime',
@@ -82,6 +78,16 @@ class EntryType extends AbstractType
             ))
             ->add('nobulletin', 'nobulletin_type', array(
                 'label' => '機関紙お届け',
+                'required' => false,
+                'mapped' => false,
+            ))
+            ->add('anonymous', 'anonymous_type', array(
+                'label' => '正会員一覧への名前掲載',
+                'required' => false,
+                'mapped' => false,
+            ))
+            ->add('anonymous_company', 'anonymous_company_type', array(
+                'label' => '正会員一覧への施設名掲載',
                 'required' => false,
                 'mapped' => false,
             ))

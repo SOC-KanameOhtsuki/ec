@@ -49,11 +49,6 @@ class CustomerType extends AbstractType
             // 自宅住所
             ->add('home_address', 'admin_customer_address', array(
                 'mapped' => false,
-                'name_required' => true,
-                'address_required' => true,
-                'zip_required' => true,
-                'tel_required' => true,
-                'email_required' => true,
             ))
             ->add('sex', 'sex', array(
                 'required' => false,
@@ -77,15 +72,6 @@ class CustomerType extends AbstractType
                         'value' => date('Y-m-d'),
                         'message' => 'form.type.select.selectisfuturedate',
                     )),
-                ),
-            ))
-            ->add('password', 'repeated_password', array(
-                // 'type' => 'password',
-                'first_options'  => array(
-                    'label' => 'パスワード',
-                ),
-                'second_options' => array(
-                    'label' => 'パスワード(確認)',
                 ),
             ))
             ->add('customer_image', 'file', array(

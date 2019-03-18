@@ -329,3 +329,4 @@ second_login_def_body: mypage
 second_login_def_target_path: /mypage/login
 second_login_def_fail_target_path: /mypage/login
 temp_customer_number: "TEMP%014d"
+can_not_change_pincode_status: [1]

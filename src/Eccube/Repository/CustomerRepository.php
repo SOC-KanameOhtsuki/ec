@@ -487,12 +487,12 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
                 $id = preg_match('/^\d+$/', $clean_key_multi) ? $clean_key_multi : null;
                 $subQuery
                     ->andWhere($alias.'.id = :customer_id' . $subQueryIndex . ' OR ' . 'bc' . $subQueryIndex . '.customer_number LIKE :customer_number' . $subQueryIndex . ' OR ' . 'bc' . $subQueryIndex . '.customer_number_old LIKE :customer_number_old' . $subQueryIndex . ' OR CONCAT(' . $alias . '.name01, ' . $alias . '.name02) LIKE :name' . $subQueryIndex . ' OR CONCAT(' . $alias . '.kana01, ' . $alias . '.kana02) LIKE :kana' . $subQueryIndex . ' OR ' . $alias . '.email LIKE :email' . $subQueryIndex);
-                    $params['customer_id' . $subQueryIndex] = $id;
-                    $params['customer_number' . $subQueryIndex] = '%' . $clean_key_multi . '%';
-                    $params['customer_number_old' . $subQueryIndex] = '%' . $clean_key_multi . '%';
-                    $params['name' . $subQueryIndex] = '%' . $clean_key_multi . '%';
-                    $params['kana' . $subQueryIndex] = '%' . $clean_key_multi . '%';
-                    $params['email' . $subQueryIndex] = '%' . $clean_key_multi . '%';
+                $params['customer_id' . $subQueryIndex] = $id;
+                $params['customer_number' . $subQueryIndex] = '%' . $clean_key_multi . '%';
+                $params['customer_number_old' . $subQueryIndex] = '%' . $clean_key_multi . '%';
+                $params['name' . $subQueryIndex] = '%' . $clean_key_multi . '%';
+                $params['kana' . $subQueryIndex] = '%' . $clean_key_multi . '%';
+                $params['email' . $subQueryIndex] = '%' . $clean_key_multi . '%';
             }
 
             // CusotmerId
@@ -502,18 +502,97 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
                 $params['customer_id_full' . $subQueryIndex] = $searchData['searchData']['customer_id'];
             }
 
+            // PrefArea
+            if (!empty($searchData['pref_area']) && count($searchData['pref_area']) > 0) {
+                $prefs = array();
+                foreach ($searchData['pref_area'] as $prefArea) {
+                    switch($prefArea) {
+                    case 1:     // 北海道
+                        $prefs[] = 1;
+                        break;
+                    case 2:     // 東北
+                        $prefs[] = 2;
+                        $prefs[] = 3;
+                        $prefs[] = 4;
+                        $prefs[] = 5;
+                        $prefs[] = 6;
+                        $prefs[] = 7;
+                        break;
+                    case 3:     // 関東
+                        $prefs[] = 8;
+                        $prefs[] = 9;
+                        $prefs[] = 10;
+                        $prefs[] = 11;
+                        $prefs[] = 12;
+                        $prefs[] = 13;
+                        $prefs[] = 14;
+                        break;
+                    case 4:     // 北陸
+                        $prefs[] = 15;
+                        $prefs[] = 16;
+                        $prefs[] = 17;
+                        $prefs[] = 18;
+                        $prefs[] = 19;
+                        $prefs[] = 20;
+                        break;
+                    case 5:     // 関西
+                        $prefs[] = 25;
+                        $prefs[] = 26;
+                        $prefs[] = 27;
+                        $prefs[] = 28;
+                        $prefs[] = 29;
+                        $prefs[] = 30;
+                        break;
+                    case 6:     // 東海
+                        $prefs[] = 21;
+                        $prefs[] = 22;
+                        $prefs[] = 23;
+                        $prefs[] = 24;
+                        break;
+                    case 7:     // 中国
+                        $prefs[] = 31;
+                        $prefs[] = 32;
+                        $prefs[] = 33;
+                        $prefs[] = 34;
+                        $prefs[] = 35;
+                        break;
+                    case 8:     // 四国
+                        $prefs[] = 36;
+                        $prefs[] = 37;
+                        $prefs[] = 38;
+                        $prefs[] = 39;
+                        break;
+                    case 9:     // 九州
+                        $prefs[] = 40;
+                        $prefs[] = 41;
+                        $prefs[] = 42;
+                        $prefs[] = 43;
+                        $prefs[] = 44;
+                        $prefs[] = 45;
+                        $prefs[] = 46;
+                        break;
+                    case 10:    // 沖縄
+                        $prefs[] = 47;
+                        break;
+                    }
+                }
+                $subQuery
+                    ->andWhere($qb->expr()->in('c.Pref', ':prefs' . $subQueryIndex));
+                $params['prefs' . $subQueryIndex] = $prefs;
+            }
+
             // Pref
             if (!empty($searchData['searchData']['pref']) && $searchData['searchData']['pref']) {
                 $subQuery
                     ->andWhere($alias.'.Pref = :pref' . $subQueryIndex);
-                    $params['pref' . $subQueryIndex] = $searchData['searchData']['pref']->getId();
+                $params['pref' . $subQueryIndex] = $searchData['searchData']['pref']->getId();
             }
 
             // Address
             if (isset($searchData['address']) && Str::isNotBlank($searchData['address'])) {
                 $subQuery
                     ->andWhere($alias.'.addr01 LIKE :address' . $subQueryIndex);
-                    $params['address' . $subQueryIndex] = '%' . $searchData['searchData']['address'] . '%';
+                $params['address' . $subQueryIndex] = '%' . $searchData['searchData']['address'] . '%';
             }
 
             // sex
@@ -719,7 +798,7 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
         return $qb;
     }
 
-    public function getQueryBuilderBySearchRegularMemberData($searchData)
+    public function getQueryBuilderBySearchRegularMemberData($searchData, $anonymousEnabled = false)
     {
         $qb = $this->createQueryBuilder('c')
             ->select('c')
@@ -727,6 +806,9 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
             ->andWhere('bc.Status = 1')
             ->andWhere('c.Status = 2')
             ->andWhere('c.del_flg = 0');
+        if ($anonymousEnabled) {
+            $qb->andWhere('bc.Anonymous = 1');
+        }
 
         if (isset($searchData['multi']) && Str::isNotBlank($searchData['multi'])) {
             //スペース除去
@@ -898,7 +980,7 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
         return $qb;
     }
 
-    public function getQueryBuilderBySearchRegularMemberIds($searchData)
+    public function getQueryBuilderBySearchRegularMemberIds($searchData, $anonymousEnabled = false)
     {
         $qb = $this->createQueryBuilder('c')
             ->select('c')
@@ -908,6 +990,10 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
             ->andWhere('c.del_flg = 0')
             ->andWhere('c.id IN (:customerIds)')
             ->setParameter('customerIds', $searchData);
+
+        if ($anonymousEnabled) {
+            $qb->andWhere('bc.Anonymous = 1');
+        }
 
         // Order By
         $qb->addOrderBy('c.id', 'DESC');
@@ -1038,11 +1124,16 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
      * @param  Customer $Customer
      * @return mixed
      */
-    public function encryptPassword($app, \Eccube\Entity\Customer $Customer)
+    public function encryptPassword($app, \Eccube\Entity\Customer $Customer, $pin_code = null)
     {
         $encoder = $app['security.encoder_factory']->getEncoder($Customer);
-
-        return $encoder->encodePassword($Customer->getPassword(), $Customer->getSalt());
+        $encryptPassword = null;
+        if (is_null($pin_code)) {
+            $encryptPassword = $encoder->encodePassword($Customer->getCustomerBasicInfo()->getCustomerPinCode(), $Customer->getSalt());
+        } else {
+            $encryptPassword = $encoder->encodePassword($pin_code, $Customer->getSalt());
+        }
+        return $encryptPassword;
     }
 
     public function getNonActiveCustomerBySecretKey($secret_key)

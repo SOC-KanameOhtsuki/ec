@@ -98,6 +98,9 @@ class EccubeServiceProvider implements ServiceProviderInterface
         $app['eccube.service.flyer_pdf'] = $app->share(function () use ($app) {
             return new \Eccube\Service\FlyerPdfService($app);
         });
+        $app['eccube.service.regular_member_list_pdf'] = $app->share(function () use ($app) {
+            return new \Eccube\Service\RegularMemberListPdfService($app);
+        });
         $app['eccube.service.csv.export'] = $app->share(function () use ($app) {
             $csvService = new \Eccube\Service\CsvExportService();
             $csvService->setEntityManager($app['orm.em']);
@@ -482,6 +485,8 @@ class EccubeServiceProvider implements ServiceProviderInterface
             $types[] = new \Eccube\Form\Type\Master\BureauType();
             $types[] = new \Eccube\Form\Type\Master\ExemptionTypeType();
             $types[] = new \Eccube\Form\Type\Master\NobulletinTypeType();
+            $types[] = new \Eccube\Form\Type\Master\AnonymousTypeType();
+            $types[] = new \Eccube\Form\Type\Master\AnonymousCompanyTypeType();
 
             $types[] = new \Eccube\Form\Type\CustomerType($app); // 削除予定
 

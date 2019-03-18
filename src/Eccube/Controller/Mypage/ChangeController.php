@@ -78,6 +78,13 @@ class ChangeController extends AbstractController
 
         /* @var $form \Symfony\Component\Form\FormInterface */
         $form = $builder->getForm();
+        // PINコード
+        // ※正会員の場合は、PINコードを変更不可にする
+        if (in_array($Customer->getCustomerBasicInfo()->getStatus()->getId(), $app['config']['can_not_change_pincode_status'])) {
+            $form->remove('customer_pin_code');
+        } else {
+            $form['customer_pin_code']->setData($Customer->getCustomerBasicInfo()->getCustomerPinCode());
+        }
         // 自宅住所
         $form['home_address']->setData($HomeCustomerAddress);
         // 勤務先住所
@@ -87,21 +94,25 @@ class ChangeController extends AbstractController
         $form->get('office_address')->remove('mobilephone');
         $form->get('office_address')->remove('email');
         $form['nobulletin']->setData($Customer->getCustomerBasicInfo()->getNobulletin());
+        $form['anonymous']->setData($Customer->getCustomerBasicInfo()->getAnonymous());
+        $form['anonymous_company']->setData($Customer->getCustomerBasicInfo()->getAnonymousCompany());
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
 
             log_info('会員編集開始');
 
-            if ($Customer->getPassword() === $app['config']['default_password']) {
-                $Customer->setPassword($previous_password);
-            } else {
-                if ($Customer->getSalt() === null) {
-                    $Customer->setSalt($app['eccube.repository.customer']->createSalt(5));
+            if (in_array($Customer->getCustomerBasicInfo()->getStatus()->getId(), $app['config']['can_not_change_pincode_status'])) {
+                if ($Customer->getPassword() === $app['config']['default_password']) {
+                    $Customer->setPassword($previous_password);
+                } else {
+                    if ($Customer->getSalt() === null) {
+                        $Customer->setSalt($app['eccube.repository.customer']->createSalt(5));
+                    }
+                    $Customer->setPassword(
+                        $app['eccube.repository.customer']->encryptPassword($app, $Customer, $request->request->get('entry')['customer_pin_code']['first'])
+                    );
                 }
-                $Customer->setPassword(
-                    $app['eccube.repository.customer']->encryptPassword($app, $Customer)
-                );
             }
             $Customer->setName01($HomeCustomerAddress->getName01())
                 ->setName02($HomeCustomerAddress->getName02())
@@ -126,7 +137,12 @@ class ChangeController extends AbstractController
                 ->setEmail($HomeCustomerAddress->getEmail());
             $app['orm.em']->persist($Customer);
             $CustomerBasicInfo = $Customer->getCustomerBasicInfo();
-            $CustomerBasicInfo->setNobulletin($form->get('nobulletin')->getData());
+            $CustomerBasicInfo->setNobulletin($form->get('nobulletin')->getData())
+                                ->setAnonymous($form->get('anonymous')->getData())
+                                ->setAnonymousCompany($form->get('anonymous_company')->getData());
+            if (!in_array($CustomerBasicInfo->getStatus()->getId(), $app['config']['can_not_change_pincode_status'])) {
+                $CustomerBasicInfo->setCustomerPinCode($request->request->get('entry')['customer_pin_code']['first']);
+            }
             $app['orm.em']->persist($CustomerBasicInfo);
             $HomeCustomerAddress->setCustomer($Customer)
                     ->setAddressType($app['orm.em']->getRepository('Eccube\Entity\Master\CustomerAddressType')->find(1))

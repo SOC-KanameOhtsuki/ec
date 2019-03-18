@@ -472,4 +472,60 @@ class CustomerBasicInfo extends \Eccube\Entity\AbstractEntity
     {
         return $this->MembershipExemption;
     }
+    /**
+     * @var \Eccube\Entity\Master\AnonymousType
+     */
+    private $Anonymous;
+
+    /**
+     * @var \Eccube\Entity\Master\AnonymousCompanyType
+     */
+    private $AnonymousCompany;
+
+
+    /**
+     * Set Anonymous
+     *
+     * @param \Eccube\Entity\Master\AnonymousType $anonymous
+     * @return CustomerBasicInfo
+     */
+    public function setAnonymous(\Eccube\Entity\Master\AnonymousType $anonymous = null)
+    {
+        $this->Anonymous = $anonymous;
+
+        return $this;
+    }
+
+    /**
+     * Get Anonymous
+     *
+     * @return \Eccube\Entity\Master\AnonymousType 
+     */
+    public function getAnonymous()
+    {
+        return $this->Anonymous;
+    }
+
+    /**
+     * Set AnonymousCompany
+     *
+     * @param \Eccube\Entity\Master\AnonymousCompanyType $anonymousCompany
+     * @return CustomerBasicInfo
+     */
+    public function setAnonymousCompany(\Eccube\Entity\Master\AnonymousCompanyType $anonymousCompany = null)
+    {
+        $this->AnonymousCompany = $anonymousCompany;
+
+        return $this;
+    }
+
+    /**
+     * Get AnonymousCompany
+     *
+     * @return \Eccube\Entity\Master\AnonymousCompanyType 
+     */
+    public function getAnonymousCompany()
+    {
+        return $this->AnonymousCompany;
+    }
 }

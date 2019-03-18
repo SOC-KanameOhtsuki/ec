@@ -96,7 +96,7 @@ class RegularMemberListPdfService extends AbstractFPDIService
      *
      * @return bool
      */
-    public function makePdf(array $customersData)
+    public function makePdf(array $customersData, $anonymousEnabled = false)
     {
         // データが空であれば終了
         if (count($customersData) < 1) {
@@ -131,7 +131,9 @@ class RegularMemberListPdfService extends AbstractFPDIService
             // 地区
             $this->lfText(102.4, 31.5 + (6.41 * ($row - 1)), $customerData->getPref() . $customerData->getAddr01(), 8);
             // 所属団体・施設
-            $this->lfText(153.2, 31.5 + (6.41 * ($row - 1)), $customerData->getCompanyName(), 8);
+            if ($customerData->getCustomerBasicInfo()->getAnonymousCompany()->getId() == 2 || !$anonymousEnabled) {
+                $this->lfText(153.2, 31.5 + (6.41 * ($row - 1)), $customerData->getCompanyName(), 8);
+            }
 
             if ($row < self::MAX_ROR_PER_PAGE) {
                 ++$row;

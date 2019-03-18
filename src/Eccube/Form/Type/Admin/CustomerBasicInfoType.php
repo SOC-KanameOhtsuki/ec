@@ -106,6 +106,18 @@ class CustomerBasicInfoType extends AbstractType
                     new Assert\NotBlank(),
                 ),
             ))
+            ->add('anonymous', 'anonymous_type', array(
+                'label' => '名前掲載',
+                'constraints' => array(
+                    new Assert\NotBlank(),
+                ),
+            ))
+            ->add('anonymous_company', 'anonymous_company_type', array(
+                'label' => '施設名掲載',
+                'constraints' => array(
+                    new Assert\NotBlank(),
+                ),
+            ))
             ->add('bureau', 'bureau', array(
                 'label' => '振興局',
                 'required' => true,
