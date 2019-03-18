@@ -230,7 +230,7 @@
                         </div>
                         {# 会社名 #}
                         <div id="detail_box__company_name" class="form-group">
-                            {{ form_label(form.home_address.company_name) }}
+                            <label class="col-sm-2 control-label"> 施設名 </label>
                             <div class="col-sm-9 col-lg-10 input_name form-inline">
                                 {{ form_widget(form.home_address.company_name) }}
                                 {{ form_errors(form.home_address.company_name) }}
