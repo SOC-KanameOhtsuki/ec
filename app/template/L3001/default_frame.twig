@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #}
 <html lang="ja">
 <head>
-
+<meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <title>{{ BaseInfo.shop_name }}{% if subtitle is defined and subtitle is not empty %} / {{ subtitle }}{% elseif title is defined and title is not empty %} / {{ title }}{% endif %}</title>
 {% if PageLayout.author is not empty %}
@@ -42,23 +42,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
         {{ PageLayout.meta_tags|raw }}
     {% endif %}
     {% block meta_tags %}{% endblock %}
-
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-
-    <link rel="icon" href="{{ app.config.front_urlpath }}/img/common/favicon.ico">
-
+<link rel="icon" href="{{ app.config.front_urlpath }}/img/common/favicon.ico">
 <link rel="stylesheet" href="{{ app.config.front_urlpath }}/css/style.css?v={{ constant('Eccube\\Common\\Constant::VERSION') }}">
 <link rel="stylesheet" href="{{ app.config.front_urlpath }}/css/slick.css?v={{ constant('Eccube\\Common\\Constant::VERSION') }}">
 <link rel="stylesheet" href="{{ app.config.front_urlpath }}/css/default.css?v={{ constant('Eccube\\Common\\Constant::VERSION') }}">
-
-    <link rel="stylesheet" href="{{ app.config.front_urlpath }}/bootstrap-4.3.1-dist/css/bootstrap.min.css">
-
-    <!-- for original theme CSS -->
+<link rel="stylesheet" href="{{ app.config.front_urlpath }}/css/vendor/bootstrap-4.3.1-dist/css/bootstrap.min.css?v={{ constant('Eccube\\Common\\Constant::VERSION') }}"></script>
+<!-- for original theme CSS -->
 {% block stylesheet %}{% endblock %}
 
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="{{ app.config.front_urlpath }}/js/vendor/jquery-1.11.3.min.js?v={{ constant('Eccube\\Common\\Constant::VERSION') }}"><\/script>')</script>
 
 {# ▼Head COLUMN #}
 {% if PageLayout.Head %}
@@ -70,6 +63,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 </head>
 <body id="page_{{ app.request.get('_route') }}" class="{{ body_class|default('other_page') }}" style="padding-top:50px">
+    <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
 
     <header id="header">
         <div class="container-fluid inner">
@@ -173,15 +167,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 <div class="overlay"></div>
 
-    <script src="{{ app.config.front_urlpath }}/bootstrap-4.3.1-dist/js/jquery-3.3.1.min.js"></script>
-    <script src="{{ app.config.front_urlpath }}/bootstrap-4.3.1-dist/js/bootstrap.bundle.min.js"></script>
-
-{#    <script src="{{ app.config.front_urlpath }}/js/vendor/bootstrap.custom.min.js?v={{ constant('Eccube\\Common\\Constant::VERSION') }}"></script>#}
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="{{ app.config.front_urlpath }}/js/vendor/bootstrap-4.3.1-dist/js/bootstrap.bundle.min.js?v={{ constant('Eccube\\Common\\Constant::VERSION') }}"></script>
 <script src="{{ app.config.front_urlpath }}/js/vendor/slick.min.js?v={{ constant('Eccube\\Common\\Constant::VERSION') }}"></script>
 <script src="{{ app.config.front_urlpath }}/js/function.js?v={{ constant('Eccube\\Common\\Constant::VERSION') }}"></script>
 <script src="{{ app.config.front_urlpath }}/js/eccube.js?v={{ constant('Eccube\\Common\\Constant::VERSION') }}"></script>
-
-    <script>
+<script>
 $(function () {
     $('#drawer').append($('.drawer_block').clone(true).children());
     $.ajax({
@@ -195,6 +186,5 @@ $(function () {
 });
 </script>
 {% block javascript %}{% endblock %}
-
 </body>
 </html>
