@@ -321,6 +321,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
               </div>
               <div class="col-xs-6">
                 <div id="search_box_main__pref" class="form-group">
+                  <label>地方</label>
+                  {{ form_widget(searchForm.pref_area) }}
+                </div>
+              </div>
+              <div class="col-xs-6">
+                <div id="search_box_main__pref" class="form-group">
                   <label>都道府県</label>
                   {{ form_widget(searchForm.pref) }}
                 </div>

@@ -87,11 +87,12 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
             ->find(CustomerStatus::ACTIVE);
 
         $query = $this->createQueryBuilder('c')
-            ->where('c.email = :email')
+            ->leftJoin('c.CustomerBasicInfo', 'bc')
+            ->where('bc.customer_number = :customer_number')
             ->andWhere('c.del_flg = :delFlg')
             ->andWhere('c.Status =:CustomerStatus')
             ->setParameters(array(
-                'email' => $username,
+                'customer_number' => $username,
                 'delFlg' => Constant::DISABLED,
                 'CustomerStatus' => $CustomerStatus,
             ))
@@ -100,6 +101,13 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
         $Customer = $query->getOneOrNullResult();
         if (!$Customer) {
             throw new UsernameNotFoundException(sprintf('Username "%s" does not exist.', $username));
+        }
+        $app = \Eccube\Application::getInstance();
+        $encoder = $app['security.encoder_factory']->getEncoder($Customer);
+        if (empty($Customer->getSalt())) {
+            $Customer->setPassword(sha1($Customer->getCustomerBasicInfo()->getCustomerPinCode() . ':' . $app['config']['auth_magic']));
+        } else {
+            $Customer->setPassword($encoder->encodePassword($Customer->getCustomerBasicInfo()->getCustomerPinCode(), $Customer->getSalt()));
         }
 
         return $Customer;
@@ -124,8 +132,11 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
         if (!$user instanceof Customer) {
             throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', get_class($user)));
         }
+        if (is_null($user->getCustomerBasicInfo())) {
+            throw new UnsupportedUserException(sprintf('Instances of "%s" are not have CustomerBasicInfo.', get_class($user)));
+        }
 
-        return $this->loadUserByUsername($user->getUsername());
+        return $this->loadUserByUsername($user->getCustomerBasicInfo()->getCustomerNumber());
     }
 
     /**
@@ -167,6 +178,85 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
             $qb
                 ->andWhere('c.id = :customer_id')
                 ->setParameter('customer_id', $searchData['customer_id']);
+        }
+
+        // PrefArea
+        if (!empty($searchData['pref_area']) && count($searchData['pref_area']) > 0) {
+            $prefs = array();
+            foreach ($searchData['pref_area'] as $prefArea) {
+                switch($prefArea) {
+                case 1:     // 北海道
+                    $prefs[] = 1;
+                    break;
+                case 2:     // 東北
+                    $prefs[] = 2;
+                    $prefs[] = 3;
+                    $prefs[] = 4;
+                    $prefs[] = 5;
+                    $prefs[] = 6;
+                    $prefs[] = 7;
+                    break;
+                case 3:     // 関東
+                    $prefs[] = 8;
+                    $prefs[] = 9;
+                    $prefs[] = 10;
+                    $prefs[] = 11;
+                    $prefs[] = 12;
+                    $prefs[] = 13;
+                    $prefs[] = 14;
+                    break;
+                case 4:     // 北陸
+                    $prefs[] = 15;
+                    $prefs[] = 16;
+                    $prefs[] = 17;
+                    $prefs[] = 18;
+                    $prefs[] = 19;
+                    $prefs[] = 20;
+                    break;
+                case 5:     // 関西
+                    $prefs[] = 25;
+                    $prefs[] = 26;
+                    $prefs[] = 27;
+                    $prefs[] = 28;
+                    $prefs[] = 29;
+                    $prefs[] = 30;
+                    break;
+                case 6:     // 東海
+                    $prefs[] = 21;
+                    $prefs[] = 22;
+                    $prefs[] = 23;
+                    $prefs[] = 24;
+                    break;
+                case 7:     // 中国
+                    $prefs[] = 31;
+                    $prefs[] = 32;
+                    $prefs[] = 33;
+                    $prefs[] = 34;
+                    $prefs[] = 35;
+                    break;
+                case 8:     // 四国
+                    $prefs[] = 36;
+                    $prefs[] = 37;
+                    $prefs[] = 38;
+                    $prefs[] = 39;
+                    break;
+                case 9:     // 九州
+                    $prefs[] = 40;
+                    $prefs[] = 41;
+                    $prefs[] = 42;
+                    $prefs[] = 43;
+                    $prefs[] = 44;
+                    $prefs[] = 45;
+                    $prefs[] = 46;
+                    break;
+                case 10:    // 沖縄
+                    $prefs[] = 47;
+                    break;
+                }
+            }
+            $qb
+                ->andWhere($qb->expr()->in('c.Pref', ':prefs'))
+                ->setParameter('prefs', $prefs);
         }
 
         // Pref

@@ -158,6 +158,16 @@ class EntryController extends AbstractController
                     } else if ($OfficeAddress->getId() !== null) {
                         $app['orm.em']->remove($OfficeAddress);
                     }
+                    $customerNumber = sprintf($app['config']['temp_customer_number'], date('YmdHis'));
+                    $existsCustomerBasicInfo = $app['eccube.repository.customer_basic_info']->findOneBy(array('customer_number' =>$customerNumber));
+                    while (!is_null($existsCustomerBasicInfo)) {
+                        // 仮会員IDには秒数まで入れるため競合時は数秒スリープ後に再試行
+                        usleep(rand(1000000, 5000000));
+                        $customerNumber = sprintf($app['config']['temp_customer_number'], date('YmdHis'));
+                        $existsCustomerBasicInfo = $app['eccube.repository.customer_basic_info']->findOneBy(array('customer_number' =>$customerNumber));
+                    }
+                    $CustomerBasicInfo->setCustomerNumber($customerNumber)
+                                        ->setCustomerPinCode($request->request->get('entry')['password']['first']);
                     $app['orm.em']->persist($CustomerBasicInfo);
                     $app['orm.em']->flush();
 

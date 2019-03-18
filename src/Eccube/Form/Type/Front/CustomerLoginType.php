@@ -44,26 +44,24 @@ class CustomerLoginType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        $builder->add('login_email', 'email', array( // todo text -> email ?
+        $builder->add('login_member_id', 'text', array(
             'attr' => array(
-                'max_length' => 320, // todo
+                'max_length' => 19,
             ),
             'constraints' => array(
                 new Assert\NotBlank(),
-                new Assert\Email(array('strict' => true)),
             ),
-            'data' => $this->session->get('_security.last_username'),
+        ));
+        $builder->add('login_pincode', 'password', array(
+            'attr' => array(
+                'max_length' => 8,
+            ),
+            'constraints' => array(
+                new Assert\NotBlank(),
+            ),
         ));
         $builder->add('login_memory', 'checkbox', array(
             'required' => false,
-        ));
-        $builder->add('login_pass', 'password', array(
-            'attr' => array(
-                'max_length' => 320, // todo
-            ),
-            'constraints' => array(
-                new Assert\NotBlank(),
-            ),
         ));
     }
 

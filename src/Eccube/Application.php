@@ -536,8 +536,8 @@ class Application extends ApplicationTrait
                 'form' => array(
                     'login_path' => '/mypage/login',
                     'check_path' => '/login_check',
-                    'username_parameter' => 'login_email',
-                    'password_parameter' => 'login_pass',
+                    'username_parameter' => 'login_member_id',
+                    'password_parameter' => 'login_pincode',
                     'with_csrf' => true,
                     'use_forward' => true,
                 ),
@@ -560,16 +560,6 @@ class Application extends ApplicationTrait
                 'anonymous' => true,
             ),
         );
-        $this['security.authentication.success_handler.customer'] = $this->share(function ()  {
-            $handler = new \Eccube\Security\DefaultAuthenticationSuccessHandler(
-                $this,
-                $this['security.http_utils'],
-                $this['security.firewalls']['customer']['form']
-            );
-            $handler->setProviderKey('customer');
-
-            return $handler;
-        });
 
         $channel = null;
         // 強制SSL

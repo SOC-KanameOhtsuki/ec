@@ -89,6 +89,14 @@ class SearchCustomerType extends AbstractType
                     new Assert\Length(array('max' => $config['stext_len'])),
                 ),
             ))
+             ->add('pref_area', 'choice', array(
+                'label' => '地方グループ',
+                'required' => false,
+                'choices' => array(1 => '北海道', 2 => '東北', 3 => '関東', 4 => '北陸', 5 => '関西', 6 => '東海', 7 => '中国', 8 => '四国', 9 => '九州', 10 => '沖縄'),
+                'expanded' => true,
+                'multiple' => true,
+                'empty_value' => false,
+            ))
             ->add('pref', 'pref', array(
                 'label' => '都道府県',
                 'required' => false,

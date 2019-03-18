@@ -33,7 +33,7 @@ class RepeatedPasswordType extends AbstractType
     /**
      * {@inheritdoc}
      */
-    public function __construct($config = array('password_min_len' => 8, 'password_max_len' => '32'))
+    public function __construct($config = array('password_min_len' => 4, 'password_max_len' => '32'))
     {
         $this->config = $config;
     }
@@ -56,14 +56,14 @@ class RepeatedPasswordType extends AbstractType
                         'max' => $this->config['password_max_len'],
                     )),
                     new Assert\Regex(array(
-                        'pattern' => '/^[[:graph:][:space:]]+$/i',
-                        'message' => 'form.type.graph.invalid',
+                        'pattern' => '/^[0-9]+$/i',
+                        'message' => 'form.type.numeric.invalid',
                     )),
                 ),
             ),
             'first_options' => array(
                 'attr' => array(
-                    'placeholder' => '半角英数字記号'.$this->config['password_min_len'].'～'.$this->config['password_max_len'].'文字',
+                    'placeholder' => '半角数字'.$this->config['password_min_len'].'～'.$this->config['password_max_len'].'文字',
                 ),
             ),
             'second_options' => array(

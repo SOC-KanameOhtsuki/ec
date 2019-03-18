@@ -171,6 +171,7 @@ class ChangeController extends AbstractController
 
         return $app->render('Mypage/change.twig', array(
             'form' => $form->createView(),
+            'memberId' => $Customer->getCustomerBasicInfo()->getCustomerNumber(),
         ));
     }
 

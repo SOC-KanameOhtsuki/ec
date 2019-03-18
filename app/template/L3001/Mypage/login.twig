@@ -26,7 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 {% block main %}
     <h1 class="page-heading">ログイン</h1>
     <div class="container-fluid">
-        <form name="login_mypage" id="login_mypage" method="post" action="{{ url('login_check') }}" onsubmit="return eccube.checkLoginFormInputted('login_mypage')" {{ form_enctype(form) }}>
+        <form name="login_mypage" id="login_mypage" method="post" action="{{ url('login_check') }}" onsubmit="return eccube.checkSecondLoginFormInputted('login_mypage')" {{ form_enctype(form) }}>
             {% if app.session.flashBag.has('eccube.login.target.path') %}
                 {% for targetPath in app.session.flashBag.get('eccube.login.target.path') %}
                     <input type="hidden" name="_target_path" value="{{ targetPath }}" />
@@ -40,11 +40,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
                         <div id="mypage_login_box__body" class="column_inner clearfix">
                             <div class="icon icon-media-lg"><svg class="cb cb-user"><use xlink:href="#cb-user" /></svg></div>
-                            <div id="mypage_login_box__login_email" class="form-group">
-                                {{ form_widget(form.login_email, {'attr': {'style' : 'ime-mode: disabled;', 'placeholder' : 'メールアドレス', 'autofocus': true}}) }}
+                            <div id="mypage_login_box__login_member_id" class="form-group">
+                                {{ form_widget(form.login_member_id, {'attr': {'style' : 'ime-mode: disabled;', 'placeholder' : '会員ID', 'autofocus': true}}) }}
                             </div>
-                            <div id="mypage_login_box__login_pass" class="form-group">
-                                {{ form_widget(form.login_pass,  {'attr': {'placeholder' : 'パスワード' }}) }}
+                            <div id="mypage_login_box__login_pincode" class="form-group">
+                                {{ form_widget(form.login_pincode,  {'attr': {'placeholder' : 'PINコード' }}) }}
                                 {% if BaseInfo.option_remember_me %}
                                     {% if is_granted('IS_AUTHENTICATED_REMEMBERED') %}
                                         <input id="mypage_login_box__login_memory" type="hidden" name="login_memory" value="1">

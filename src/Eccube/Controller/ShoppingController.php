@@ -1197,7 +1197,7 @@ class ShoppingController extends AbstractController
         if ($app->isGranted('IS_AUTHENTICATED_REMEMBERED')) {
             $Customer = $app->user();
             if ($Customer) {
-                $builder->get('login_email')->setData($Customer->getEmail());
+                $builder->get('login_member_id')->setData($Customer->getCustomerBasicInfo()->getCustomerNumber());
             }
         }
 

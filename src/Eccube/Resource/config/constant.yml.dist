@@ -175,7 +175,7 @@ p_detail_urlpath: '/products/detail.php?product_id='
 page_display_time_log_min_exec_time: 2
 page_display_time_log_mode: 1
 password_max_len: 32
-password_min_len: 8
+password_min_len: 4
 pear_db_debug: 0
 pear_db_persistent: false
 pending_order_cancel_flag: true
@@ -328,3 +328,4 @@ second_login_def_frame: [default_frame.twig]
 second_login_def_body: mypage
 second_login_def_target_path: /mypage/login
 second_login_def_fail_target_path: /mypage/login
+temp_customer_number: "TEMP%014d"
