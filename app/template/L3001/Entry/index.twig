@@ -160,7 +160,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
                         </dd>
                     </dl>
                     <dl id="top_box__customer_pin_code">
-                        <dt>{{ form_label(form.customer_pin_code) }}</dt>
+                        <dt><label class="control-label required">パスワード</label><span class="required">必須</span></dt>
                         <dd>
                             {% for passwordField in form.customer_pin_code %}
                             <div class="form-group {% if passwordField.vars.errors is not empty %}has-error{% endif %}">
