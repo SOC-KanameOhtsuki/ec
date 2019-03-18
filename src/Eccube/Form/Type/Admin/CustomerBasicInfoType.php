@@ -31,12 +31,12 @@ class CustomerBasicInfoType extends AbstractType
             ->add('customer_number', 'text', array(
                 'label' => '会員ID',
                 'required' => false,
-                'mapped' => true,
+                'read_only' =>'true',
             ))
             ->add('customer_number_old', 'text', array(
                 'label' => '旧会員ID',
                 'required' => false,
-                'mapped' => true,
+                'read_only' =>'true',
             ))
             ->add('customer_pin_code', 'text', array(
                 'label' => 'PINコード',
