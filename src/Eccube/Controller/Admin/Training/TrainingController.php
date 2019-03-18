@@ -2083,6 +2083,7 @@ class TrainingController extends AbstractController
             $CustomerInfo->setMembershipExpired(new \DateTime(Date('Y-m-d', strtotime(sprintf("03/31/%d", ((int)($ProductTraining->getTimeStartYear()) + 1))))));
             $CustomerInfo->setRegularMemberPromoted(new \DateTime($ProductTraining->getTrainingDateStartDay()));
             $CustomerInfo->setUpdateDate(date('Y-m-d H:i:s'));
+            $CustomerInfo->setSupporterType($app['eccube.repository.master.supporter_type']->find(1));
             $app['orm.em']->persist($CustomerInfo);
 
             $app['orm.em']->flush();
