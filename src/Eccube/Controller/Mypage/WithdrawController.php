@@ -75,8 +75,11 @@ class WithdrawController extends AbstractController
                     // 会員削除
                     $email = $Customer->getEmail();
                     // メールアドレスにダミーをセット
-                    $Customer->setEmail(Str::random(60) . '@dummy.dummy');
-                    $Customer->setDelFlg(Constant::ENABLED);
+                    //$Customer->setEmail(Str::random(60) . '@dummy.dummy');
+                    //$Customer->setDelFlg(Constant::ENABLED);
+                    $CustomerInfo = $app['eccube.repository.customer_basic_info']->getCustomerBasicInfoByCustomer($Customer);
+                    $InfoStatus = $app['eccube.repository.customer_basic_info_status']->find(8);
+                    $CustomerInfo->setStatus($InfoStatus);
 
                     $app['orm.em']->flush();
 
