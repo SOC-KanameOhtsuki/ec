@@ -372,8 +372,24 @@ This file is Custom File
       {% if pagination and pagination.totalItemCount > 0 %}
       <div id="result_list_main__header" class="box-header with-arrow">
         <h2><a href="{{ url('admin_training_edit', { id : Product.id }) }}">{{ Product.name }}(会場：{{ Product.ProductTraining.place }})</a></h2>
+        <table class="table table-bordered ">
+            <thead>
+                <tr class="bg-primary" >
+                    <th scope="cal">開催日</th><th scope="cal">地域</th><th scope="cal">講習会種別</th><th scope="cal">申込数 / 定員数</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ ProductTrainingStart[0] }}</td><td>{{ ProductTrainingAddr }}</td><td> {{ Product.ProductTraining.training_type }} </td>
+                    {% if ProductClassStock == "" %}
+                        <td>{{ pagination.totalItemCount }} / 無制限</td>
+                    {% else %}
+                        <td>{{ pagination.totalItemCount }} / {{ ProductClassStock }}</td>
+                    {% endif %}
+                </tr>
+            </tbody>
+        </table>
         <h3 class="box-title">検索結果 <span class="normal"><strong>{{ pagination.totalItemCount }} 件</strong> が該当しました</span></h3>
-        <h3 class="box-title">定員数：{{ ProductClass.stock }}　/ 残席数：</h3>
       </div><!-- /.box-header -->
       <div id="result_list_main__body" class="box-body">
         <div id="customInfoAlert" class="alert alert-info" style="display: none;">
@@ -404,7 +420,7 @@ This file is Custom File
                 <li><a id="mail_label" href="javascript:void(0);">郵送用ラベル</a></li>
                 <li><a id="certification_sendding_note" href="javascript:void(0);">資格認定証送付状</a></li>
                 <li><a id="bulk_deny" href="javascript:void(0);">否認登録</a></li>
-                <li><a id="bulk_certified" href="javascript:void(0);">一括認定</a></li>
+                <li><a id="bulk_certified" href="javascript:void(0);">個別認定</a></li>
                 <li><a id="bulk_cancel" href="javascript:void(0);">認定・否認キャンセル</a></li>
               </ul>
               </li>

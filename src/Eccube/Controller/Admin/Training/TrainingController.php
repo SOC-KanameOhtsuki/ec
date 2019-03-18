@@ -566,7 +566,8 @@ class TrainingController extends AbstractController
                 array('wrap-queries' => true)
             );
         }
-
+        $ProductTraining = $Product->getProductTraining();
+        preg_match('/(.*?)(郡|市|町|村)(.*)/u',$ProductTraining->getAddr01(),$match);
         return $app->render('Training/index_student.twig', array(
             'pagination' => $pagination,
             'pageMaxis' => $pageMaxis,
@@ -574,6 +575,9 @@ class TrainingController extends AbstractController
             'page_status' => $page_status,
             'page_count' => $page_count,
             'Product' => $Product,
+            'ProductTrainingStart' => explode(' ',$ProductTraining->getTrainingDateStart()),
+            'ProductTrainingAddr' => $match[1].$match[2],
+            'ProductClassStock' => $Product->getStockMax(),
             'ProductId' => $id,
             'attendanceDenialReasons' => $attendanceDenialReasons
         ));
