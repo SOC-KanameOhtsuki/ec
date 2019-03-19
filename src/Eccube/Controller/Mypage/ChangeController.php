@@ -52,6 +52,9 @@ class ChangeController extends AbstractController
                 if (!is_null($CustomerAddress->getAddressType())) {
                     if ($CustomerAddress->getAddressType()->getId() == 1) {
                         $HomeCustomerAddress = $CustomerAddress;
+                        if (preg_match("/" . $app['config']['dummy_email_pattern'] . "/", $HomeCustomerAddress->getEmail())) {
+                            $HomeCustomerAddress->setEmail(null);
+                        }
                     } else if ($CustomerAddress->getAddressType()->getId() == 2) {
                         $OfficeAddress = $CustomerAddress;
                     }
@@ -99,9 +102,7 @@ class ChangeController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-
             log_info('会員編集開始');
-
             if (in_array($Customer->getCustomerBasicInfo()->getStatus()->getId(), $app['config']['can_not_change_pincode_status'])) {
                 if ($Customer->getPassword() === $app['config']['default_password']) {
                     $Customer->setPassword($previous_password);
@@ -110,8 +111,16 @@ class ChangeController extends AbstractController
                         $Customer->setSalt($app['eccube.repository.customer']->createSalt(5));
                     }
                     $Customer->setPassword(
-                        $app['eccube.repository.customer']->encryptPassword($app, $Customer, $request->request->get('entry')['customer_pin_code']['first'])
+                        $app['eccube.repository.customer']->encryptPasswordFromParam($app, $Customer->getSalt(), $request->request->get('entry')['customer_pin_code']['first'])
                     );
+                }
+            }
+            log_info('input Email:' . $HomeCustomerAddress->getEmail());
+            if (empty($HomeCustomerAddress->getEmail())) {
+                if (preg_match("/" . $app['config']['dummy_email_pattern'] . "/", $Customer->getEmail())) {
+                    $HomeCustomerAddress->setEmail($Customer->getEmail());
+                } else {
+                    $HomeCustomerAddress->setEmail(sprintf($app['config']['dummy_email'], date("YmdHis"), substr(explode(".", (microtime(true) . ""))[1], 0, 3)));
                 }
             }
             $Customer->setName01($HomeCustomerAddress->getName01())

@@ -18,7 +18,7 @@ class ExemptionTypeType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        $options['sex_options']['required'] = $options['required'];
+        $options['exemption_type_options']['required'] = $options['required'];
     }
 
     public function configureOptions(OptionsResolver $resolver)

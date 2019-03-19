@@ -40,7 +40,7 @@ Eccube\Entity\CustomerBasicInfo:
             nullable: true
         regular_member_promoted:
             type: datetime
-            nullable: false
+            nullable: true
         create_date:
             type: datetime
             nullable: false

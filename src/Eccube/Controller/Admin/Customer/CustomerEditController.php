@@ -114,7 +114,7 @@ class CustomerEditController extends AbstractController
             $CustomerBasicInfo->setStatus($app['orm.em']->getRepository('Eccube\Entity\Master\CustomerBasicInfoStatus')->find(4));
             $CustomerBasicInfo->setInstructorType($app['orm.em']->getRepository('Eccube\Entity\Master\InstructorType')->find(6));
             $CustomerBasicInfo->setSupporterType($app['orm.em']->getRepository('Eccube\Entity\Master\SupporterType')->find(7));
-            $CustomerBasicInfo->setMembershipExemption($app['orm.em']->getRepository('Eccube\Entity\Master\ExemptionType')->find(2));
+            $CustomerBasicInfo->setMembershipExemption($app['orm.em']->getRepository('Eccube\Entity\Master\ExemptionType')->find(1));
             $CustomerBasicInfo->setNobulletin($app['orm.em']->getRepository('Eccube\Entity\Master\NobulletinType')->find(1));
             $CustomerBasicInfo->setAnonymous($app['orm.em']->getRepository('Eccube\Entity\Master\AnonymousType')->find(1));
             $CustomerBasicInfo->setAnonymousCompany($app['orm.em']->getRepository('Eccube\Entity\Master\AnonymousCompanyType')->find(1));
@@ -172,11 +172,17 @@ class CustomerEditController extends AbstractController
                         $app['eccube.repository.customer']->getUniqueSecretKey($app)
                     );
                 }
+                $CustomerBasicInfo = $form['basic_info']->getData();
+                if (strlen($CustomerBasicInfo->getCustomerPinCode()) < 1) {
+                    $CustomerBasicInfo->setCustomerPinCode(rand(10000000, 99999999));
+                }
 
                 $HomeCustomerAddress->setCustomer($Customer)
                         ->setAddressType($app['orm.em']->getRepository('Eccube\Entity\Master\CustomerAddressType')->find(1))
-                        ->setZipcode($HomeCustomerAddress->getZip01() . $HomeCustomerAddress->getZip02())
-                        ->setCompanyName($OfficeAddress->getCompanyName());
+                        ->setZipcode($HomeCustomerAddress->getZip01() . $HomeCustomerAddress->getZip02());
+                if (empty($HomeCustomerAddress->getEmail())) {
+                    $HomeCustomerAddress->setEmail(sprintf($app['config']['dummy_email'], date("YmdHis"), substr(explode(".", (microtime(true) . ""))[1], 0, 3)));
+                }
 
                 $app['orm.em']->persist($HomeCustomerAddress);
                 if ((1 < strlen($OfficeAddress->getCompanyName())) ||
@@ -228,7 +234,7 @@ class CustomerEditController extends AbstractController
                         $Customer->setSalt($app['eccube.repository.customer']->createSalt(5));
                     }
                     $Customer->setPassword(
-                        $app['eccube.repository.customer']->encryptPassword($app, $Customer)
+                        $app['eccube.repository.customer']->encryptPasswordFromParam($app, $Customer->getSalt(), $CustomerBasicInfo->getCustomerPinCode())
                     );
                 }
 
@@ -268,7 +274,6 @@ class CustomerEditController extends AbstractController
                         $fs->remove($app['config']['customer_image_save_realdir'].'/'.$delete_image);
                     }
                 }
-                $CustomerBasicInfo = $form['basic_info']->getData();
                 $CustomerBasicInfo->setCustomer($Customer);
                 $app['orm.em']->persist($CustomerBasicInfo);
                 if ($isQrCodeRegisted) {
@@ -277,7 +282,34 @@ class CustomerEditController extends AbstractController
                     $fs->remove($app['config']['customer_image_save_realdir'].'/'.$QrCode->getFileName());
                     $app['orm.em']->remove($QrCode);
                 }
+                $request_data = $request->request->all();
+                $CustomerGroup = null;
+                if (isset($request_data['admin_customer']['belongs_group_id'])) {
+                    $CustomerGroup = $app['eccube.repository.customer_group']
+                        ->find($request_data['admin_customer']['belongs_group_id']);
+                }
+                $Customer->setCustomerGroup($CustomerGroup);
+
+                $app['orm.em']->persist($Customer);
+                $app['orm.em']->flush();
+
                 $customerId = $CustomerBasicInfo->getCustomerNumber();
+                if ((strlen($customerId) < 1) || (is_null($customerId))) {
+                    if ($CustomerBasicInfo->getStatus()->getId() == 1) {
+                        // 正会員ID
+                        if ($Customer->getPref() == null) {
+                            $customerId = sprintf("00%07d", $Customer->getId());
+                        } else {
+                            $customerId = sprintf(($Customer->getPref()->getRank() < 10 ? "JPN0%d%07d" : "JPN%d%07d"), $Customer->getPref()->getRank(), $Customer->getId());
+                        }
+                    } else {
+                        // 仮会員ID
+                        $customerId = sprintf($app['config']['temp_customer_number'], date('YmdHis'));
+                    }
+                    $CustomerBasicInfo->setCustomerNumber($customerId);
+                    $app['orm.em']->persist($CustomerBasicInfo);
+                    $app['orm.em']->flush();
+                }
                 if ((0 < strlen($customerId)) && (!is_null($customerId))) {
                     log_info('会員番号:' . $customerId, array($Customer->getId()));
                     log_info('QRコード発行開始', array($Customer->getId()));
@@ -295,17 +327,6 @@ class CustomerEditController extends AbstractController
                         };
                     }
                 }
-
-                $request_data = $request->request->all();
-                $CustomerGroup = null;
-                if (isset($request_data['admin_customer']['belongs_group_id'])) {
-                    $CustomerGroup = $app['eccube.repository.customer_group']
-                        ->find($request_data['admin_customer']['belongs_group_id']);
-                }
-                $Customer->setCustomerGroup($CustomerGroup);
-
-                $app['orm.em']->persist($Customer);
-                $app['orm.em']->flush();
 
                 log_info('会員登録完了', array($Customer->getId()));
 

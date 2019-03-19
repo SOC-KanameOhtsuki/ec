@@ -1124,16 +1124,25 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
      * @param  Customer $Customer
      * @return mixed
      */
-    public function encryptPassword($app, \Eccube\Entity\Customer $Customer, $pin_code = null)
+    public function encryptPasswordFromParam($app, $salt, $pin_code)
+    {
+        $encoder = $app['security.encoder_factory']->getEncoder(new \Eccube\Entity\Customer());
+
+        return $encoder->encodePassword($pin_code, $salt);
+    }
+
+    /**
+     * 入力されたパスワードをSaltと暗号化する
+     *
+     * @param $app
+     * @param  Customer $Customer
+     * @return mixed
+     */
+    public function encryptPassword($app, \Eccube\Entity\Customer $Customer)
     {
         $encoder = $app['security.encoder_factory']->getEncoder($Customer);
-        $encryptPassword = null;
-        if (is_null($pin_code)) {
-            $encryptPassword = $encoder->encodePassword($Customer->getCustomerBasicInfo()->getCustomerPinCode(), $Customer->getSalt());
-        } else {
-            $encryptPassword = $encoder->encodePassword($pin_code, $Customer->getSalt());
-        }
-        return $encryptPassword;
+
+        return $encoder->encodePassword($Customer->getCustomerBasicInfo()->getCustomerPinCode(), $Customer->getSalt());
     }
 
     public function getNonActiveCustomerBySecretKey($secret_key)

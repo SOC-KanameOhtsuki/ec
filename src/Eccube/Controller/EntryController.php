@@ -95,27 +95,6 @@ class EntryController extends AbstractController
 
                 case 'complete':
                     log_info('会員登録開始');
-                    $Customer
-                        ->setSalt(
-                            $app['eccube.repository.customer']->createSalt(5)
-                        )
-                        ->setPassword(
-                            $app['eccube.repository.customer']->encryptPassword($app, $Custome, $request->request->get('entry')['customer_pin_code']['first'])
-                        )
-                        ->setSecretKey(
-                            $app['eccube.repository.customer']->getUniqueSecretKey($app)
-                        );
-
-                    $CustomerBasicInfo = new \Eccube\Entity\CustomerBasicInfo();
-                    $CustomerBasicInfo->setCustomer($Customer)
-                                        ->setStatus($app['eccube.repository.customer_basic_info_status']->find($app['config']['initialize_customer_basicinfo_status']))
-                                        ->setNobulletin($form->get('nobulletin')->getData())
-                                        ->setAnonymous($form->get('anonymous')->getData())
-                                        ->setAnonymousCompany($form->get('anonymous_company')->getData())
-                                        ->setMembershipExemption($app['eccube.repository.master.exemption_type_type']->find($app['config']['initialize_exemption_type']))
-                                        ->setInstructorType($app['eccube.repository.master.instructor_type']->find($app['config']['initialize_instructor_type']))
-                                        ->setSupporterType($app['eccube.repository.master.supporter_type']->find($app['config']['initialize_supporter_type']))
-                                        ->setCustomerPinCode($request->request->get('entry')['customer_pin_code']['first']);
                     $Customer->setName01($HomeCustomerAddress->getName01())
                         ->setName02($HomeCustomerAddress->getName02())
                         ->setKana01($HomeCustomerAddress->getKana01())
@@ -137,6 +116,25 @@ class EntryController extends AbstractController
                         ->setMobilephone02($HomeCustomerAddress->getMobilephone02())
                         ->setMobilephone03($HomeCustomerAddress->getMobilephone03())
                         ->setEmail($HomeCustomerAddress->getEmail());
+                    $CustomerBasicInfo = new \Eccube\Entity\CustomerBasicInfo();
+                    $CustomerBasicInfo->setCustomer($Customer)
+                                        ->setStatus($app['eccube.repository.customer_basic_info_status']->find($app['config']['initialize_customer_basicinfo_status']))
+                                        ->setNobulletin($form->get('nobulletin')->getData())
+                                        ->setAnonymous($form->get('anonymous')->getData())
+                                        ->setAnonymousCompany($form->get('anonymous_company')->getData())
+                                        ->setMembershipExemption($app['eccube.repository.master.exemption_type_type']->find($app['config']['initialize_exemption_type']))
+                                        ->setInstructorType($app['eccube.repository.master.instructor_type']->find($app['config']['initialize_instructor_type']))
+                                        ->setSupporterType($app['eccube.repository.master.supporter_type']->find($app['config']['initialize_supporter_type']))
+                                        ->setCustomerPinCode($request->request->get('entry')['customer_pin_code']['first']);
+                    $Customer->setSalt(
+                            $app['eccube.repository.customer']->createSalt(5)
+                        )
+                        ->setPassword(
+                            $app['eccube.repository.customer']->encryptPasswordFromParam($app, $Customer->getSalt(), $request->request->get('entry')['customer_pin_code']['first'])
+                        )
+                        ->setSecretKey(
+                            $app['eccube.repository.customer']->getUniqueSecretKey($app)
+                        );
                     $app['orm.em']->persist($Customer);
                     $HomeCustomerAddress->setCustomer($Customer)
                             ->setAddressType($app['orm.em']->getRepository('Eccube\Entity\Master\CustomerAddressType')->find(1))
@@ -192,7 +190,7 @@ class EntryController extends AbstractController
                     $activateFlg = $BaseInfo->getOptionCustomerActivate();
 
                     // 仮会員設定が有効な場合は、確認メールを送信し完了画面表示.
-                    if ($activateFlg) {
+                    if (($activateFlg) && (!empty($Customer->getEmail()))) {
                         // メール送信
                         $app['eccube.service.mail']->sendCustomerConfirmMail($Customer, $activateUrl);
 
@@ -275,7 +273,28 @@ class EntryController extends AbstractController
             $app['eccube.event.dispatcher']->dispatch(EccubeEvents::FRONT_ENTRY_ACTIVATE_COMPLETE, $event);
 
             // メール送信
-            $app['eccube.service.mail']->sendCustomerCompleteMail($Customer);
+            if (!empty($Customer->getEmail())) {
+                $app['eccube.service.mail']->sendCustomerCompleteMail($Customer);
+            } else {
+                $Customer->setEmail(sprintf($app['config']['dummy_email'], date("YmdHis"), substr(explode(".", (microtime(true) . ""))[1], 0, 3)));
+                $HomeCustomerAddress = null;
+                $CustomerAddresses = $Customer->getCustomerAddresses();
+                if ($CustomerAddresses) {
+                    foreach($CustomerAddresses as $CustomerAddress) {
+                        if (!is_null($CustomerAddress->getAddressType())) {
+                            if ($CustomerAddress->getAddressType()->getId() == 1) {
+                                $HomeCustomerAddress = $CustomerAddress;
+                            }
+                        }
+                    }
+                }
+                if (is_null($HomeCustomerAddress)) {
+                    $HomeCustomerAddress->setEmail($Customer->getEmail());
+                    $app['orm.em']->persist($HomeCustomerAddress);
+                }
+                $app['orm.em']->persist($Customer);
+                $app['orm.em']->flush();
+            }
 
             // 本会員登録してログイン状態にする
             $token = new UsernamePasswordToken($Customer, null, 'customer', array('ROLE_USER'));
@@ -284,7 +303,7 @@ class EntryController extends AbstractController
 
             log_info('ログイン済に変更', array($app->user()->getId()));
 
-            return $app->render('Entry/activate.twig');
+            return $app->render('Entry/activate.twig', array('member_id' => $Customer->getCustomerBasicInfo()->getCustomerNumber()));
         } else {
             throw new HttpException\AccessDeniedHttpException('不正なアクセスです。');
         }

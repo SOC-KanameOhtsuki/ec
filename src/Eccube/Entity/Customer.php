@@ -335,10 +335,10 @@ class Customer extends \Eccube\Entity\AbstractEntity implements UserInterface
     // TODO: できればFormTypeで行いたい
     public static function loadValidatorMetadata(ClassMetadata $metadata)
     {
-        $metadata->addConstraint(new UniqueEntity(array(
-            'fields'  => 'email',
-            'message' => '既に利用されているメールアドレスです'
-        )));
+//        $metadata->addConstraint(new UniqueEntity(array(
+//            'fields'  => 'email',
+//            'message' => '既に利用されているメールアドレスです'
+//        )));
     }
 
     /**

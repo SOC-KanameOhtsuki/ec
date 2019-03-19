@@ -68,7 +68,7 @@ Eccube\Entity\Customer:
             nullable: true
         email:
             type: text
-            nullable: false
+            nullable: true
         tel01:
             type: text
             nullable: true

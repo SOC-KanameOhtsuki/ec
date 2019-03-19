@@ -1305,4 +1305,23 @@ class Application extends ApplicationTrait
         }
         return $customerTarget;
     }
+
+    /** SwiftmailerTrait */
+    /**
+     * Sends an email.
+     *
+     * @param \Swift_Message $message A \Swift_Message instance
+     * @param array $failedRecipients An array of failures by-reference
+     *
+     * @return int The number of sent messages
+     */
+    public function mail(\Swift_Message $message, &$failedRecipients = null)
+    {
+        if (empty($message->getTo())) {
+            return 0;
+        } else if (preg_match("/" . $this['config']['dummy_email_pattern'] . "/", $message->getTo())) {
+            return 0;
+        }
+        return parent::mail($message, $failedRecipients);
+    }
 }

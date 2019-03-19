@@ -71,6 +71,29 @@ class DeliveryController extends AbstractController
         }
 
         $CustomerAddress = $app['eccube.repository.customer_address']->findOrCreateByCustomerAndId($Customer, $id);
+        $hasName = false;
+        $hasKana = false;
+        $hasMobilePhone = false;
+        $hasMail = false;
+        if ($CustomerAddress->getAddressType()->getId() == 1) {
+            $hasName = true;
+            $hasKana = true;
+            $hasMobilePhone = true;
+            $hasMail = true;
+            if (preg_match("/" . $app['config']['dummy_email_pattern'] . "/", $CustomerAddress->getEmail())) {
+                $CustomerAddress->setEmail(null);
+            }
+        } else if ($CustomerAddress->getAddressType()->getId() == 2) {
+            $form->remove('name');
+            $form->remove('kana');
+            $form->remove('mobilephone');
+            $form->remove('email');
+        } else {
+            $hasName = true;
+            $hasKana = true;
+            $form->remove('mobilephone');
+            $form->remove('email');
+        }
 
         $parentPage = $request->get('parent_page', null);
 
@@ -100,30 +123,20 @@ class DeliveryController extends AbstractController
         $app['eccube.event.dispatcher']->dispatch(EccubeEvents::FRONT_MYPAGE_DELIVERY_EDIT_INITIALIZE, $event);
 
         $form = $builder->getForm();
-        $hasName = false;
-        $hasKana = false;
-        $hasMobilePhone = false;
-        $hasMail = false;
-        if ($CustomerAddress->getAddressType()->getId() == 1) {
-            $hasName = true;
-            $hasKana = true;
-            $hasMobilePhone = true;
-            $hasMail = true;
-        } else if ($CustomerAddress->getAddressType()->getId() == 2) {
-            $form->remove('name');
-            $form->remove('kana');
-            $form->remove('mobilephone');
-            $form->remove('email');
-        } else {
-            $hasName = true;
-            $hasKana = true;
-            $form->remove('mobilephone');
-            $form->remove('email');
-        }
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             log_info('お届け先登録開始', array($id));
+
+            if ($CustomerAddress->getAddressType()->getId() == 1) {
+                if (empty($CustomerAddress->getEmail())) {
+                    if (preg_match("/" . $app['config']['dummy_email_pattern'] . "/", $Customer->getEmail())) {
+                        $CustomerAddress->setEmail($Customer->getEmail());
+                    } else {
+                        $CustomerAddress->setEmail(sprintf($app['config']['dummy_email'], date("YmdHis"), substr(explode(".", (microtime(true) . ""))[1], 0, 3)));
+                    }
+                }
+            }
 
             $app['orm.em']->persist($CustomerAddress);
             $app['orm.em']->flush();

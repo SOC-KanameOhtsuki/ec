@@ -120,7 +120,7 @@ class CustomerBasicInfoType extends AbstractType
             ))
             ->add('bureau', 'bureau', array(
                 'label' => '振興局',
-                'required' => true,
+                'required' => false,
                 'multiple' => false,
                 'expanded' => false,
                 'constraints' => array(),
