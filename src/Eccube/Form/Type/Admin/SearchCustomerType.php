@@ -274,14 +274,14 @@ class SearchCustomerType extends AbstractType
                 'expanded' => false,
                 'constraints' => array(),
             ))
-            ->add('customer_basicinfo_supporter_type', 'instructor_type', array(
+            ->add('customer_basicinfo_supporter_type', 'supporter_type', array(
                 'label' => 'サポータ資格',
                 'required' => false,
                 'multiple' => false,
                 'expanded' => false,
                 'constraints' => array(),
             ))
-            ->add('customer_basicinfo_instructor_type', 'supporter_type', array(
+            ->add('customer_basicinfo_instructor_type', 'instructor_type', array(
                 'label' => 'インストラクタ資格',
                 'required' => false,
                 'multiple' => false,
