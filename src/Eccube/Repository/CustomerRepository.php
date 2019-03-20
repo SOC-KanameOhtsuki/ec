@@ -404,7 +404,7 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
         // CustomerGroup
         if (!empty($searchData['customer_group']) && $searchData['customer_group']) {
             $qb
-                ->andWhere('cg.name LIKE :customer_group')
+                ->andWhere('cg.kana LIKE :customer_group')
                 ->setParameter('customer_group', '%' . $searchData['customer_group'] . '%');
         }
 
@@ -725,7 +725,7 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
             // CustomerGroup
             if (!empty($searchData['customer_group']) && $searchData['customer_group']) {
                 $subQuery
-                    ->andWhere('cg' . $subQueryIndex . '.name LIKE :customer_group' . $subQueryIndex);
+                    ->andWhere('cg' . $subQueryIndex . '.kana LIKE :customer_group' . $subQueryIndex);
                 $params['customer_group' . $subQueryIndex] = '%' . $searchData['searchData']['customer_group'] . '%';
             }
 
