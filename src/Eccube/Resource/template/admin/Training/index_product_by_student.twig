@@ -155,26 +155,33 @@ $(function() {
                                                     {{ form_widget(searchForm.create_date_start, {'attr': {'class': 'input_cal'}}) }} ～ {{ form_widget(searchForm.create_date_end, {'attr': {'class': 'input_cal'}}) }}
                                                 </div>
                                             </div>
+                                        </div>
+
+                                        <div class="row">
                                             <div id="search_box__update_date" class="col-sm-6">
                                                 <label>更新日</label>
                                                 <div class="form-group range">
                                                     {{ form_widget(searchForm.update_date_start, {'attr': {'class': 'input_cal'}}) }} ～ {{ form_widget(searchForm.update_date_end, {'attr': {'class': 'input_cal'}}) }}
                                                 </div>
                                             </div>
+                                        </div>
+
+                                        <div class="row">
                                             <div class="extra-form col-md-12">
                                                 {% for f in searchForm.getIterator %}
                                                     {% if f.vars.name matches '[^plg*]' %}
                                                         <div class="form-group">
-                                                            {{ form_label(f) }}
                                                             {{ form_widget(f) }}
                                                             {{ form_errors(f) }}
                                                         </div>
                                                     {% endif %}
                                                 {% endfor %}
-                                            <div class="col-sm-6">
-                                                {{ form_rest(searchForm) }}
+                                                <div class="col-sm-6">
+                                                    {{ form_rest(searchForm) }}
+                                                </div>
                                             </div>
-                                        </div><!-- /.row -->
+                                        </div>
+
                                         <div id="search_box_inner__footer" class="row">
                                             <div id="search_box__clear_button" class="col-sm-12">
                                                 <p class="text-center"><a href="#" class="search-clear">検索条件をクリア</a></p>
@@ -251,17 +258,39 @@ $(function() {
                                 </div>
                             </div>
                             <div id="result_list__list" class="item_list">
+                                <!--列タイトル-->
+                                <div class="item_list">
+                                    <div class="tableish tableish-striped">
+                                        <div  class="item_box tr">
+                                            <div id="tile1" class="item_detail td">
+                                                ID
+                                            </div>
+                                            <div id="tile2" class="item_detail td">
+                                                講習会名
+                                            </div>
+                                            <div id="tile3" class="item_detail td">
+                                                開催日
+                                            </div>
+                                            <div id="tile4" class="item_detail td">
+                                                地域
+                                            </div>
+                                            <div id="tile5" class="item_detail td">
+                                                講習会種別
+                                            </div>
+                                            <div id="tile6" class="item_detail td">
+                                                申込人数 / 定員
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div class="tableish tableish-striped">
                                     {% for Product in pagination %}
                                         <div id="result_list__item--{{ Product.id }}" class="item_box tr">
+                                            <!--講習会ID-->
                                             <div id="result_list__id--{{ Product.id }}" class="item_id td">
                                                 {{Product.id}}
                                             </div>
-                                            <div id="result_list__image--{{ Product.id }}" class="item_photo td">
-                                                <a href="{{ url('admin_training_display', {'id' : Product.id}) }}" target="_blank">
-                                                    <img src="{{ app.config.image_save_urlpath }}/{{ Product.mainFileName|no_image_product }}" />
-                                                </a>
-                                            </div>
+                                            <!--名称-->
                                             <div id="result_list__name--{{ Product.id }}" class="item_detail td">
                                                 <a href="{{ url('admin_student', {'id' : Product.id}) }}">
                                                     {{ Product.name }}
@@ -272,21 +301,31 @@ $(function() {
                                                     {% endif %}
                                                 </span>
                                             </div>
+                                            <!--開始日時-->
                                             <div id="result_list__date_start--{{ Product.id }}" class="item_detail td">
                                                 <a href="{{ url('admin_student', {'id' : Product.id}) }}">
-                                                    {{ Product.ProductTraining.training_date_start|date("Y/m/d H:i") }}
+                                                    {{ Product.ProductTraining.training_date_start|date("Y/m/d") }}
                                                 </a><br>
                                             </div>
-                                            <div id="result_list__date_end--{{ Product.id }}" class="item_detail td">
+                                            <!--地域-->
+                                            <div id="result_list__area--{{ Product.id }}" class="item_detail td">
                                                 <a href="{{ url('admin_student', {'id' : Product.id}) }}">
-                                                    {{ Product.ProductTraining.training_date_end|date("Y/m/d H:i") }}
+                                                    {{ Product.ProductTraining.addr01 }}
                                                 </a><br>
                                             </div>
+                                            <!--講習種別-->
                                             <div id="result_list__type--{{ Product.id }}" class="item_detail td">
                                                 <a href="{{ url('admin_student', {'id' : Product.id}) }}">
                                                     {{ Product.ProductTraining.TrainingType.name }}
                                                 </a><br>
                                             </div>
+                                            <!--申込人数 / 定員-->
+                                            <div id="result_list__count--{{ Product.id }}" class="item_detail td">
+                                                <a href="{{ url('admin_student', {'id' : Product.id}) }}">
+                                                    {{ Product.ProductTraining.ProductClasses.stock }}
+                                                </a><br>
+                                            </div>
+                                            <!--受講者名簿（CSV）-->
                                             <div id="result_list__item_menu_box--{{ Product.id }}"class="icon_edit td">
                                                 <div id="result_list__item_menu_toggle--{{ Product.id }}" class="dropdown">
                                                     <a class="dropdown-toggle" data-toggle="dropdown"><svg class="cb cb-ellipsis-h"><use xlink:href="#cb-ellipsis-h"></svg></a>
