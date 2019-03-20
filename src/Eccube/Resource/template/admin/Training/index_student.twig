@@ -485,15 +485,42 @@ This file is Custom File
                             <!--住所-->
                             <td id="result_list_main__addr--{{ Customer.id }}" class="member_addr">{{ Customer.addr01 }}{{ Customer.addr02 }}</td>
                             <!--インストラクター資格-->
-                            <td id="result_list_main__inst--{{ Customer.id }}" class="member_sapo">{{ Customer.instructor_type }}</td>
-                            <!--サポター資格-->
-                            <td id="result_list_main__sapo--{{ Customer.id }}" class="member_inst">{{ Customer.supporter_type }}</td>
+                            <td id="result_list_main__inst--{{ Customer.id }}" class="member_sapo">{{ Customer.CustomerBasicInfo.instructor_type }}</td>
+                            <!--サポータ資格-->
+                            <td id="result_list_main__sapo--{{ Customer.id }}" class="member_inst">{{ Customer.CustomerBasicInfo.supporter_type }}</td>
                             <!--請求金額-->
-                            <td id="result_list_main__pay_sum--{{ Customer.id }}" class="member_payment_total">{{ Customer.qb.OrderDetails.payment_total }}</td>
+                            {% set payment = 0 %}
+                            {% for Order in Customer.Orders %}
+                                {% for OrderDetail in Order.OrderDetails %}
+                                    {% if OrderDetail.Product.id == Product.id %}
+                                        {% set payment = payment + (OrderDetail.price_inc_tax * OrderDetail.quantity) %}
+                                    {% endif %}
+                                {% endfor %}
+                            {% endfor %}
+                            <td id="result_list_main__pay_sum--{{ Customer.id }}" class="member_payment_total">{{ payment }}</td>
                             <!--入金額-->
-                            <td id="result_list_main__pay--{{ Customer.id }}" class="member_pay"></td>
+                            {% set payment = 0 %}
+                            {% for Order in Customer.Orders %}
+                                {% for OrderDetail in Order.OrderDetails %}
+                                    {% if OrderDetail.Product.id == Product.id %}
+                                        {% if OrderDetail.Order.OrderStatus == "入金済み" %}
+                                            {% set payment = payment_a + (OrderDetail.price_inc_tax * OrderDetail.quantity) %}
+                                        {% endif %}
+                                    {% endif %}
+                                {% endfor %}
+                            {% endfor %}
+                            <td id="result_list_main__pay--{{ Customer.id }}" class="member_pay">{{ payment }}</td>
                             <!--領収日-->
-                            <td id="result_list_main__ryosyu--{{ Customer.id }}" class="member_ryosyu"></td>
+                            {% set payment_date = '' %}
+                            {% for Order in Customer.Orders %}
+                                {% for OrderDetail in Order.OrderDetails %}
+                                    {% if OrderDetail.Product.id == Product.id %}
+                                        {% if OrderDetail.Order.OrderStatus == "入金済み" %}
+                                            <td id="result_list_main__ryosyu--{{ Customer.id }}" class="member_ryosyu">{{ OrderDetail.Order.update_date|date("Y/m/d") }}</td>
+                                        {% endif %}
+                                    {% endif %}
+                                {% endfor %}
+                            {% endfor %}
                             <!--資格認定結果-->
                             {% set attendanceStatuIds = 0 %}
                             <td class="col-md-1 col-sm-1 text-center" id="approveStatus-{{Customer.id}}">
@@ -564,11 +591,11 @@ This file is Custom File
                     {% if pagination.paginationData.previous is defined %}
                         <li class="pagenation__item-previous"><a href="{{ path('admin_student_page', app.request.query.all|merge({'id': ProductId, 'page_no': pagination.paginationData.previous})) }}" aria-label="Previous"><span aria-hidden="true">前へ</span></a></li>
                     {% endif %}
-                    
+
                     {% for page in pagination.paginationData.pagesInRange %}
                         <li{% if page == pagination.paginationData.current %} class="pagenation__item active"{% endif %}><a href="{{ path('admin_student_page', app.request.query.all|merge({'id': ProductId, 'page_no': page})) }}"><span>{{ page }}</span></a></li>
                     {% endfor %}
-                    
+
                     {% if pagination.paginationData.next is defined %}
                         <li class="pagenation__item-next"><a href="{{ path('admin_student_page', app.request.query.all|merge({'id': ProductId, 'page_no': pagination.paginationData.next})) }}" aria-label="Next"><span aria-hidden="true">次へ</span></a></li>
                     {% endif %}

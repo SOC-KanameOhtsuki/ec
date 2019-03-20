@@ -19,7 +19,8 @@
       <paths name="fumanet_vm">
         <serverdata>
           <mappings>
-            <mapping local="Z:/" web="/" />
+            <mapping deploy="/html" local="Z:/html" web="/ec_trial" />
+            <mapping local="" />
           </mappings>
         </serverdata>
       </paths>

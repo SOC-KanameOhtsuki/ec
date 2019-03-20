@@ -89,5 +89,10 @@
       <path value="Z:/vendor/japanese-holiday/japanese-holiday" />
     </include_path>
   </component>
-  <component name="PhpProjectSharedConfiguration" php_language_level="5.3.0" />
+  <component name="PhpProjectSharedConfiguration" php_language_level="7.2" />
+  <component name="PhpUnit">
+    <phpunit_settings>
+      <PhpUnitSettings load_method="CUSTOM_LOADER" configuration_file_path="Z:/phpunit.xml.dist" custom_loader_path="Z:/vendor/autoload.php" use_configuration_file="true" />
+    </phpunit_settings>
+  </component>
 </project>
