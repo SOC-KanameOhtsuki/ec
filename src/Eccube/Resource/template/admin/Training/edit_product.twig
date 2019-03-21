@@ -225,6 +225,11 @@ This file is Customized File
             $('body').append($overlay);
             e.preventDefault();
             var $this = $(this);
+
+            alert('この講習/研修/講演会情報にはすでに受講申込みが存在しますので更新できません。');
+            $(".prevention-masked").remove();
+            return false;
+            {#
             if (!confirm('この講習/研修/講演会情報にはすでに受講申込みが存在しますが更新しますか？')) {
                 $(".prevention-masked").remove();
                 return false;
@@ -236,6 +241,7 @@ This file is Customized File
                 $form.submit();
             }, 0);
             return false;
+            #}
         });
     });
     $(window).load(function () {
