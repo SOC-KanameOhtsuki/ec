@@ -1866,6 +1866,7 @@ class TrainingController extends AbstractController
                     $CopyProductTraining->setTimeStart($ProductTraining->getTimeStart());
                     $CopyProductTraining->setTimeEnd($ProductTraining->getTimeEnd());
                     $CopyProductTraining->setPlace($ProductTraining->getPlace());
+                    $CopyProductTraining->setPlacekana($ProductTraining->getPlacekana());
                     $CopyProductTraining->setZip01($ProductTraining->getZip01());
                     $CopyProductTraining->setZip02($ProductTraining->getZip02());
                     $CopyProductTraining->setZipcode($ProductTraining->getZipcode());
