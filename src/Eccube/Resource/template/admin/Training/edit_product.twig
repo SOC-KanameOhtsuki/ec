@@ -171,23 +171,32 @@ This file is Customized File
         var dt = new Date();
         $("#admin_training_product_training_training_date_start").datetimepicker({
             locale: 'ja',
-            format : 'YYYY/MM/DD HH:mm',
-            defaultDate: moment(dt.getFullYear() + "/" + (("00" + (dt.getMonth()+1)).slice(-2)) + "/" + ("00" + dt.getDate()).slice(-2) + " 10:00", 'YYYY-MM-DD HH:mm:ss'),
-            show : function () {
-                        alert("show!");
+            format: 'YYYY/MM/DD HH:mm',
+            useCurrent: false,
+        }).on('dp.show', function () {
+            if ($("#admin_training_product_training_training_date_start").val() == '') {
+                $("#admin_training_product_training_training_date_start").val(moment(dt.getFullYear() + "/" + (("00" + (dt.getMonth()+1)).slice(-2)) + "/" + ("00" + dt.getDate()).slice(-2) + " 10:00", 'YYYY-MM-DD HH:mm:ss').format('YYYY/MM/DD HH:mm'));
+            }
+        }).on("dp.hide", function (e) {
+            if (($("#admin_training_product_training_training_date_end").val() == '')) {
+                if (($("#admin_training_product_training_training_date_start").val() != '')) {
+                    $("#admin_training_product_training_training_date_end").val(moment($("#admin_training_product_training_training_date_start").val(), 'YYYY-MM-DD HH:mm:ss').format('YYYY/MM/DD') + " 17:00");
+                }
             }
         });
         $("#admin_training_product_training_training_date_end").datetimepicker({
             locale: 'ja',
-            format : 'YYYY/MM/DD HH:mm',
-            defaultDate: moment(dt.getFullYear() + "/" + (("00" + (dt.getMonth()+1)).slice(-2)) + "/" + ("00" + dt.getDate()).slice(-2) + " 17:00", 'YYYY-MM-DD HH:mm:ss'),
-            show : function () {
-                        alert("show!");
+            format: 'YYYY/MM/DD HH:mm',
+            useCurrent: false,
+        }).on('dp.show', function () {
+            if ($("#admin_training_product_training_training_date_end").val() == '') {
+                $("#admin_training_product_training_training_date_end").val(moment(dt.getFullYear() + "/" + (("00" + (dt.getMonth()+1)).slice(-2)) + "/" + ("00" + dt.getDate()).slice(-2) + " 17:00", 'YYYY-MM-DD HH:mm:ss').format('YYYY/MM/DD HH:mm'));
             }
         });
         $("#admin_training_product_training_accept_limit_date").datetimepicker({
             locale: 'ja',
-            format : 'YYYY/MM/DD HH:mm'
+            format: 'YYYY/MM/DD HH:mm',
+            useCurrent: false,
         });
         $('#zip-search').click(function() {
             AjaxZip3.zip2addr('admin_training[product_training][zip][zip01]', 'admin_training[product_training][zip][zip02]', 'admin_training[product_training][address][pref]', 'admin_training[product_training][address][addr01]');
