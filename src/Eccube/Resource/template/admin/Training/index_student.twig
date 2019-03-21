@@ -504,7 +504,7 @@ This file is Custom File
                                 {% for OrderDetail in Order.OrderDetails %}
                                     {% if OrderDetail.Product.id == Product.id %}
                                         {% if OrderDetail.Order.OrderStatus == "入金済み" %}
-                                            {% set payment = payment_a + (OrderDetail.price_inc_tax * OrderDetail.quantity) %}
+                                            {% set payment = payment + (OrderDetail.price_inc_tax * OrderDetail.quantity) %}
                                         {% endif %}
                                     {% endif %}
                                 {% endfor %}
@@ -516,11 +516,12 @@ This file is Custom File
                                 {% for OrderDetail in Order.OrderDetails %}
                                     {% if OrderDetail.Product.id == Product.id %}
                                         {% if OrderDetail.Order.OrderStatus == "入金済み" %}
-                                            <td id="result_list_main__ryosyu--{{ Customer.id }}" class="member_ryosyu">{{ OrderDetail.Order.update_date|date("Y/m/d") }}</td>
+                                            {% set payment_date = OrderDetail.Order.update_date|date("Y/m/d") %}
                                         {% endif %}
                                     {% endif %}
                                 {% endfor %}
                             {% endfor %}
+                            <td id="result_list_main__ryosyu--{{ Customer.id }}" class="member_ryosyu">{{ payment_date }}</td>
                             <!--資格認定結果-->
                             {% set attendanceStatuIds = 0 %}
                             <td class="col-md-1 col-sm-1 text-center" id="approveStatus-{{Customer.id}}">

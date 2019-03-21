@@ -258,32 +258,30 @@ $(function() {
                                 </div>
                             </div>
                             <div id="result_list__list" class="item_list">
-                                <!--列タイトル-->
-                                <div class="item_list">
-                                    <div class="tableish tableish-striped">
-                                        <div  class="item_box tr">
-                                            <div id="tile1" class="item_detail td">
-                                                ID
-                                            </div>
-                                            <div id="tile2" class="item_detail td">
-                                                講習会名
-                                            </div>
-                                            <div id="tile3" class="item_detail td">
-                                                開催日
-                                            </div>
-                                            <div id="tile4" class="item_detail td">
-                                                地域
-                                            </div>
-                                            <div id="tile5" class="item_detail td">
-                                                講習会種別
-                                            </div>
-                                            <div id="tile6" class="item_detail td">
-                                                申込人数 / 定員
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
                                 <div class="tableish tableish-striped">
+                                    <!--列タイトル-->
+                                    <div  class="item_box tr">
+                                        <div id="tile1" class="item_detail td">
+                                            ID
+                                        </div>
+                                        <div id="tile2" class="item_detail td">
+                                            講習会名
+                                        </div>
+                                        <div id="tile3" class="item_detail td">
+                                            開催日
+                                        </div>
+                                        <div id="tile4" class="item_detail td">
+                                            地域
+                                        </div>
+                                        <div id="tile5" class="item_detail td">
+                                            講習会種別
+                                        </div>
+                                        {#
+                                        <div id="tile6" class="item_detail td">
+                                            申込人数 / 定員
+                                        </div>
+                                        #}
+                                    </div>
                                     {% for Product in pagination %}
                                         <div id="result_list__item--{{ Product.id }}" class="item_box tr">
                                             <!--講習会ID-->
@@ -320,11 +318,13 @@ $(function() {
                                                 </a><br>
                                             </div>
                                             <!--申込人数 / 定員-->
+                                            {#
                                             <div id="result_list__count--{{ Product.id }}" class="item_detail td">
                                                 <a href="{{ url('admin_student', {'id' : Product.id}) }}">
-                                                    {{ Product.ProductTraining.ProductClasses.stock }}
+                                                    {{ ProductClassStock }}
                                                 </a><br>
                                             </div>
+                                            #}
                                             <!--受講者名簿（CSV）-->
                                             <div id="result_list__item_menu_box--{{ Product.id }}"class="icon_edit td">
                                                 <div id="result_list__item_menu_toggle--{{ Product.id }}" class="dropdown">
