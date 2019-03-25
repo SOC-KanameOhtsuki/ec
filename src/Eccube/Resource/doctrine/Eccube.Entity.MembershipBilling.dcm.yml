@@ -27,6 +27,9 @@ Eccube\Entity\MembershipBilling:
             generator:
                 strategy: AUTO
     fields:
+        target_status:
+            type: text
+            nullable: false
         create_date:
             type: datetime
             nullable: false

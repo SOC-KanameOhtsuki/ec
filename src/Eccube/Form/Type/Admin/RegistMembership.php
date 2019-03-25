@@ -56,6 +56,15 @@ class RegistMembership extends AbstractType
                 // Choices list (overdrive mapped)
                 'choices' => $arrMembership,
             ))
+            ->add('status', 'choice', array(
+                'label' => '基本情報ステータス',
+                'required' => false,
+                'choices' => array(1 => '正会員', 5 => '休眠者', 6 => '滞納者', 7 => '元会員'),
+                'expanded' => true,
+                'multiple' => true,
+                'mapped' => false,
+                'empty_value' => false,
+            ))
         ;
     }
 

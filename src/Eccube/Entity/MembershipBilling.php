@@ -181,4 +181,32 @@ class MembershipBilling extends \Eccube\Entity\AbstractEntity
     {
         return $this->ProductMembership;
     }
+    /**
+     * @var string
+     */
+    private $target_status;
+
+
+    /**
+     * Set target_status
+     *
+     * @param string $targetStatus
+     * @return MembershipBilling
+     */
+    public function setTargetStatus($targetStatus)
+    {
+        $this->target_status = $targetStatus;
+
+        return $this;
+    }
+
+    /**
+     * Get target_status
+     *
+     * @return string 
+     */
+    public function getTargetStatus()
+    {
+        return $this->target_status;
+    }
 }

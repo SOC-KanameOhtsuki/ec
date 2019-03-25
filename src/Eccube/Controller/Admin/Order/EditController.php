@@ -743,21 +743,30 @@ class EditController extends AbstractController
             if ($membershipProducts) {
                 $membershipProduct = $membershipProducts[0];
                 $processingMembershipBilling = $app['eccube.repository.membership_billing']->getProcessing($membershipProduct->getProductMembership()->getId());
+                $targetStatus = '';
+                foreach ($request->request->get('admin_regist_membership')['status'] as $status) {
+                    if (ctype_digit($status)) {
+                        $targetStatus = $targetStatus . ((strlen($targetStatus) > 0)?"_":"") . $status;
+                    }
+                }
                 $taretCustomers = $app['eccube.repository.customer']
-                        ->getCustomerByExclusionOrderProduct($membershipProduct->getId());
+                        ->getCustomerByExclusionOrderProduct($membershipProduct->getId(), $request->request->get('admin_regist_membership')['status']);
                 if (1 < count($processingMembershipBilling)) {
                     $app->addError('登録済みの対象年度の年会費登録が完了していません', 'admin');
+                } else if (strlen($targetStatus) < 1) {
+                    $app->addError('対象とする会員ステータスを選択してください', 'admin');
                 } else if (count($taretCustomers) < 1) {
                     $app->addError('対象の会員が存在しません', 'admin');
                 } else {
                     log_info('受注実行登録開始', array(count($taretCustomers)));
                     $membershipBillingStatus =  $app['eccube.repository.master.membership_billing_status']->find(1);
                     $membershipBilling = new \Eccube\Entity\MembershipBilling();
+                    $membershipBilling->setTargetStatus($targetStatus);
                     $membershipBilling->setStatus($membershipBillingStatus);
                     $membershipBilling->setProductMembership($membershipProduct->getProductMembership());
                     $app['orm.em']->persist($membershipBilling);
                     $app['orm.em']->flush();
-                    $app['eccube.repository.membership_billing_detail']->insertAllTarget($membershipBilling->getId());
+                    $app['eccube.repository.membership_billing_detail']->insertAllTarget($membershipBilling->getId(), $request->request->get('admin_regist_membership')['status']);
                     log_info('受注実行登録完了', array(count($taretCustomers)));
 
                     $domainSvPath = '';
