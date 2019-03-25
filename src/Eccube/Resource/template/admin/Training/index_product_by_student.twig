@@ -276,11 +276,9 @@ $(function() {
                                         <div id="tile5" class="item_detail td">
                                             講習会種別
                                         </div>
-                                        {#
                                         <div id="tile6" class="item_detail td">
                                             申込人数 / 定員
                                         </div>
-                                        #}
                                     </div>
                                     {% for Product in pagination %}
                                         <div id="result_list__item--{{ Product.id }}" class="item_box tr">
@@ -318,13 +316,23 @@ $(function() {
                                                 </a><br>
                                             </div>
                                             <!--申込人数 / 定員-->
-                                            {#
+                                            {% set ClassStock = '' %}
+                                            {% set stock = '' %}
+                                            {% for ProductClasses in Product.ProductClasses %}
+                                                {% if Product.id == ProductClasses.id %}
+                                                    {% if ProductClasses.stock == '' %}
+                                                        {% set ClassStock = '無制限' %}
+                                                    {% else  %}
+                                                        {% set ClassStock = ProductClasses.stock %}
+                                                    {% endif %}
+                                                    {% set stock = ProductClasses.ProductStock.stock %}
+                                                {% endif %}
+                                            {% endfor %}
                                             <div id="result_list__count--{{ Product.id }}" class="item_detail td">
                                                 <a href="{{ url('admin_student', {'id' : Product.id}) }}">
-                                                    {{ ProductClassStock }}
+                                                    {{ stock }} / {{ ClassStock }}
                                                 </a><br>
                                             </div>
-                                            #}
                                             <!--受講者名簿（CSV）-->
                                             <div id="result_list__item_menu_box--{{ Product.id }}"class="icon_edit td">
                                                 <div id="result_list__item_menu_toggle--{{ Product.id }}" class="dropdown">
