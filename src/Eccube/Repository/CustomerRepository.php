@@ -459,6 +459,35 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
                 ->setParameter('buy_product_name', '%' . $searchData['buy_product_code'] . '%');
         }
 
+        // membership_pay
+        if (!empty($searchData['membership_pay']) && count($searchData['membership_pay']) > 0) {
+            $query = '';
+            $existsParam = false;
+            foreach ($searchData['membership_pay'] as $membership_pay) {
+                switch($membership_pay) {
+                case 1:     // 納入済
+                    $existsParam = true;
+                    $query .= ((0 < strlen($query))?"OR ":"") . '(me.id = 1 AND bc.last_pay_membership_year >= :now_year)';
+                    break;
+                case 2:     // 未納
+                    $existsParam = true;
+                    $query .= ((0 < strlen($query))?"OR ":"") . '(me.id = 1 AND (bc.last_pay_membership_year IS NULL OR bc.last_pay_membership_year < :now_year))';
+                    break;
+                case 3:     // 未納
+                    $query .= ((0 < strlen($query))?"OR ":"") . '(me.id = 2)';
+                    break;
+                case 4:     // 未納
+                    $query .= ((0 < strlen($query))?"OR ":"") . '(me.id = 3)';
+                    break;
+                }
+            }
+            $qb->leftJoin('bc.MembershipExemption', 'me')
+                ->andWhere($query);
+            if ($existsParam) {
+                $qb->setParameter('now_year', date('Y'));
+            }
+        }
+
         // Order By
         $qb->addOrderBy('c.update_date', 'DESC');
 
@@ -503,9 +532,9 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
             }
 
             // PrefArea
-            if (!empty($searchData['pref_area']) && count($searchData['pref_area']) > 0) {
+            if (!empty($searchData['searchData']['pref_area']) && count($searchData['searchData']['pref_area']) > 0) {
                 $prefs = array();
-                foreach ($searchData['pref_area'] as $prefArea) {
+                foreach ($searchData['searchData']['pref_area'] as $prefArea) {
                     switch($prefArea) {
                     case 1:     // 北海道
                         $prefs[] = 1;
@@ -589,7 +618,7 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
             }
 
             // Address
-            if (isset($searchData['address']) && Str::isNotBlank($searchData['address'])) {
+            if (isset($searchData['searchData']['address']) && Str::isNotBlank($searchData['searchData']['address'])) {
                 $subQuery
                     ->andWhere($alias.'.addr01 LIKE :address' . $subQueryIndex);
                 $params['address' . $subQueryIndex] = '%' . $searchData['searchData']['address'] . '%';
@@ -723,7 +752,7 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
             }
 
             // CustomerGroup
-            if (!empty($searchData['customer_group']) && $searchData['customer_group']) {
+            if (!empty($searchData['searchData']['customer_group']) && $searchData['searchData']['customer_group']) {
                 $subQuery
                     ->andWhere('cg' . $subQueryIndex . '.kana LIKE :customer_group' . $subQueryIndex);
                 $params['customer_group' . $subQueryIndex] = '%' . $searchData['searchData']['customer_group'] . '%';
@@ -751,21 +780,21 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
             }
 
             // Bureau
-            if (!empty($searchData['customer_basicinfo_bureau']) && $searchData['customer_basicinfo_bureau']) {
+            if (!empty($searchData['searchData']['customer_basicinfo_bureau']) && $searchData['searchData']['customer_basicinfo_bureau']) {
                 $subQuery
                     ->andWhere('bc' . $subQueryIndex . '.Bureau = :bureau');
                 $params['bureau' . $subQueryIndex] = $searchData['searchData']['customer_basicinfo_bureau'];
             }
 
             // SupporterType
-            if (!empty($searchData['customer_basicinfo_supporter_type']) && $searchData['customer_basicinfo_supporter_type']) {
+            if (!empty($searchData['searchData']['customer_basicinfo_supporter_type']) && $searchData['searchData']['customer_basicinfo_supporter_type']) {
                 $subQuery
                     ->andWhere('bc' . $subQueryIndex . '.SupporterType = :supporterType');
                 $params['supporterType' . $subQueryIndex] = $searchData['searchData']['customer_basicinfo_supporter_type'];
             }
 
             // InstructorType
-            if (!empty($searchData['customer_basicinfo_instructor_type']) && $searchData['customer_basicinfo_instructor_type']) {
+            if (!empty($searchData['searchData']['customer_basicinfo_instructor_type']) && $searchData['searchData']['customer_basicinfo_instructor_type']) {
                 $subQuery
                     ->andWhere('bc' . $subQueryIndex . '.InstructorType = :instructorType');
                 $params['instructorType' . $subQueryIndex] = $searchData['searchData']['customer_basicinfo_instructor_type'];
@@ -779,6 +808,35 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
                     ->andWhere('od' . $subQueryIndex . '.product_name LIKE :buy_product_name' . $subQueryIndex . ' OR ' . 'od' . $subQueryIndex . '.product_code LIKE :buy_product_name' . $subQueryIndex);
                 $params['buy_product_name' . $subQueryIndex] = '%' . $searchData['searchData']['buy_product_code'] . '%';
             }
+            // membership_pay
+            if (!empty($searchData['searchData']['membership_pay']) && count($searchData['searchData']['membership_pay']) > 0) {
+                $query = '';
+                $existsParam = false;
+                foreach ($searchData['searchData']['membership_pay'] as $membership_pay) {
+                    switch($membership_pay) {
+                    case 1:     // 納入済
+                        $existsParam = true;
+                        $query .= ((0 < strlen($query))?"OR ":"") . '(me' . $subQueryIndex . '.id = 1 AND bc' . $subQueryIndex . '.last_pay_membership_year >= :now_year' . $subQueryIndex . ')';
+                        break;
+                    case 2:     // 未納
+                        $existsParam = true;
+                        $query .= ((0 < strlen($query))?"OR ":"") . '(me' . $subQueryIndex . '.id = 1 AND bc' . $subQueryIndex . '.last_pay_membership_year < :now_year' . $subQueryIndex . ')';
+                        break;
+                    case 3:     // 未納
+                        $query .= ((0 < strlen($query))?"OR ":"") . '(me' . $subQueryIndex . '.id = 2)';
+                        break;
+                    case 4:     // 未納
+                        $query .= ((0 < strlen($query))?"OR ":"") . '(me' . $subQueryIndex . '.id = 3)';
+                        break;
+                    }
+                }
+                $subQuery->leftJoin('bc' . $subQueryIndex . '.MembershipExemption', 'me' . $subQueryIndex)
+                    ->andWhere($query);
+                if ($existsParam) {
+                    $params['now_year' . $subQueryIndex] = date('Y');
+                }
+            }
+
             if ($searchData['join'] == 1) {
                 $qb->orWhere("c.id IN ({$subQuery->getDQL()})");
             } else if ($searchData['join'] == 2) {
@@ -1054,15 +1112,28 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
 
     }
 
-    public function getCustomerByExclusionOrderProduct($searchData)
+    public function getCustomerByExclusionOrderProduct($searchData, $targetStatus = array())
     {
         $em = $this->getEntityManager();
-        $sql = "SELECT * FROM dtb_customer WHERE customer_id NOT IN ";
+        $sql = "SELECT * FROM dtb_customer ";
+        if (0 < count($targetStatus)) {
+            $sql .= "INNER JOIN dtb_customer_basic_info ON dtb_customer.customer_id = dtb_customer_basic_info.customer_id ";
+        }
+        $sql .= "WHERE dtb_customer.customer_id NOT IN ";
         $sql .= "(SELECT dtb_customer.customer_id FROM dtb_customer INNER JOIN dtb_order ON dtb_customer.customer_id = dtb_order.customer_id ";
         $sql .= "INNER JOIN dtb_order_detail ON dtb_order.order_id = dtb_order_detail.order_id ";
         $sql .= "WHERE dtb_order_detail.product_id = :product_id ";
         $sql .= "GROUP BY dtb_customer.customer_id) ";
-        $sql .= "ORDER BY customer_id DESC;";
+        if (0 < count($targetStatus)) {
+            $sql .= "AND dtb_customer_basic_info.status in (";
+            $cnt = 0;
+            foreach($targetStatus as $status) {
+                $sql .= ((0 < $cnt)?",":"") . $status;
+                ++$cnt;
+            }
+            $sql .= ") ";
+        }
+        $sql .= "ORDER BY dtb_customer.customer_id DESC;";
         $customers = $em->getConnection()->fetchAll($sql, array(':product_id' => $searchData));
 
         return $customers;

@@ -409,6 +409,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
                 {{ form_widget(searchForm.last_buy_start, {'attr': {'class': 'input_cal'}}) }} ～ {{ form_widget(searchForm.last_buy_end, {'attr': {'class': 'input_cal'}}) }}
               </div>
             </div>
+            <div class="col-xs-12">
+              <div id="search_box_main__membership_pay" class="form-group">
+                <label>年会費支払状況</label>
+                {{ form_widget(searchForm.membership_pay) }}
+              </div>
+            </div>
                 <div class="extra-form col-xs-12 col-sm-12">
                     {% for f in searchForm.getIterator %}
                         {% if f.vars.name matches '[^plg*]' %}

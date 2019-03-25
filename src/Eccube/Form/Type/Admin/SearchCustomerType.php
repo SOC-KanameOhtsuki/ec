@@ -97,6 +97,14 @@ class SearchCustomerType extends AbstractType
                 'multiple' => true,
                 'empty_value' => false,
             ))
+             ->add('membership_pay', 'choice', array(
+                'label' => '年会費支払状況',
+                'required' => false,
+                'choices' => array(1 => '納入済', 2 => '未納', 3 => '免除', 4 => '特免'),
+                'expanded' => true,
+                'multiple' => true,
+                'empty_value' => false,
+            ))
             ->add('pref', 'pref', array(
                 'label' => '都道府県',
                 'required' => false,
