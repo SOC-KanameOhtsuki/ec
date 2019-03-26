@@ -168,6 +168,7 @@ class EntryController extends AbstractController
                         $existsCustomerBasicInfo = $app['eccube.repository.customer_basic_info']->findOneBy(array('customer_number' =>$customerNumber));
                     }
                     $CustomerBasicInfo->setCustomerNumber($customerNumber);
+                    $CustomerBasicInfo->setBureau($app['orm.em']->getRepository('Eccube\Entity\Master\Bureau')->find(18));
                     $app['orm.em']->persist($CustomerBasicInfo);
                     $app['orm.em']->flush();
 
