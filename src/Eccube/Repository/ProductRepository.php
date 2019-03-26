@@ -352,7 +352,7 @@ class ProductRepository extends EntityRepository
      * @param  array $searchData
      * @return \Doctrine\ORM\QueryBuilder
      */
-    public function getQueryBuilderBySearchTrainingDataForAdmin($searchData)
+    public function getQueryBuilderBySearchTrainingDataForAdmin($searchData, $search_orders = array())
     {
         $qb = $this->createQueryBuilder('p')
             ->select('p, (CASE WHEN ptj.id IS NULL THEN 2 ELSE 1 END) AS HIDDEN priority')
@@ -491,10 +491,31 @@ class ProductRepository extends EntityRepository
         }
 
         // Order By
-        $qb
-            ->orderBy('priority', 'ASC')
-            ->addOrderBy('pt.training_date_start', 'DESC')
-            ->addOrderBy('pt.place_kana', 'ASC');
+        if (count($search_orders) < 1) {
+            $qb->orderBy('priority', 'ASC')
+                ->addOrderBy('pt.training_date_start', 'DESC')
+                ->addOrderBy('pt.place_kana', 'ASC');
+        } else {
+            foreach($search_orders as $search_order) {
+                switch($search_order['order_target']) {
+                case 'id':
+                    $qb->addOrderBy('p.id', $search_order['order_type']);
+                    break;
+                case 'name':
+                    $qb->addOrderBy('p.name', $search_order['order_type']);
+                    break;
+                case 'start-date':
+                    $qb->addOrderBy('pt.training_date_start', $search_order['order_type']);
+                    break;
+                case 'area':
+                    $qb->addOrderBy('pt.addr01', $search_order['order_type']);
+                    break;
+                case 'training-type':
+                    $qb->addOrderBy('tt.name', $search_order['order_type']);
+                    break;
+                }
+            }
+        }
 
         return $qb;
     }
@@ -505,7 +526,7 @@ class ProductRepository extends EntityRepository
      * @param  array $searchData
      * @return \Doctrine\ORM\QueryBuilder
      */
-    public function getQueryBuilderBySearchOrderedTrainingDataForAdmin($searchData)
+    public function getQueryBuilderBySearchOrderedTrainingDataForAdmin($searchData, $search_orders = array())
     {
         $qb = $this->createQueryBuilder('p')
             ->innerJoin('p.ProductTraining', 'pt')
@@ -643,10 +664,31 @@ class ProductRepository extends EntityRepository
         }
 
         // Order By
-        $qb
-            ->orderBy('tt.rank', 'ASC')
-            ->addOrderBy('pt.training_date_start', 'DESC')
-            ->addOrderBy('p.update_date', 'DESC');
+        if (count($search_orders) < 1) {
+            $qb->orderBy('tt.rank', 'ASC')
+                ->addOrderBy('pt.training_date_start', 'DESC')
+                ->addOrderBy('p.update_date', 'DESC');
+        } else {
+            foreach($search_orders as $search_order) {
+                switch($search_order['order_target']) {
+                case 'id':
+                    $qb->addOrderBy('p.id', $search_order['order_type']);
+                    break;
+                case 'name':
+                    $qb->addOrderBy('p.name', $search_order['order_type']);
+                    break;
+                case 'start-date':
+                    $qb->addOrderBy('pt.training_date_start', $search_order['order_type']);
+                    break;
+                case 'area':
+                    $qb->addOrderBy('pt.addr01', $search_order['order_type']);
+                    break;
+                case 'training-type':
+                    $qb->addOrderBy('tt.name', $search_order['order_type']);
+                    break;
+                }
+            }
+        }
 
         return $qb;
     }

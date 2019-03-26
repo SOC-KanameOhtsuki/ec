@@ -20,7 +20,42 @@ This file is Customized File
 <script src="{{ app.config.admin_urlpath }}/assets/js/vendor/bootstrap-datetimepicker.min.js"></script>
 <script>
 $(function() {
-
+    var searchOrders = [];
+    {% for search_order in search_orders %}
+        var searchOrder ={ order_target:"{{ search_order.order_target }}", order_type:"{{ search_order.order_type }}" };
+        if (searchOrder.order_target == 'id') {
+            if (searchOrder.order_type == 'ASC') {
+                $('#id-col').addClass('ASC');
+            } else {
+                $('#id-col').addClass('DESC');
+            }
+        } else if (searchOrder.order_target == 'name') {
+            if (searchOrder.order_type == 'ASC') {
+                $('#name-col').addClass('ASC');
+            } else {
+                $('#name-col').addClass('DESC');
+            }
+        } else if (searchOrder.order_target == 'start-date') {
+            if (searchOrder.order_type == 'ASC') {
+                $('#start-date-col').addClass('ASC');
+            } else {
+                $('#start-date-col').addClass('DESC');
+            }
+        } else if (searchOrder.order_target == 'area') {
+            if (searchOrder.order_type == 'ASC') {
+                $('#area-col').addClass('ASC');
+            } else {
+                $('#area-col').addClass('DESC');
+            }
+        } else if (searchOrder.order_target == 'training-type') {
+            if (searchOrder.order_type == 'ASC') {
+                $('#training-type-col').addClass('ASC');
+            } else {
+                $('#training-type-col').addClass('DESC');
+            }
+        }
+        searchOrders.push(searchOrder);
+    {% endfor %}
     var inputDate = document.createElement('input');
     inputDate.setAttribute('type', 'date');
     if (inputDate.type !== 'date') {
@@ -51,6 +86,94 @@ $(function() {
             showTodayButton: true
         });
     }
+    // ソート開始
+    $(".sortable-header").on('click', function() {
+        $('#loadingModal').modal('show');
+        id = $(this).attr('id');
+        searchOrderParam = "";
+        var exitst = false;
+        var clear = false;
+        if (id == 'id-col') {
+            for(let idx in searchOrders) {
+                if (searchOrders[idx].order_target == 'id') {
+                    if (searchOrder.order_type == 'DESC') {
+                        clear = true;
+                    }
+                    exitst = true;
+                    break;
+                }
+            }
+            if ((exitst) && (!clear)) {
+                searchOrderParam = "?search_orders=" + JSON.stringify([{order_target:'id', order_type:'DESC'}]);
+            } else if (!exitst) {
+                searchOrderParam = "?search_orders=" + JSON.stringify([{order_target:'id', order_type:'ASC'}]);
+            }
+        } else if (id == 'name-col') {
+            for(let idx in searchOrders) {
+                if (searchOrders[idx].order_target == 'name') {
+                    if (searchOrder.order_type == 'DESC') {
+                        clear = true;
+                    }
+                    exitst = true;
+                    break;
+                }
+            }
+            if ((exitst) && (!clear)) {
+                searchOrderParam = "?search_orders=" + JSON.stringify([{order_target:'name', order_type:'DESC'}]);
+            } else if (!exitst) {
+                searchOrderParam = "?search_orders=" + JSON.stringify([{order_target:'name', order_type:'ASC'}]);
+            }
+        } else if (id == 'start-date-col') {
+            for(let idx in searchOrders) {
+                if (searchOrders[idx].order_target == 'start-date') {
+                    if (searchOrder.order_type == 'DESC') {
+                        clear = true;
+                    }
+                    exitst = true;
+                    break;
+                }
+            }
+            if ((exitst) && (!clear)) {
+                searchOrderParam = "?search_orders=" + JSON.stringify([{order_target:'start-date', order_type:'DESC'}]);
+            } else {
+                searchOrderParam = "?search_orders=" + JSON.stringify([{order_target:'start-date', order_type:'ASC'}]);
+            }
+        } else if (id == 'area-col') {
+            for(let idx in searchOrders) {
+                if (searchOrders[idx].order_target == 'area') {
+                    if (searchOrders[idx].order_type == 'DESC') {
+                        clear = true;
+                    }
+                    exitst = true;
+                    break;
+                }
+            }
+            if ((exitst) && (!clear)) {
+                searchOrderParam = "?search_orders=" + JSON.stringify([{order_target:'area', order_type:'DESC'}]);
+            } else if (!exitst) {
+                searchOrderParam = "?search_orders=" + JSON.stringify([{order_target:'area', order_type:'ASC'}]);
+            }
+        } else if (id == 'training-type-col') {
+            for(let idx in searchOrders) {
+                if (searchOrder.order_target == 'training-type') {
+                    if (searchOrder.order_type == 'DESC') {
+                        clear = true;
+                    }
+                    exitst = true;
+                    break;
+                }
+            }
+            if ((exitst) && (!clear)) {
+                searchOrderParam = "?search_orders=" + JSON.stringify([{order_target:'training-type', order_type:'DESC'}]);
+            } else if (!exitst) {
+                searchOrderParam = "?search_orders=" + JSON.stringify([{order_target:'training-type', order_type:'ASC'}]);
+            }
+        } else {
+            $('#loadingModal').modal('hide');
+            return;
+        }
+        window.location.href = "{{ url('admin_pruduct_by_student_page', {'page_no': 1}) }}" + searchOrderParam;
+    });
 
     // フォーム値を確認し、アコーディオンを制御
     // 値あり : 開く / 値なし : 閉じる
@@ -78,10 +201,15 @@ $(function() {
 {% endblock javascript %}
 
 {% block main %}
+            <div id="loadingModal" class="modal fade" data-backdrop="static" data-keyboard="false" tabindex="-1">
+                <div class="modal-dialog modal-sm">
+                    <div class="loader"></div>
+                </div>
+            </div>
             <!--検索条件設定テーブルここから-->
             <div id="search_wrap" class="search-box">
                 <form name="search_form" id="search_form" method="post" action="{{ url('admin_pruduct_by_student') }}">
-                	{{ form_widget(searchForm._token) }}
+                    {{ form_widget(searchForm._token) }}
                     <div id="search_box" class="row">
                         <div class="col-md-12 accordion">
 
@@ -261,23 +389,25 @@ $(function() {
                                 <div class="tableish tableish-striped">
                                     <!--列タイトル-->
                                     <div  class="item_box tr">
-                                        <div id="tile1" class="item_detail td">
+                                        <div id="id-col" class="td sortable-header">
                                             ID
                                         </div>
-                                        <div id="tile2" class="item_detail td">
+                                        <div id="name-col" class="td sortable-header">
                                             講習会名
                                         </div>
-                                        <div id="tile3" class="item_detail td">
+                                        <div id="start-date-col" class="td sortable-header">
                                             開催日
                                         </div>
-                                        <div id="tile4" class="item_detail td">
+                                        <div id="area-col" class="td sortable-header">
                                             地域
                                         </div>
-                                        <div id="tile5" class="item_detail td">
+                                        <div id="training-type-col" class="td sortable-header">
                                             講習会種別
                                         </div>
-                                        <div id="tile6" class="item_detail td">
+                                        <div class="td sortunable-header">
                                             申込人数 / 定員
+                                        </div>
+                                        <div class="td sortunable-header">
                                         </div>
                                     </div>
                                     {% for Product in pagination %}
@@ -318,14 +448,15 @@ $(function() {
                                             <!--申込人数 / 定員-->
                                             {% set ClassStock = '' %}
                                             {% set stock = '' %}
-                                            {% for ProductClasses in Product.ProductClasses %}
-                                                {% if Product.id == ProductClasses.id %}
-                                                    {% if ProductClasses.stock == '' %}
+                                            {% for ProductClass in Product.ProductClasses %}
+                                                {% if ClassStock is empty or stock is empty %}
+                                                    {% if ProductClass.stock_unlimited == 1 %}
                                                         {% set ClassStock = '無制限' %}
-                                                    {% else  %}
-                                                        {% set ClassStock = ProductClasses.stock %}
+                                                        {% set stock = '無制限' %}
+                                                    {% elseif ProductClass.ProductStock %}
+                                                        {% set ClassStock = ProductClass.stock %}
+                                                        {% set stock = ProductClass.ProductStock.stock %}
                                                     {% endif %}
-                                                    {% set stock = ProductClasses.ProductStock.stock %}
                                                 {% endif %}
                                             {% endfor %}
                                             <div id="result_list__count--{{ Product.id }}" class="item_detail td">

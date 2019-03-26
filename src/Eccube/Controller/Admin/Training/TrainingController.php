@@ -217,6 +217,7 @@ class TrainingController extends AbstractController
 
         $page_status = null;
         $active = false;
+        $search_orders = array();
 
         if ('POST' === $request->getMethod()) {
 
@@ -291,6 +292,10 @@ class TrainingController extends AbstractController
                             $viewData['status'] = array();
                         }
                     }
+                    $search_orders_json = $request->get('search_orders');
+                    if (!empty($search_orders_json)) {
+                        $search_orders = json_decode($search_orders_json, true);
+                    }
 
                     // 表示件数
                     $page_count = $request->get('page_count', $page_count);
@@ -305,7 +310,7 @@ class TrainingController extends AbstractController
 
                     $session->set('eccube.admin.product.search', $viewData);
 
-                    $qb = $app['eccube.repository.product']->getQueryBuilderBySearchTrainingDataForAdmin($searchData);
+                    $qb = $app['eccube.repository.product']->getQueryBuilderBySearchTrainingDataForAdmin($searchData, $search_orders);
 
                     $event = new EventArgs(
                         array(
@@ -336,6 +341,7 @@ class TrainingController extends AbstractController
             'page_no' => $page_no,
             'page_status' => $page_status,
             'page_count' => $page_count,
+            'search_orders' => $search_orders,
             'active' => $active,
         ));
     }
@@ -373,6 +379,7 @@ class TrainingController extends AbstractController
         }
 
         $page_status = null;
+        $search_orders = array();
         $active = false;
 
         if ('POST' === $request->getMethod()) {
@@ -448,6 +455,12 @@ class TrainingController extends AbstractController
                             $viewData['status'] = array();
                         }
                     }
+                    $search_orders_json = $request->get('search_orders');
+                    log_info('search_orders_json:' .  $search_orders_json);
+                    if (!empty($search_orders_json)) {
+                        $search_orders = json_decode($search_orders_json, true);
+                    }
+                    log_info('search_orders:' .  print_r($search_orders, true));
 
                     // 表示件数
                     $page_count = $request->get('page_count', $page_count);
@@ -462,7 +475,7 @@ class TrainingController extends AbstractController
 
                     $session->set('eccube.admin.pruductbystudent.search', $viewData);
 
-                    $qb = $app['eccube.repository.product']->getQueryBuilderBySearchOrderedTrainingDataForAdmin($searchData);
+                    $qb = $app['eccube.repository.product']->getQueryBuilderBySearchOrderedTrainingDataForAdmin($searchData, $search_orders);
 
                     $event = new EventArgs(
                         array(
@@ -473,7 +486,6 @@ class TrainingController extends AbstractController
                     );
                     $app['eccube.event.dispatcher']->dispatch(EccubeEvents::ADMIN_PRODUCT_INDEX_SEARCH, $event);
                     $searchData = $event->getArgument('searchData');
-
 
                     $pagination = $app['paginator']()->paginate(
                         $qb,
@@ -493,6 +505,7 @@ class TrainingController extends AbstractController
             'page_no' => $page_no,
             'page_status' => $page_status,
             'page_count' => $page_count,
+            'search_orders' => $search_orders,
             'active' => $active,
         ));
     }

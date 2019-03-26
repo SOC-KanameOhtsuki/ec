@@ -3314,3 +3314,44 @@ a[id^="delete_choice"]:hover {
 #regist_product {
     color: #fff;
 }
+
+.sortable-header {
+    display: inline-block;
+    color: #fff;
+    border-color: #fff;
+    border-style: solid;
+    border-width: 1px;
+    background-color: #5d8fc2 !important;
+} 
+
+.ASC:after {
+    content: "";
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-image: url("/template/admin/assets/img/cb-up.png");
+    background-size: contain;
+    vertical-align: middle;
+}
+
+.DESC:after {
+    content: "";
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-image: url("/template/admin/assets/img/cb-down.png");
+    background-size: contain;
+    vertical-align: middle;
+}
+
+.sortunable-header {
+    color: #fff;
+    border-color: #fff;
+    border-style: solid;
+    border-width: 1px;
+    background-color: #808080 !important;
+}
+
+#id-col {
+    width:75px;
+}

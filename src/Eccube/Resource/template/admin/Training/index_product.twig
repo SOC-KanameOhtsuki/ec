@@ -21,7 +21,42 @@ This file is Customized File
 <script src="{{ app.config.admin_urlpath }}/assets/js/vendor/bootstrap-datetimepicker.min.js"></script>
 <script>
 $(function() {
-
+    var searchOrders = [];
+    {% for search_order in search_orders %}
+        var searchOrder ={ order_target:"{{ search_order.order_target }}", order_type:"{{ search_order.order_type }}" };
+        if (searchOrder.order_target == 'id') {
+            if (searchOrder.order_type == 'ASC') {
+                $('#id-col').addClass('ASC');
+            } else {
+                $('#id-col').addClass('DESC');
+            }
+        } else if (searchOrder.order_target == 'name') {
+            if (searchOrder.order_type == 'ASC') {
+                $('#name-col').addClass('ASC');
+            } else {
+                $('#name-col').addClass('DESC');
+            }
+        } else if (searchOrder.order_target == 'start-date') {
+            if (searchOrder.order_type == 'ASC') {
+                $('#start-date-col').addClass('ASC');
+            } else {
+                $('#start-date-col').addClass('DESC');
+            }
+        } else if (searchOrder.order_target == 'area') {
+            if (searchOrder.order_type == 'ASC') {
+                $('#area-col').addClass('ASC');
+            } else {
+                $('#area-col').addClass('DESC');
+            }
+        } else if (searchOrder.order_target == 'training-type') {
+            if (searchOrder.order_type == 'ASC') {
+                $('#training-type-col').addClass('ASC');
+            } else {
+                $('#training-type-col').addClass('DESC');
+            }
+        }
+        searchOrders.push(searchOrder);
+    {% endfor %}
     var inputDate = document.createElement('input');
     inputDate.setAttribute('type', 'date');
     if (inputDate.type !== 'date') {
@@ -52,6 +87,94 @@ $(function() {
             showTodayButton: true
         });
     }
+    // ソート開始
+    $(".sortable-header").on('click', function() {
+        $('#loadingModal').modal('show');
+        id = $(this).attr('id');
+        searchOrderParam = "";
+        var exitst = false;
+        var clear = false;
+        if (id == 'id-col') {
+            for(let idx in searchOrders) {
+                if (searchOrders[idx].order_target == 'id') {
+                    if (searchOrder.order_type == 'DESC') {
+                        clear = true;
+                    }
+                    exitst = true;
+                    break;
+                }
+            }
+            if ((exitst) && (!clear)) {
+                searchOrderParam = "?search_orders=" + JSON.stringify([{order_target:'id', order_type:'DESC'}]);
+            } else if (!exitst) {
+                searchOrderParam = "?search_orders=" + JSON.stringify([{order_target:'id', order_type:'ASC'}]);
+            }
+        } else if (id == 'name-col') {
+            for(let idx in searchOrders) {
+                if (searchOrders[idx].order_target == 'name') {
+                    if (searchOrder.order_type == 'DESC') {
+                        clear = true;
+                    }
+                    exitst = true;
+                    break;
+                }
+            }
+            if ((exitst) && (!clear)) {
+                searchOrderParam = "?search_orders=" + JSON.stringify([{order_target:'name', order_type:'DESC'}]);
+            } else if (!exitst) {
+                searchOrderParam = "?search_orders=" + JSON.stringify([{order_target:'name', order_type:'ASC'}]);
+            }
+        } else if (id == 'start-date-col') {
+            for(let idx in searchOrders) {
+                if (searchOrders[idx].order_target == 'start-date') {
+                    if (searchOrder.order_type == 'DESC') {
+                        clear = true;
+                    }
+                    exitst = true;
+                    break;
+                }
+            }
+            if ((exitst) && (!clear)) {
+                searchOrderParam = "?search_orders=" + JSON.stringify([{order_target:'start-date', order_type:'DESC'}]);
+            } else {
+                searchOrderParam = "?search_orders=" + JSON.stringify([{order_target:'start-date', order_type:'ASC'}]);
+            }
+        } else if (id == 'area-col') {
+            for(let idx in searchOrders) {
+                if (searchOrders[idx].order_target == 'area') {
+                    if (searchOrders[idx].order_type == 'DESC') {
+                        clear = true;
+                    }
+                    exitst = true;
+                    break;
+                }
+            }
+            if ((exitst) && (!clear)) {
+                searchOrderParam = "?search_orders=" + JSON.stringify([{order_target:'area', order_type:'DESC'}]);
+            } else if (!exitst) {
+                searchOrderParam = "?search_orders=" + JSON.stringify([{order_target:'area', order_type:'ASC'}]);
+            }
+        } else if (id == 'training-type-col') {
+            for(let idx in searchOrders) {
+                if (searchOrder.order_target == 'training-type') {
+                    if (searchOrder.order_type == 'DESC') {
+                        clear = true;
+                    }
+                    exitst = true;
+                    break;
+                }
+            }
+            if ((exitst) && (!clear)) {
+                searchOrderParam = "?search_orders=" + JSON.stringify([{order_target:'training-type', order_type:'DESC'}]);
+            } else if (!exitst) {
+                searchOrderParam = "?search_orders=" + JSON.stringify([{order_target:'training-type', order_type:'ASC'}]);
+            }
+        } else {
+            $('#loadingModal').modal('hide');
+            return;
+        }
+        window.location.href = "{{ url('admin_pruduct_by_student_page', {'page_no': 1}) }}" + searchOrderParam;
+    });
 
     // フォーム値を確認し、アコーディオンを制御
     // 値あり : 開く / 値なし : 閉じる
@@ -253,17 +376,37 @@ $(function() {
                             </div>
                             <div id="result_list__list" class="item_list">
                                 <div class="tableish tableish-striped">
+                                    <!--列タイトル-->
+                                    <div  class="item_box tr">
+                                        <div id="id-col" class="td sortable-header">
+                                            ID
+                                        </div>
+                                        <div id="name-col" class="td sortable-header">
+                                            講習会名
+                                        </div>
+                                        <div id="start-date-col" class="td sortable-header">
+                                            開催日
+                                        </div>
+                                        <div id="area-col" class="td sortable-header">
+                                            地域
+                                        </div>
+                                        <div id="training-type-col" class="td sortable-header">
+                                            講習会種別
+                                        </div>
+                                        <div class="td sortunable-header">
+                                            申込人数 / 定員
+                                        </div>
+                                        <div class="td sortunable-header">
+                                        </div>
+                                    </div>
 
                                     {% for Product in pagination %}
                                         <div id="result_list__item--{{ Product.id }}" class="item_box tr">
+                                            <!--講習会ID-->
                                             <div id="result_list__id--{{ Product.id }}" class="item_id td">
                                                 {{Product.id}}
                                             </div>
-                                            <div id="result_list__image--{{ Product.id }}" class="item_photo td">
-                                                <a href="{{ url('admin_training_edit', { id : Product.id }) }}">
-                                                    <img src="{{ app.config.image_save_urlpath }}/{{ Product.mainFileName|no_image_product }}" />
-                                                </a>
-                                            </div>
+                                            <!--名称-->
                                             <div id="result_list__name--{{ Product.id }}" class="item_detail td">
                                                 <a href="{{ url('admin_training_edit', { id : Product.id }) }}">
                                                     {{ Product.name }}
@@ -274,19 +417,41 @@ $(function() {
                                                     {% endif %}
                                                 </span>
                                             </div>
+                                            <!--開始日時-->
                                             <div id="result_list__date_start--{{ Product.id }}" class="item_detail td">
                                                 <a href="{{ url('admin_training_edit', {'id' : Product.id}) }}">
-                                                    {{ Product.ProductTraining.training_date_start|date("Y/m/d H:i") }}
+                                                    {{ Product.ProductTraining.training_date_start|date("Y/m/d") }}
                                                 </a><br>
                                             </div>
-                                            <div id="result_list__date_end--{{ Product.id }}" class="item_detail td">
-                                                <a href="{{ url('admin_training_edit', {'id' : Product.id}) }}">
-                                                    {{ Product.ProductTraining.training_date_end|date("Y/m/d H:i") }}
+                                            <!--地域-->
+                                            <div id="result_list__area--{{ Product.id }}" class="item_detail td">
+                                                <a href="{{ url('admin_student', {'id' : Product.id}) }}">
+                                                    {{ Product.ProductTraining.addr01 }}
                                                 </a><br>
                                             </div>
+                                            <!--講習種別-->
                                             <div id="result_list__type--{{ Product.id }}" class="item_detail td">
-                                                <a href="{{ url('admin_training_edit', {'id' : Product.id}) }}">
+                                                <a href="{{ url('admin_student', {'id' : Product.id}) }}">
                                                     {{ Product.ProductTraining.TrainingType.name }}
+                                                </a><br>
+                                            </div>
+                                            <!--申込人数 / 定員-->
+                                            {% set ClassStock = '' %}
+                                            {% set stock = '' %}
+                                            {% for ProductClass in Product.ProductClasses %}
+                                                {% if ClassStock is empty or stock is empty %}
+                                                    {% if ProductClass.stock_unlimited == 1 %}
+                                                        {% set ClassStock = '無制限' %}
+                                                        {% set stock = '無制限' %}
+                                                    {% elseif ProductClass.ProductStock %}
+                                                        {% set ClassStock = ProductClass.stock %}
+                                                        {% set stock = ProductClass.ProductStock.stock %}
+                                                    {% endif %}
+                                                {% endif %}
+                                            {% endfor %}
+                                            <div id="result_list__count--{{ Product.id }}" class="item_detail td">
+                                                <a href="{{ url('admin_student', {'id' : Product.id}) }}">
+                                                    {{ stock }} / {{ ClassStock }}
                                                 </a><br>
                                             </div>
                                             <div id="result_list__item_menu_box--{{ Product.id }}"class="icon_edit td">
