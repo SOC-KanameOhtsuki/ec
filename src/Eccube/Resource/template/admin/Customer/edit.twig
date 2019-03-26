@@ -609,6 +609,7 @@
                                 <thead>
                                     <tr id="history_box__list_header">
                                         <th id="history_box__header_order_date">注文日時</th>
+                                        <th id="history_box__header_order_date">商品名</th>
                                         <th id="history_box__header_order_id">受注番号</th>
                                         <th id="history_box__header_order_total">購入金額</th>
                                         <th id="history_box__header_commit_date">発送日</th>
@@ -620,6 +621,13 @@
                                     <tr id="history_box__item--{{ Order.id }}">
                                         <td id="history_box__order_date--{{ Order.id }}" class="member_id">
                                             {{ Order.order_date|date_format }}
+                                        </td>
+                                        <td id="history_box__order_name--{{ Order.id }}" class="orderdeleil_name">
+                                            {% for OrderDetails in Order.OrderDetails %}
+                                                {%  if OrderDetails.id == Order.id %}
+                                                    {{  OrderDetails.product_name  }}
+                                                {% endif %}
+                                            {% endfor  %}
                                         </td>
                                         <td id="history_box__order_id--{{ Order.id }}" class="member_name">
                                             <a href="{{ url('admin_order_edit', { 'id' : Order.id }) }}">{{ Order.id }}</a>
