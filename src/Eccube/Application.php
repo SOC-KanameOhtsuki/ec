@@ -1317,10 +1317,20 @@ class Application extends ApplicationTrait
      */
     public function mail(\Swift_Message $message, &$failedRecipients = null)
     {
-        if (empty($message->getTo())) {
+        file_put_contents("/var/www/ec_ohtsuki/app/log/debug.log", "mail run", FILE_APPEND);
+        $toAddresses = $message->getTo();
+        if (empty($toAddresses)) {
             return 0;
-        } else if (preg_match("/" . $this['config']['dummy_email_pattern'] . "/", $message->getTo())) {
-            return 0;
+        } else {
+            foreach ($toAddresses as $address => $name) {
+                if (preg_match("/" . $this['config']['dummy_email_pattern'] . "/", $address)) {
+                    $message->getHeaders()->get('To')->removeAddresses($address);
+                    unset($toAddresses[$address]);
+                }
+            }
+            if (count($toAddresses) < 1) {
+                return 0;
+            }
         }
         return parent::mail($message, $failedRecipients);
     }
