@@ -267,6 +267,24 @@ class EditController extends AbstractController
                         );
                         $app['eccube.event.dispatcher']->dispatch(EccubeEvents::ADMIN_ORDER_EDIT_INDEX_COMPLETE, $event);
 
+                        if (is_null($id)) {
+                            log_info('在庫更新');
+                            foreach ($TargetOrder->getOrderDetails() as $OrderDetail) {
+                                // 在庫が無制限かチェックし、制限ありなら在庫数を更新
+                                if ($OrderDetail->getProductClass()->getStockUnlimited() == Constant::DISABLED) {
+                                    $productStock = $OrderDetail->getProductClass()->getProductStock();
+
+                                    // 在庫情報の在庫数を更新
+                                    $stock = $productStock->getStock() - $OrderDetail->getQuantity();
+                                    $productStock->setStock($stock);
+
+                                    // 商品規格情報の在庫数を更新
+                                    $app['orm.em']->persist($TargetOrder);
+                                    $app['orm.em']->flush();
+                                }
+                            }
+                        }
+
                         $app->addSuccess('admin.order.save.complete', 'admin');
 
                         log_info('受注登録完了', array($TargetOrder->getId()));
