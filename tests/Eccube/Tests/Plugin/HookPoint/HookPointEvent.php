@@ -209,6 +209,15 @@ class HookPointEvent
         echo EccubeEvents::ADMIN_CUSTOMER_CSV_EXPORT;
     }
 
+// Admin/Customer/CustomerGroupController
+
+// export
+    public function onAdminCustomerGroupExportCsv(EventArgs $event)
+    {
+        echo EccubeEvents::ADMIN_CUSTOMER_GROUP_CSV_EXPORT;
+    }
+
+
 // Admin/Customer/CustomerEditController
 
 // index

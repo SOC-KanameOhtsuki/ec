@@ -111,6 +111,88 @@ class CustomerGroupController extends AbstractController
         ));
     }
 
+    /**
+     * 会員グループCSVの出力.
+     * @param Application $app
+     * @param Request $request
+     * @return StreamedResponse
+     */
+    public function export(Application $app, Request $request)
+    {
+        // タイムアウトを無効にする.
+        set_time_limit(0);
+
+        log_info("会員グループCSVファイル名");
+
+        // sql loggerを無効にする.
+        $em = $app['orm.em'];
+        $em->getConfiguration()->setSQLLogger(null);
+
+        $response = new StreamedResponse();
+        $response->setCallback(function () use ($app, $request) {
+
+            // CSV種別を元に初期化.
+            $app['eccube.service.csv.export']->initCsvType(CsvType::CSV_TYPE_CUSTOMER_GROUP);
+
+            // ヘッダ行の出力.
+            $app['eccube.service.csv.export']->exportHeader();
+            log_info("会員グループCSV 2");
+            // 会員データ検索用のクエリビルダを取得.
+            $qb = $app['eccube.service.csv.export']
+                ->getCustomerGroupQueryBuilder($request);
+            log_info("会員グループCSV 3");
+            // データ行の出力.
+            $app['eccube.service.csv.export']->setExportQueryBuilder($qb);
+            $app['eccube.service.csv.export']->exportData(function ($entity, $csvService) use ($app, $request) {
+
+                log_info("会員グループCSV 4");
+
+
+                $Csvs = $csvService->getCsvs();
+
+                /** @var $CustomerGroup \Eccube\Entity\CustomerGroup */
+                $CustomerGroup = $entity;
+                log_info("会員グループCSV 5");
+                $ExportCsvRow = new \Eccube\Entity\ExportCsvRow();
+
+                // CSV出力項目と合致するデータを取得.
+                foreach ($Csvs as $Csv) {
+                    // 会員データを検索.
+                    $ExportCsvRow->setData($csvService->getData($Csv, $CustomerGroup));
+
+                    $event = new EventArgs(
+                        array(
+                            'csvService' => $csvService,
+                            'Csv' => $Csv,
+                            'CustomerGroup' => $CustomerGroup,
+                            'ExportCsvRow' => $ExportCsvRow,
+                        ),
+                        $request
+                    );
+                    $app['eccube.event.dispatcher']->dispatch(EccubeEvents::ADMIN_CUSTOMER_GROUP_CSV_EXPORT, $event);
+
+                    $ExportCsvRow->pushData();
+                }
+
+                //$row[] = number_format(memory_get_usage(true));
+                // 出力.
+                $csvService->fputcsv($ExportCsvRow->getRow());
+            });
+        });
+
+        $now = new \DateTime();
+        $filename = 'customer_group_' . $now->format('YmdHis') . '.csv';
+        $response->headers->set('Content-Type', 'application/octet-stream');
+        $response->headers->set('Content-Disposition', 'attachment; filename=' . $filename);
+
+        $response->send();
+
+        log_info("会員グループCSVファイル名", array($filename));
+
+        return $response;
+    }
+
+
     public function delete(Application $app, Request $request, $id)
     {
         $this->isTokenValid($app);

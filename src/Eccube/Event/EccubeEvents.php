@@ -131,6 +131,14 @@ final class EccubeEvents
 
 
     /**
+     * Admin/Customer/CustomerGroupController
+     */
+
+    // export
+    const ADMIN_CUSTOMER_GROUP_CSV_EXPORT = 'admin.customer.csv.export.group';
+
+
+    /**
      * Admin/Customer/CustomerEditController
      */
     // index

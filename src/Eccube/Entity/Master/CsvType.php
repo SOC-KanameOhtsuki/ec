@@ -37,6 +37,12 @@ class CsvType extends \Eccube\Entity\AbstractEntity
     /**
      * @var integer
      */
+    const CSV_TYPE_CUSTOMER_GROUP = 7;
+
+
+    /**
+     * @var integer
+     */
     private $id;
 
     /**

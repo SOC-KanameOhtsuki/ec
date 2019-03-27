@@ -112,6 +112,7 @@ class AdminControllerProvider implements ControllerProviderInterface
         $c->post('/customer/group/search/customer/html', '\Eccube\Controller\Admin\Customer\CustomerGroupEditController::searchCustomerHtml')->bind('admin_customer_group_search_customer_html');
         $c->match('/customer/group/search/customer/html/page/{page_no}', '\Eccube\Controller\Admin\Customer\CustomerGroupEditController::searchCustomerHtml')->assert('page_no', '\d+')->bind('admin_customer_group_search_customer_html_page');
         $c->post('/customer/group/search/customer/id', '\Eccube\Controller\Admin\Customer\CustomerGroupEditController::searchCustomerById')->bind('admin_customer_group_search_customer_by_id');
+        $c->match('/customer/group/export', '\Eccube\Controller\Admin\Customer\CustomerGroupController::export')->bind('admin_customer_group_export');
 
         // order
         $c->match('/order', '\Eccube\Controller\Admin\Order\OrderController::index')->bind('admin_order');
