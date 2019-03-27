@@ -84,6 +84,9 @@ Eccube\Entity\ProductTraining:
         place_fee:
             type: text
             nullable: true
+        collaborators:
+            type: text
+            nullable: true
         area:
             type: text
             nullable: true
