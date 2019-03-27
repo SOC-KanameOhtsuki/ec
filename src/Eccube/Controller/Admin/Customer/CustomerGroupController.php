@@ -122,8 +122,6 @@ class CustomerGroupController extends AbstractController
         // タイムアウトを無効にする.
         set_time_limit(0);
 
-        log_info("会員グループCSVファイル名");
-
         // sql loggerを無効にする.
         $em = $app['orm.em'];
         $em->getConfiguration()->setSQLLogger(null);
@@ -136,23 +134,21 @@ class CustomerGroupController extends AbstractController
 
             // ヘッダ行の出力.
             $app['eccube.service.csv.export']->exportHeader();
-            log_info("会員グループCSV 2");
+
             // 会員データ検索用のクエリビルダを取得.
             $qb = $app['eccube.service.csv.export']
-                ->getCustomerGroupQueryBuilder($request);
-            log_info("会員グループCSV 3");
+                ->getCustomerGroupQueryBuilder($request, $app);
+
             // データ行の出力.
             $app['eccube.service.csv.export']->setExportQueryBuilder($qb);
             $app['eccube.service.csv.export']->exportData(function ($entity, $csvService) use ($app, $request) {
-
-                log_info("会員グループCSV 4");
 
 
                 $Csvs = $csvService->getCsvs();
 
                 /** @var $CustomerGroup \Eccube\Entity\CustomerGroup */
                 $CustomerGroup = $entity;
-                log_info("会員グループCSV 5");
+
                 $ExportCsvRow = new \Eccube\Entity\ExportCsvRow();
 
                 // CSV出力項目と合致するデータを取得.

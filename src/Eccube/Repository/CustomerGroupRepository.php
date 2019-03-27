@@ -16,6 +16,7 @@ class CustomerGroupRepository extends EntityRepository
 
     public function getQueryBuilderBySearchData($searchData)
     {
+        log_info('getQueryBuilderBySearchData 1');
         $qb = $this->createQueryBuilder('cg')
             ->select('cg')
             ->andWhere('cg.del_flg = 0');
