@@ -1317,7 +1317,6 @@ class Application extends ApplicationTrait
      */
     public function mail(\Swift_Message $message, &$failedRecipients = null)
     {
-        file_put_contents("/var/www/ec_ohtsuki/app/log/debug.log", "mail run", FILE_APPEND);
         $toAddresses = $message->getTo();
         if (empty($toAddresses)) {
             return 0;

@@ -122,7 +122,7 @@ class EntryController extends AbstractController
                                         ->setNobulletin($form->get('nobulletin')->getData())
                                         ->setAnonymous($form->get('anonymous')->getData())
                                         ->setAnonymousCompany($form->get('anonymous_company')->getData())
-                                        ->setMembershipExemption($app['eccube.repository.master.exemption_type_type']->find($app['config']['initialize_exemption_type']))
+                                        ->setMembershipExemption($app['eccube.repository.master.exemption_type']->find($app['config']['initialize_exemption_type']))
                                         ->setInstructorType($app['eccube.repository.master.instructor_type']->find($app['config']['initialize_instructor_type']))
                                         ->setSupporterType($app['eccube.repository.master.supporter_type']->find($app['config']['initialize_supporter_type']))
                                         ->setCustomerPinCode($request->request->get('entry')['customer_pin_code']['first']);
