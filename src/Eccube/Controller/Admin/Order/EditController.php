@@ -774,7 +774,6 @@ class EditController extends AbstractController
             $membershipProducts = null;
             $targetProducts = array();
             if (0 < count($targetYear)) {
-                log_info('targetYear:' . print_r($targetYear, true));
                 $membershipProducts = $app['eccube.repository.product_membership']
                         ->getProductMembershipQueryBuilderByMembershipId($targetYear)
                         ->getQuery()->getResult();
