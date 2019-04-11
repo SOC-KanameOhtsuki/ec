@@ -134,6 +134,7 @@ class AdminControllerProvider implements ControllerProviderInterface
         $c->match('/order/membership/{id}/detail', '\Eccube\Controller\Admin\Order\OrderController::indexMembershipBillingDetail')->assert('id', '\d+')->bind('admin_membership_order_detail');
         $c->match('/order/membership/{id}/detail/{page_no}', '\Eccube\Controller\Admin\Order\OrderController::indexMembershipBillingDetail')->assert('id', '\d+')->assert('page_no', '\d+')->bind('admin_membership_order_detail_page');
         $c->match('/order/membership/regist', '\Eccube\Controller\Admin\Order\EditController::registMembership')->bind('admin_membership_order_regist');
+        $c->match('/order/membership/csv_download/{id}', '\Eccube\Controller\Admin\Order\OrderController::csvDownloadMembershipBilling')->assert('id', '\d+')->bind('admin_membership_csv_out');
         $c->post('/order/search/group/html', '\Eccube\Controller\Admin\Order\EditController::searchCustomerGroupHtml')->bind('admin_order_search_group_html');
         $c->match('/order/search/group/html/page/{page_no}', '\Eccube\Controller\Admin\Order\EditController::searchCustomerGroupHtml')->assert('page_no', '\d+')->bind('admin_order_search_group_html_page');
         $c->post('/order/search/customer_by_group/id', '\Eccube\Controller\Admin\Order\EditController::searchCustomerByGroupId')->bind('admin_order_search_customer_by_group_id');

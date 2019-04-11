@@ -332,3 +332,5 @@ temp_customer_number: "TEMP%014d"
 dummy_email: "dmy-%014d%03d@1to3.jp"
 dummy_email_pattern: "^dmy\-[0-9]*\@1to3\.jp$"
 can_not_change_pincode_status: [1]
+keep_alive_seconds: 30
+membership_billing_target_status: [5, 6]

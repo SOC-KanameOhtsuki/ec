@@ -44,5 +44,7 @@ $console->add(new Eccube\Command\CacheClearCommand());
 $console->add(new Eccube\Command\PluginCommand());
 $console->add(new Eccube\Command\ConfigCommand());
 $console->add(new Eccube\Command\MembershipBillingCommand());
+$console->add(new Eccube\Command\MembershipBillingCheckCommand());
+$console->add(new Eccube\Command\EndOfTermCommand());
 
 $console->run();

@@ -192,8 +192,11 @@ class EccubeServiceProvider implements ServiceProviderInterface
         $app['eccube.repository.master.bureau_type'] = $app->share(function () use ($app) {
             return $app['orm.em']->getRepository('Eccube\Entity\Master\Bureau');
         });
-        $app['eccube.repository.master.exemption_type_type'] = $app->share(function () use ($app) {
+        $app['eccube.repository.master.exemption_type'] = $app->share(function () use ($app) {
             return $app['orm.em']->getRepository('Eccube\Entity\Master\ExemptionType');
+        });
+        $app['eccube.repository.master.term_info'] = $app->share(function () use ($app) {
+            return $app['orm.em']->getRepository('Eccube\Entity\Master\TermInfo');
         });
 
         $app['eccube.repository.delivery'] = $app->share(function () use ($app) {
@@ -272,6 +275,12 @@ class EccubeServiceProvider implements ServiceProviderInterface
         });
         $app['eccube.repository.membership_billing'] = $app->share(function () use ($app) {
             return $app['orm.em']->getRepository('Eccube\Entity\MembershipBilling');
+        });
+        $app['eccube.repository.membership_billing_target_year'] = $app->share(function () use ($app) {
+            return $app['orm.em']->getRepository('Eccube\Entity\MembershipBillingTargetYear');
+        });
+        $app['eccube.repository.membership_billing_target_status'] = $app->share(function () use ($app) {
+            return $app['orm.em']->getRepository('Eccube\Entity\MembershipBillingTargetStatus');
         });
         $app['eccube.repository.membership_billing_detail'] = $app->share(function () use ($app) {
             return $app['orm.em']->getRepository('Eccube\Entity\MembershipBillingDetail');

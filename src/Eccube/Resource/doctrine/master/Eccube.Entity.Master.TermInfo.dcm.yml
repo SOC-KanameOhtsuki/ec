@@ -1,0 +1,42 @@
+Eccube\Entity\Master\TermInfo:
+    type: entity
+    table: mtb_term_info
+    repositoryClass: Eccube\Repository\Master\TermInfoRepository
+    id:
+        id:
+            type: integer
+            nullable: false
+            unsigned: false
+            id: true
+            column: term_id
+            generator:
+                strategy: AUTO
+    fields:
+        term_name:
+            type: text
+            nullable: true
+        term_start:
+            type: date
+            nullable: false
+        term_end:
+            type: date
+            nullable: false
+        term_year:
+            type: integer
+            nullable: false
+        japanese_year:
+            type: integer
+            nullable: false
+        del_flg:
+            type: smallint
+            nullable: false
+            unsigned: false
+            options:
+                default: '0'
+        create_date:
+            type: datetime
+            nullable: false
+        update_date:
+            type: datetime
+            nullable: false
+    lifecycleCallbacks: {  }

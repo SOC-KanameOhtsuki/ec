@@ -24,15 +24,13 @@
                 <div id="number_info_box" class="box no-header">
                     <div id="number_info_box__body" class="box-body">
                         <div class="row">
-                            <div id="number_info_box__order_status" class="col-sm-4">
-                                <h4>対象年度</span></h4>
+                            <div id="number_info_box__year">
+                                <h4>対象年度</h4>
                                 <div class="form-group">
-                                    {{ form_widget(form.MembershipYear) }}
-                                    {{ form_errors(form.MembershipYear) }}
+                                    {{ form_widget(form.year) }}
+                                    {{ form_errors(form.year) }}
                                 </div>
                             </div>
-                        </div>
-                        <div class="row">
                             <div id="number_info_box__status">
                                 <h4>対象会員</span></h4>
                                 <div class="form-group">

@@ -13,10 +13,6 @@ Eccube\Entity\MembershipBilling:
         dtb_customer_update_date_idx:
             columns:
                 - update_date
-        dtb_product_membership_idx:
-            columns:
-                - product_membership
-                - status
     id:
         id:
             type: integer
@@ -27,9 +23,6 @@ Eccube\Entity\MembershipBilling:
             generator:
                 strategy: AUTO
     fields:
-        target_status:
-            type: text
-            nullable: false
         create_date:
             type: datetime
             nullable: false
@@ -42,12 +35,13 @@ Eccube\Entity\MembershipBilling:
             joinColumn:
                 name: status
                 referencedColumnName: id
-        ProductMembership:
-            targetEntity: Eccube\Entity\ProductMembership
-            joinColumn:
-                name: product_membership
-                referencedColumnName: product_membership_id
     oneToMany:
+        TargetYear:
+            targetEntity: Eccube\Entity\MembershipBillingTargetYear
+            mappedBy: MembershipBilling
+        TargetStatus:
+            targetEntity: Eccube\Entity\MembershipBillingTargetStatus
+            mappedBy: MembershipBilling
         MembershipBillingDetail:
             targetEntity: Eccube\Entity\MembershipBillingDetail
             mappedBy: MembershipBilling

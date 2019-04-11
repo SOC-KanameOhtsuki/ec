@@ -1,0 +1,33 @@
+Eccube\Entity\MembershipBillingTargetStatus:
+    type: entity
+    table: dtb_membership_billing_target_status
+    repositoryClass: Eccube\Repository\MembershipBillingTargetStatusRepository
+    indexes:
+        # requires a length on MySQL
+        # dtb_customer_email_idx:
+        #     columns:
+        #         - email
+        dtb_membership_billing_target_status_idx:
+            columns:
+                - target_status
+    id:
+        id:
+            type: integer
+            nullable: false
+            unsigned: false
+            id: true
+            column: membership_billing_target_status_id
+            generator:
+                strategy: AUTO
+    manyToOne:
+        TargetStatus:
+            targetEntity: Eccube\Entity\Master\CustomerBasicInfoStatus
+            joinColumn:
+                name: target_status
+                referencedColumnName: id
+        MembershipBilling:
+            targetEntity: Eccube\Entity\MembershipBilling
+            joinColumn:
+                name: membership_billing
+                referencedColumnName: membership_billing_id
+    lifecycleCallbacks: {  }

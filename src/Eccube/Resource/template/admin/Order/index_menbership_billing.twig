@@ -186,18 +186,41 @@ This file is Cutomized file
                                         <th id="result_list_main__header_id">年会費一括登録番号</th>
                                         <th id="result_list_main__header_status">年会費支払処理ステータス</th>
                                         <th id="result_list_main__header_target_count">対象件数</th>
+                                        <th id="result_list_main__header_btn">&nbsp;</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                            {% for MenbershipBilling in pagination %}
+                                {% for MenbershipBilling in pagination %}
                                     <tr id="result_list_main__item--{{ MenbershipBilling.id }}">
                                         <td id="result_list_main__order_date--{{ MenbershipBilling.id }}">{{ MenbershipBilling.create_date|date_format }}</td>
-                                        <td id="result_list_main__membership_year--{{ MenbershipBilling.id }}">{{ MenbershipBilling.membership_year }}</td>
+                                        <td id="result_list_main__membership_year--{{ MenbershipBilling.id }}">
+                                        {% set MembershipYearList = 0 %}
+                                        {% set count = 0 %}
+                                        {% for MembershipYear in MenbershipBilling.TargetYear %}
+                                            {% if count > 0 %}
+                                                {% set MembershipYearList = MembershipYearList~','~MembershipYear.ProductMembership.membership_year %}
+                                            {% else %}
+                                                {% set MembershipYearList = MembershipYear.ProductMembership.membership_year %}
+                                            {% endif %}
+                                            {% set count = count + 1 %}
+                                        {% endfor %}
+                                        {{ MembershipYearList }}
+                                        </td>
                                         <td id="result_list_main__id--{{ MenbershipBilling.id }}">{{ MenbershipBilling.id }}</td>
                                         <td id="result_list_main__status--{{ MenbershipBilling.id }}">{{ MenbershipBilling.status }}</td>
-                                        <td id="result_list_main__target_count--{{ MenbershipBilling.id }}">{{ MenbershipBilling.target_count }}</td>
+                                        <td id="result_list_main__target_count--{{ MenbershipBilling.id }}">{{ MenbershipBilling.MembershipBillingDetail |length }}</td>
+                                        <td id="result_list_main__btn--{{ MenbershipBilling.id }}">
+                                            {% if MenbershipBilling.status.id == 3 %}
+                                            <div id="result_list_main__menu_box_toggle--{{ MenbershipBilling.id }}" class="dropdown">
+                                                <a class="dropdown-toggle" data-toggle="dropdown"><svg class="cb cb-ellipsis-h"> <use xlink:href="#cb-ellipsis-h" /></svg></a>
+                                                <ul id="result_list_main__menu--{{ MenbershipBilling.id }}" class="dropdown-menu dropdown-menu-right">
+                                                    <li><a href="{{ url('admin_membership_csv_out', { 'id': MenbershipBilling.id}) }}">CSV出力</a></li>
+                                                </ul>
+                                            </div>
+                                            {% endif %}
+                                        </td>
                                     </tr>
-                            {% endfor %}
+                                {% endfor %}
                                 </tbody>
                             </table>
                         </div>

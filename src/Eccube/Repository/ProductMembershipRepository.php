@@ -82,4 +82,28 @@ class ProductMembershipRepository extends EntityRepository
             
         return '';
     }
+
+    /**
+     * get query builder.
+     *
+     * @param  array $searchData
+     * @return \Doctrine\ORM\QueryBuilder
+     */
+    public function getProductMembershipQueryBuilderByMembershipId($MembershipId)
+    {
+        $qb = $this->createQueryBuilder('pm');
+        if (is_array($MembershipId)) {
+            $qb->andWhere($qb->expr()->in('pm.id', ':MembershipId'))
+                ->setParameter('MembershipId', $MembershipId);
+        } else {
+            $qb->andWhere('pm.id = :MembershipId')
+                ->setParameter('MembershipId', $MembershipId);
+        }
+
+        // Order By
+        // XXX Paginater を使用した場合に PostgreSQL で正しくソートできない
+        $qb->addOrderBy('pm.id', 'DESC');
+
+        return $qb;
+    }
 }

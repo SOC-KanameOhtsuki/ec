@@ -1119,22 +1119,28 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
         if (0 < count($targetStatus)) {
             $sql .= "INNER JOIN dtb_customer_basic_info ON dtb_customer.customer_id = dtb_customer_basic_info.customer_id ";
         }
-        $sql .= "WHERE dtb_customer.customer_id NOT IN ";
-        $sql .= "(SELECT dtb_customer.customer_id FROM dtb_customer INNER JOIN dtb_order ON dtb_customer.customer_id = dtb_order.customer_id ";
-        $sql .= "INNER JOIN dtb_order_detail ON dtb_order.order_id = dtb_order_detail.order_id ";
-        $sql .= "WHERE dtb_order_detail.product_id = :product_id ";
-        $sql .= "GROUP BY dtb_customer.customer_id) ";
-        if (0 < count($targetStatus)) {
-            $sql .= "AND dtb_customer_basic_info.status in (";
-            $cnt = 0;
-            foreach($targetStatus as $status) {
-                $sql .= ((0 < $cnt)?",":"") . $status;
-                ++$cnt;
+        $sql .= "WHERE (";
+        $loop = 0;
+        foreach ($searchData as $targetProduct) {
+            $sql .= ((0 < $loop)?" OR ":" ") . "dtb_customer.customer_id NOT IN ";
+            $sql .= "(SELECT dtb_customer.customer_id FROM dtb_customer INNER JOIN dtb_order ON dtb_customer.customer_id = dtb_order.customer_id ";
+            $sql .= "INNER JOIN dtb_order_detail ON dtb_order.order_id = dtb_order_detail.order_id ";
+            $sql .= "WHERE dtb_order_detail.product_id = " . $targetProduct;
+            $sql .= " GROUP BY dtb_customer.customer_id) ";
+            if (0 < count($targetStatus)) {
+                $sql .= "AND dtb_customer_basic_info.status in (";
+                $cnt = 0;
+                foreach($targetStatus as $status) {
+                    $sql .= ((0 < $cnt)?",":"") . $status;
+                    ++$cnt;
+                }
+                $sql .= ") ";
             }
-            $sql .= ") ";
+            ++$loop;
         }
+        $sql .= ") ";
         $sql .= "ORDER BY dtb_customer.customer_id DESC;";
-        $customers = $em->getConnection()->fetchAll($sql, array(':product_id' => $searchData));
+        $customers = $em->getConnection()->fetchAll($sql);
 
         return $customers;
     }

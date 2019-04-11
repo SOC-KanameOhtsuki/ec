@@ -35,9 +35,14 @@ class MembershipBilling extends \Eccube\Entity\AbstractEntity
     private $Status;
 
     /**
-     * @var \Eccube\Entity\ProductMembership
+     * @var \Eccube\Entity\MembershipBillingTargetYear
      */
-    private $ProductMembership;
+    private $TargetYear;
+
+    /**
+     * @var \Eccube\Entity\MembershipBillingTargetStatus
+     */
+    private $TargetStatus;
 
     /**
      * Constructor
@@ -45,6 +50,8 @@ class MembershipBilling extends \Eccube\Entity\AbstractEntity
     public function __construct()
     {
         $this->MembershipBillingDetail = new \Doctrine\Common\Collections\ArrayCollection();
+        $this->TargetYear = new \Doctrine\Common\Collections\ArrayCollection();
+        $this->TargetStatus = new \Doctrine\Common\Collections\ArrayCollection();
     }
 
     /**
@@ -137,6 +144,72 @@ class MembershipBilling extends \Eccube\Entity\AbstractEntity
     }
 
     /**
+     * Add TargetYear
+     *
+     * @param \Eccube\Entity\MembershipBillingTargetYear $targetYear
+     * @return MembershipBilling
+     */
+    public function addTargetYear(\Eccube\Entity\MembershipBillingTargetYear $targetYear)
+    {
+        $this->TargetYear[] = $targetYear;
+
+        return $this;
+    }
+
+    /**
+     * Remove TargetYear
+     *
+     * @param \Eccube\Entity\MembershipBillingTargetYear $targetYear
+     */
+    public function removeTargetYear(\Eccube\Entity\MembershipBillingTargetYear $targetYear)
+    {
+        $this->TargetYear->removeElement($targetYear);
+    }
+
+    /**
+     * Get TargetYear
+     *
+     * @return \Doctrine\Common\Collections\Collection 
+     */
+    public function getTargetYear()
+    {
+        return $this->TargetYear;
+    }
+
+    /**
+     * Add TargetStatus
+     *
+     * @param \Eccube\Entity\MembershipBillingTargetStatus $targetStatus
+     * @return MembershipBilling
+     */
+    public function addTargetStatus(\Eccube\Entity\MembershipBillingTargetStatus $targetStatus)
+    {
+        $this->TargetStatus[] = $targetStatus;
+
+        return $this;
+    }
+
+    /**
+     * Remove TargetStatus
+     *
+     * @param \Eccube\Entity\MembershipBillingTargetStatus $targetStatus
+     */
+    public function removeTargetStatus(\Eccube\Entity\MembershipBillingTargetStatus $targetStatus)
+    {
+        $this->TargetStatus->removeElement($targetStatus);
+    }
+
+    /**
+     * Get TargetStatus
+     *
+     * @return \Doctrine\Common\Collections\Collection 
+     */
+    public function getTargetStatus()
+    {
+        return $this->TargetStatus;
+    }
+
+    /**
      * Set Status
      *
      * @param \Eccube\Entity\Master\MembershipBillingStatus $status
@@ -157,56 +230,5 @@ class MembershipBilling extends \Eccube\Entity\AbstractEntity
     public function getStatus()
     {
         return $this->Status;
-    }
-
-    /**
-     * Set ProductMembership
-     *
-     * @param \Eccube\Entity\ProductMembership $productMembership
-     * @return MembershipBilling
-     */
-    public function setProductMembership(\Eccube\Entity\ProductMembership $productMembership = null)
-    {
-        $this->ProductMembership = $productMembership;
-
-        return $this;
-    }
-
-    /**
-     * Get ProductMembership
-     *
-     * @return \Eccube\Entity\ProductMembership 
-     */
-    public function getProductMembership()
-    {
-        return $this->ProductMembership;
-    }
-    /**
-     * @var string
-     */
-    private $target_status;
-
-
-    /**
-     * Set target_status
-     *
-     * @param string $targetStatus
-     * @return MembershipBilling
-     */
-    public function setTargetStatus($targetStatus)
-    {
-        $this->target_status = $targetStatus;
-
-        return $this;
-    }
-
-    /**
-     * Get target_status
-     *
-     * @return string 
-     */
-    public function getTargetStatus()
-    {
-        return $this->target_status;
     }
 }

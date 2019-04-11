@@ -725,9 +725,14 @@ class ProductRepository extends EntityRepository
     {
         $qb = $this->createQueryBuilder('p')
             ->innerJoin('p.ProductClasses', 'pc')
-            ->innerJoin('p.ProductMembership', 'pm')
-            ->where('pm.id = :MembershipId')
-            ->setParameter('MembershipId', $MembershipId);
+            ->innerJoin('p.ProductMembership', 'pm');
+        if (is_array($MembershipId)) {
+            $qb->andWhere($qb->expr()->in('pm.id', ':MembershipId'))
+                ->setParameter('MembershipId', $MembershipId);
+        } else {
+            $qb->andWhere('pm.id = :MembershipId')
+                ->setParameter('MembershipId', $MembershipId);
+        }
 
         // Order By
         // XXX Paginater を使用した場合に PostgreSQL で正しくソートできない

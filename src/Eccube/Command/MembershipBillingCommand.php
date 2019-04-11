@@ -30,35 +30,55 @@ class MembershipBillingCommand extends \Knp\Command\Command
         $this->app = $this->getSilexApplication();
         $this->app->initialize();
         $this->app->boot();
-
         $console = new Application();
+        $this->app['orm.em']->getConnection()->getConfiguration()->setSQLLogger(null);
+        $logfile_path = $this->app['config']['root_dir'].'/app/log/MembershipBilling_' . $BillingId . '.log';
 
         $BillingId = $input->getArgument('BillingId');
+        file_put_contents($logfile_path, date('Y-m-d H:i:s: ') . '年会費受注登録バッチ起動 BillingId:' . $BillingId . "\n", FILE_APPEND);
         $membershipBilling = $this->app['eccube.repository.membership_billing']
                     ->find($BillingId);
         if ($membershipBilling) {
             if ($membershipBilling->getStatus()->getId() == 1) {
-                log_info('受注登録開始', array(count($membershipBilling->getMembershipBillingDetail())));
+                $total = count($membershipBilling->getMembershipBillingDetail());
+                file_put_contents($logfile_path, date('Y-m-d H:i:s: ') . '受注登録開始:' . $total . "\n", FILE_APPEND);
                 // 処理状態更新
                 $membershipBilling->setStatus($this->app['eccube.repository.master.membership_billing_status']->find(2));
                 $this->app['orm.em']->persist($membershipBilling);
                 $this->app['orm.em']->flush();
                 try {
                     $membershipProduct = $membershipBilling->getProductMembership()->getProduct();
+                    $price = $membershipProduct->getPrice02IncTaxMax();
+                    $productClass = $membershipProduct->getProductClasses()[0];
+                    $deviceType = $this->app['eccube.repository.master.device_type']->find(DeviceType::DEVICE_TYPE_ADMIN);
                     $CommonTaxRule = $this->app['eccube.repository.tax_rule']->getByRule($membershipProduct, $membershipProduct->getProductClasses()[0]);
+                    $taxRate = $CommonTaxRule->getTaxRate();
+                    $taxRuleId = $CommonTaxRule->getId();
                     $OrderStatus = $this->app['eccube.repository.master.order_status']->find(1);
                     $Payment = $this->app['eccube.repository.payment']->find(3);
+                    $membershipBillingProcessing = $this->app['eccube.repository.master.membership_billing_detail_status']->find(3);
+                    $membershipBillingSuccess = $this->app['eccube.repository.master.membership_billing_detail_status']->find(3);
+                    $membershipBillingFail = $this->app['eccube.repository.master.membership_billing_detail_status']->find(4);
+                    $keepAliveTime = date('Y-m-d H:i:s');
                     if (0 < count($membershipBilling->getMembershipBillingDetail())) {
+                        $countSkip = 0;
+                        $countRegist = 0;
                         foreach($membershipBilling->getMembershipBillingDetail() as $membershipBillingDetail) {
+                            if (strtotime("now") >= strtotime("+" . $this->app['config']['keep_alive_seconds'] . " seconds", strtotime($keepAliveTime))) {
+                                file_put_contents($logfile_path, date('Y-m-d H:i:s: ') . $total . '件中 登録:' . $countRegist . '件 処理済みスキップ:' . $countSkip. "件\n", FILE_APPEND);
+                                $keepAliveTime = date('Y-m-d H:i:s');
+                            }
                             $success = true;
                             $info = '';
-                            $order_id = null;
+                            $order = null;
                             if ($membershipBillingDetail->getStatus()->getId() != 1) {
-                                log_info('年会費受注取り込み詳細が既に処理済み', array($membershipBillingDetail->getId()));
+                                ++$countSkip;
                                 continue;
+                            } else {
+                                ++$countRegist;
                             }
                             // 詳細処理状態更新
-                            $membershipBillingDetail->setStatus($this->app['eccube.repository.master.membership_billing_detail_status']->find(2));
+                            $membershipBillingDetail->setStatus($membershipBillingProcessing);
                             $this->app['orm.em']->persist($membershipBillingDetail);
                             $this->app['orm.em']->flush();
                             try {
@@ -70,15 +90,16 @@ class MembershipBillingCommand extends \Knp\Command\Command
                                     throw new Exception('処理時、会員情報削除済み');
                                 }
                                 // 空のエンティティを作成.
-                                $order = $this->newOrder($this->app);
+                                $order = new \Eccube\Entity\Order();
+                                $order->setDeviceType($deviceType);
                                 // 受注情報を設定
                                 $order->setCustomer($customer)
                                             ->setDiscount(0)
-                                            ->setSubtotal($membershipProduct->getPrice02IncTaxMax())
-                                            ->setTotal($membershipProduct->getPrice02IncTaxMax())
-                                            ->setPaymentTotal($membershipProduct->getPrice02IncTaxMax())
+                                            ->setSubtotal($price)
+                                            ->setTotal($price)
+                                            ->setPaymentTotal($price)
                                             ->setCharge(0)
-                                            ->setTax($membershipProduct->getPrice02IncTaxMax() - $membershipProduct->getPrice02Min())
+                                            ->setTax($price - $membershipProduct->getPrice02Min())
                                             ->setDeliveryFeeTotal(0)
                                             ->setOrderStatus($OrderStatus)
                                             ->setDelFlg(Constant::DISABLED)
@@ -105,15 +126,15 @@ class MembershipBillingCommand extends \Knp\Command\Command
                                             ->setPaymentMethod($Payment->getMethod());
                                 // 受注明細を作成
                                 $OrderDetail = new \Eccube\Entity\OrderDetail();
-                                $OrderDetail->setPriceIncTax($membershipProduct->getPrice02IncTaxMax());
+                                $OrderDetail->setPriceIncTax($price);
                                 $OrderDetail->setProductName($membershipProduct->getName());
-                                $OrderDetail->setProductCode($membershipProduct->getProductClasses()[0]->getCode());
+                                $OrderDetail->setProductCode($productClass->getCode());
                                 $OrderDetail->setPrice($membershipProduct->getPrice02Min());
                                 $OrderDetail->setQuantity(1);
-                                $OrderDetail->setTaxRate($CommonTaxRule->getTaxRate());
-                                $OrderDetail->setTaxRule($CommonTaxRule->getId());
+                                $OrderDetail->setTaxRate($taxRate);
+                                $OrderDetail->setTaxRule($taxRuleId);
                                 $OrderDetail->setProduct($membershipProduct);
-                                $OrderDetail->setProductClass($membershipProduct->getProductClasses()[0]);
+                                $OrderDetail->setProductClass($productClass);
                                 $OrderDetail->setClassName1($membershipProduct->getClassName1());
                                 $OrderDetail->setClassName2($membershipProduct->getClassName2());
                                 $OrderDetail->setOrder($order);
@@ -123,70 +144,50 @@ class MembershipBillingCommand extends \Knp\Command\Command
                                 $this->app['eccube.repository.customer']->updateBuyData($this->app, $customer, 1);
 
                                 // 配送業者・お届け時間の更新
-                                $Shippings = $order->getShippings();
-                                foreach ($Shippings as $Shipping) {
-                                    $Shipping->setName01($customer->getName01());
-                                    $Shipping->setName02($customer->getName02());
-                                    $Shipping->setKana01($customer->getKana01());
-                                    $Shipping->setKana02($customer->getKana02());
-                                    if (!is_null($Shipping->getDelivery())) {
-                                        $Shipping->setShippingDeliveryName($Shipping->getDelivery()->getName());
-                                    }
-                                    if (!is_null($Shipping->getDeliveryTime())) {
-                                        $Shipping->setShippingDeliveryTime($Shipping->getDeliveryTime()->getDeliveryTime());
-                                    } else {
-                                        $Shipping->setShippingDeliveryTime(null);
-                                    }
-                                }
+                                $NewShipmentItem = new ShipmentItem();
+                                $NewShipmentItem
+                                    ->setProduct($membershipProduct)
+                                    ->setProductClass($productClass)
+                                    ->setProductName($membershipProduct->getName())
+                                    ->setProductCode($productClass->getCode())
+                                    ->setClassCategoryName1($OrderDetail->getClassCategoryName1())
+                                    ->setClassCategoryName2($OrderDetail->getClassCategoryName2())
+                                    ->setClassName1($membershipProduct->getClassName1())
+                                    ->setClassName2($membershipProduct->getClassName2())
+                                    ->setPrice($membershipProduct->getPrice02Min())
+                                    ->setQuantity(1)
+                                    ->setOrder($order);
+
+                                // 配送商品の設定.
+                                $Shipping = new \Eccube\Entity\Shipping();
+                                $Shipping->setDelFlg(0);
+                                $Shipping->setName01($customer->getName01());
+                                $Shipping->setName02($customer->getName02());
+                                $Shipping->setKana01($customer->getKana01());
+                                $Shipping->setKana02($customer->getKana02());
+                                $NewShipmentItem->setShipping($Shipping);
+                                $Shipping->getShipmentItems()->add($NewShipmentItem);
+                                $order->addShipping($Shipping);
+                                $Shipping->setOrder($order);
 
                                 // 受注日/発送日/入金日の更新.
                                 $order->setOrderDate(new \DateTime());
 
-                                $NewShipmentItems = new ArrayCollection();
-                                $NewShipmentItem = new ShipmentItem();
-                                $NewShipmentItem
-                                    ->setProduct($OrderDetail->getProduct())
-                                    ->setProductClass($OrderDetail->getProductClass())
-                                    ->setProductName($OrderDetail->getProduct()->getName())
-                                    ->setProductCode($OrderDetail->getProductClass()->getCode())
-                                    ->setClassCategoryName1($OrderDetail->getClassCategoryName1())
-                                    ->setClassCategoryName2($OrderDetail->getClassCategoryName2())
-                                    ->setClassName1($OrderDetail->getClassName1())
-                                    ->setClassName2($OrderDetail->getClassName2())
-                                    ->setPrice($OrderDetail->getPrice())
-                                    ->setQuantity($OrderDetail->getQuantity())
-                                    ->setOrder($order);
-                                $NewShipmentItems[] = $NewShipmentItem;
-
-                                // 配送商品の更新. delete/insert.
-                                $Shippings = $order->getShippings();
-                                foreach ($Shippings as $Shipping) {
-                                    $ShipmentItems = $Shipping->getShipmentItems();
-                                    foreach ($ShipmentItems as $ShipmentItem) {
-                                        $this->app['orm.em']->remove($ShipmentItem);
-                                    }
-                                    $ShipmentItems->clear();
-                                    foreach ($NewShipmentItems as $NewShipmentItem) {
-                                        $NewShipmentItem->setShipping($Shipping);
-                                        $ShipmentItems->add($NewShipmentItem);
-                                    }
-                                }
                                 $this->app['orm.em']->persist($order);
-                                $this->app['orm.em']->flush();
-                                $order_id = $order->getId();
                             } catch (\Exception $e) {
                                 $success = false;
                                 $info = $e->getMessage();
+                                $order = null;
                             } finally {
                                 // 詳細処理状態更新
                                 if ($success) {
-                                    $membershipBillingDetail->setStatus($this->app['eccube.repository.master.membership_billing_detail_status']->find(3));
+                                    $membershipBillingDetail->setStatus($membershipBillingSuccess);
                                 } else {
-                                    $membershipBillingDetail->setStatus($this->app['eccube.repository.master.membership_billing_detail_status']->find(4));
+                                    $membershipBillingDetail->setStatus($membershipBillingFail);
                                     $membershipBillingDetail->setInfo($info);
                                 }
-                                if (!is_null($order_id)) {
-                                    $membershipBillingDetail->setOrder($this->app['eccube.repository.order']->find($order_id));
+                                if (!is_null($order)) {
+                                    $membershipBillingDetail->setOrder($order);
                                 }
                                 $this->app['orm.em']->persist($membershipBillingDetail);
                                 $this->app['orm.em']->flush();
@@ -201,23 +202,9 @@ class MembershipBillingCommand extends \Knp\Command\Command
                     $this->app['orm.em']->persist($membershipBilling);
                     $this->app['orm.em']->flush();
                 }
-                log_info('受注処理登録完了', array(count($taretCustomers)));
+                file_put_contents($logfile_path, date('Y-m-d H:i:s: ') . '受注処理登録完了:' . count($taretCustomers). "\n", FILE_APPEND);
             }
         }
-    }
-
-    protected function newOrder($app)
-    {
-        $Order = new \Eccube\Entity\Order();
-        $Shipping = new \Eccube\Entity\Shipping();
-        $Shipping->setDelFlg(0);
-        $Order->addShipping($Shipping);
-        $Shipping->setOrder($Order);
-
-        // device type
-        $DeviceType = $app['eccube.repository.master.device_type']->find(DeviceType::DEVICE_TYPE_ADMIN);
-        $Order->setDeviceType($DeviceType);
-
-        return $Order;
+        file_put_contents($logfile_path, date('Y-m-d H:i:s: ') . '年会費受注登録バッチ終了 BillingId:' . $BillingId . "\n", FILE_APPEND);
     }
 }

@@ -26,6 +26,11 @@ class SearchMembershipBillingType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $app = $this->app;
+        $arrMembership = $this->app['eccube.repository.product_membership']->getList(null, true);
+        $Memberships = array();
+        foreach($arrMembership as $Membership) {
+            $Memberships[$Membership->getId()] = $Membership->getMembershipYear();
+        }
 
         $builder
             ->add('multi', 'text', array(
@@ -34,19 +39,19 @@ class SearchMembershipBillingType extends AbstractType
             ))
               ->add('status', 'membership_billing_status', array(
                 'label' => '年会費支払処理ステータス',
-                'required' => true,
+                'required' => false,
                 'multiple' => false,
                 'expanded' => false,
-                'constraints' => array(
-                    new Assert\NotBlank(),
-                ),
+                'empty_value' => '',
             ))
-            ->add('membership_year', 'text', array(
-                'label' => '年会費対象年度',
+            ->add('membership_year', 'choice', array(
+                'label' => '対象年度',
                 'required' => false,
-                'constraints' => array(
-                    new Assert\Regex(array('pattern' => '/^[0-9]{4}$/')),
-                ),
+                'choices' => $Memberships,
+                'expanded' => true,
+                'multiple' => true,
+                'mapped' => false,
+                'empty_value' => false,
             ))
             ->add('create_date_start', 'date', array(
                 'label' => '登録日(FROM)',

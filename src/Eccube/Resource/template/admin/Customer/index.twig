@@ -412,7 +412,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
             <div class="col-xs-12">
               <div id="search_box_main__membership_pay" class="form-group">
                 <label>年会費支払状況</label>
-                {{ form_widget(searchForm.membership_pay) }}
+                  <div class="form-group accordion">
+                    {% for f in searchForm.getIterator %}
+                        {% if f.vars.name matches '[^membership_pay_*]' %}
+                            {{ form_label(f) }}
+                            {{ form_widget(f) }}
+                        {% endif %}
+                    {% endfor %}
+                  </div>
               </div>
             </div>
                 <div class="extra-form col-xs-12 col-sm-12">

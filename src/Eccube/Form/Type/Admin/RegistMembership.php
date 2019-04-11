@@ -42,22 +42,23 @@ class RegistMembership extends AbstractType
          * @var ArrayCollection $arrCategory array of category
          */
         $arrMembership = $this->app['eccube.repository.product_membership']->getList(null, true);
+        $Memberships = array();
+        foreach($arrMembership as $Membership) {
+            $Memberships[$Membership->getId()] = $Membership->getMembershipYear();
+        }
 
         $builder
-            // 対象年度
-            ->add('MembershipYear', 'entity', array(
-                'class' => 'Eccube\Entity\ProductMembership',
-                'property' => 'MembershipYear',
-                'required' => true,
+            ->add('year', 'choice', array(
                 'label' => '対象年度',
-                'multiple' => false,
-                'expanded' => false,
+                'required' => false,
+                'choices' => $Memberships,
+                'expanded' => true,
+                'multiple' => true,
                 'mapped' => false,
-                // Choices list (overdrive mapped)
-                'choices' => $arrMembership,
+                'empty_value' => false,
             ))
             ->add('status', 'choice', array(
-                'label' => '基本情報ステータス',
+                'label' => '対象会員',
                 'required' => false,
                 'choices' => array(1 => '正会員', 5 => '休眠者', 6 => '滞納者', 7 => '元会員'),
                 'expanded' => true,
@@ -65,7 +66,7 @@ class RegistMembership extends AbstractType
                 'mapped' => false,
                 'empty_value' => false,
             ))
-        ;
+            ;
     }
 
     /**

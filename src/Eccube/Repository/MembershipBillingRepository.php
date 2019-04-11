@@ -27,8 +27,10 @@ class MembershipBillingRepository extends EntityRepository
     public function getQueryBuilderBySearchDataForAdmin($searchData)
     {
         $qb = $this->createQueryBuilder('mb')
-            ->select('mb.id', 'mbs.name AS status', 'pm.membership_year AS membership_year', 'mb.create_date', 'mb.update_date', 'COUNT(mbd.id) AS target_count')
-            ->leftJoin('mb.ProductMembership', 'pm')
+//            ->select('mb.id', 'mbs.name AS status', "pm.membership_year", 'mb.create_date', 'mb.update_date', 'COUNT(mbd.id) AS target_count')
+            ->leftJoin('mb.TargetYear', 'mbty')
+            ->leftJoin('mbty.ProductMembership', 'pm')
+            ->leftJoin('mb.TargetStatus', 'mbts')
             ->leftJoin('mb.Status', 'mbs')
             ->leftJoin('mb.MembershipBillingDetail', 'mbd');
 
@@ -36,16 +38,15 @@ class MembershipBillingRepository extends EntityRepository
         if (isset( $searchData['multi']) && Str::isNotBlank($searchData['multi'])) {
             $multi = preg_match('/^\d+$/', $searchData['multi']) ? $searchData['multi'] : null;
             $qb
-                ->andWhere('mb.id = :multi OR pm.membership_year = :multi')
+                ->andWhere('mb.id = :multi OR mbty.ProductMembership = :multi')
                 ->setParameter('multi', $multi);
         }
 
         // membership_year
-        if (!empty($searchData['membership_year']) && $searchData['membership_year']) {
-            $qb
-                ->andWhere('mb.ProductMembership = :membership_year')
-                ->setParameter('membership_year', $searchData['membership_year']);
-        }
+//        if (!empty($searchData['membership_year']) && $searchData['membership_year']) {
+//            $qb->andWhere($qb->expr()->in('mbty.ProductMembership', ':product_memberships'))
+//                    ->setParameter('product_memberships', $searchData['membership_year']);
+//        }
 
         // status
         if (!empty($searchData['status']) && $searchData['status']) {
@@ -99,12 +100,9 @@ class MembershipBillingRepository extends EntityRepository
         return $qb;
     }
 
-    public function getProcessing($targetProductId)
+    public function getProcessing()
     {
         $qb = $this->createQueryBuilder('mb')
-            ->leftJoin('mb.ProductMembership', 'pm')
-            ->andWhere('pm.id = :targetProductId')
-            ->setParameter('targetProductId', $targetProductId)
             ->andWhere('mb.Status <> 3');
 
         $processing = $qb->getQuery()
