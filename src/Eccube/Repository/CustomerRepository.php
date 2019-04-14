@@ -463,18 +463,19 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
         $app = \Eccube\Application::getInstance();
         $arrMembership = $app['eccube.repository.product_membership']->getList(null, true);
         $Memberships = array();
+        $existsMembershipCondition = false;
         foreach($arrMembership as $Membership) {
             $key = 'membership_pay_' . $Membership->getId();
             if (!empty($searchData[$key]) && count($searchData[$key]) > 0) {
                 $query = '';
-                $existsParam = false;
+                $existsMembershipCondition = true;
                 foreach ($searchData[$key] as $membership_pay) {
                     $subquery = $app['eccube.repository.membership_billing_status']
                                 ->createQueryBuilder('mbs_' . $Membership->getId())
                                 ->select('mbsc_' . $Membership->getId() . ".id")
                                 ->leftJoin('mbs_' . $Membership->getId() . '.ProductMembership', 'mbsp_' . $Membership->getId())
-                                ->leftJoin('mbs_' . $Membership->getId() . '.Status', 'mbss_'.$Membership->getId())
-                                ->leftJoin('mbs_' . $Membership->getId() . '.Customer', 'mbsc_'.$Membership->getId())
+                                ->leftJoin('mbs_' . $Membership->getId() . '.Status', 'mbss_' . $Membership->getId())
+                                ->leftJoin('mbs_' . $Membership->getId() . '.Customer', 'mbsc_' . $Membership->getId())
                                 ->andWhere('mbsp_' . $Membership->getId() . ".id = ". $Membership->getId());
                     switch($membership_pay) {
                     case 1:     // 納入済
@@ -482,7 +483,6 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
                         $query .= ((0 < strlen($query))?"OR ":"") . "c.id IN ({$subquery->getDQL()})";
                         break;
                     case 2:     // 未納
-                        $existsParam = true;
                         $query .= ((0 < strlen($query))?"OR ":"") . "c.id NOT IN ({$subquery->getDQL()})";
                         break;
                     case 3:     // 免除
@@ -495,14 +495,16 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
                         break;
                     }
                 }
-                $qb->andWhere($query);
+                $qb->andWhere($query)
+                    ->andWhere("bc.regular_member_promoted < '" . $Membership->getMembershipYear() . "-04-01 00:00:00'");
             }
+        }
+        if ($existsMembershipCondition) {
+            $qb->andWhere('bc.regular_member_promoted IS NOT NULL');
         }
 
         // Order By
         $qb->addOrderBy('c.update_date', 'DESC');
-        file_put_contents("/var/www/ec_ohtsuki/app/log/debug.log", "SQL:" . $qb->getQuery()->getSql() . "\n", FILE_APPEND);
-
         return $qb;
     }
 
@@ -825,6 +827,7 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
                 $params['buy_product_name' . $subQueryIndex] = '%' . $searchData['searchData']['buy_product_code'] . '%';
             }
             // membership_pay
+            $existsMembershipCondition = false;
             foreach($arrMembership as $Membership) {
                 $key = 'membership_pay_' . $Membership->getId();
                 $subSubquery = $app['eccube.repository.membership_billing_status']
@@ -836,7 +839,7 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
                                 ->andWhere('mbsp_' . $Membership->getId() . '_' . $subQueryIndex . ".id = ". $Membership->getId());
                 if (!empty($searchData[$key]) && count($searchData[$key]) > 0) {
                     $query = '';
-                    $existsParam = false;
+                    $existsMembershipCondition = true;
                     foreach ($searchData[$key] as $membership_pay) {
                         switch($membership_pay) {
                         case 1:     // 納入済
@@ -844,7 +847,6 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
                             $query .= ((0 < strlen($query))?"OR ":"") . $alias.".id IN ({$subSubquery->getDQL()})";
                             break;
                         case 2:     // 未納
-                            $existsParam = true;
                             $query .= ((0 < strlen($query))?"OR ":"") . $alias.".id NOT IN ({$subSubquery->getDQL()})";
                             break;
                         case 3:     // 免除
@@ -857,8 +859,12 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
                             break;
                         }
                     }
-                    $subQuery->andWhere($subSubquery);
+                    $subQuery->andWhere($subSubquery)
+                        ->andWhere('bc' . $subQueryIndex . ".regular_member_promoted < '" . $Membership->getMembershipYear() . "-04-01 00:00:00'");
                 }
+            }
+            if ($existsMembershipCondition) {
+                $subQuery->andWhere('bc' . $subQueryIndex . '.regular_member_promoted IS NOT NULL');
             }
 
             if ($searchData['join'] == 1) {
