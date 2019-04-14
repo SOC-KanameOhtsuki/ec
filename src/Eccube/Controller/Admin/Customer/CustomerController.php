@@ -549,7 +549,6 @@ class CustomerController extends AbstractController
             return $app->redirect($app->url('admin_customer'));
         }
 
-        $regularMemberPromotedYear = (int) date('Y', strtotime($Customer->getCustomerBasicInfo()->getRegularMemberPromoted()));
         $currentYear = (int) date('Y');
         $annualFeeStatuses = array();
         $annualFees = array();
@@ -561,14 +560,15 @@ class CustomerController extends AbstractController
             ];
         }
 
-        for ($i = $currentYear; $i >= $regularMemberPromotedYear; $i--) {
-            if (isset($annualFeeStatuses[$i])) {
-                $annualFees[$i] = $annualFeeStatuses[$i];
+        $arrMembership = $app['eccube.repository.product_membership']->getList(null, true);
+        foreach ($arrMembership as $Membership) {
+            if (isset($annualFeeStatuses[$Membership->getMembershipYear()])) {
+                $annualFees[$Membership->getMembershipYear()] = $annualFeeStatuses[$Membership->getMembershipYear()];
             } else {
-                $annualFees[$i] = [
-                    $i,
+                $annualFees[$Membership->getMembershipYear()] = [
+                    $Membership->getMembershipYear(),
                     '未納',
-                    $app['eccube.repository.product_membership']->getMembershipProductName($i)
+                    $app['eccube.repository.product_membership']->getMembershipProductName($Membership->getMembershipYear())
                 ];
             }
         }
