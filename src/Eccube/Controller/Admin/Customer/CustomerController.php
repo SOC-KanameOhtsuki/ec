@@ -499,7 +499,29 @@ class CustomerController extends AbstractController
                 // CSV出力項目と合致するデータを取得.
                 foreach ($Csvs as $Csv) {
                     // 会員データを検索.
-                    $ExportCsvRow->setData($csvService->getData($Csv, $Customer));
+                    if ($Csv->getFieldName() == 'CustomerBasicInfo') {
+                        if ($Csv->getReferenceFieldName() == 'InstructorType') {
+                            $ExportCsvRow->setData($Customer->getCustomerBasicInfo()->getInstructorType()->getName());
+                        } else if ($Csv->getReferenceFieldName() == 'SupporterType') {
+                            $ExportCsvRow->setData($Customer->getCustomerBasicInfo()->getSupporterType()->getName());
+                        } else if ($Csv->getReferenceFieldName() == 'Nobulletin') {
+                            $ExportCsvRow->setData($Customer->getCustomerBasicInfo()->getNobulletin()->getName());
+                        } else if ($Csv->getReferenceFieldName() == 'Anonymous') {
+                            $ExportCsvRow->setData($Customer->getCustomerBasicInfo()->getAnonymous()->getName());
+                        } else if ($Csv->getReferenceFieldName() == 'AnonymousCompany') {
+                            $ExportCsvRow->setData($Customer->getCustomerBasicInfo()->getAnonymousCompany()->getName());
+                        } else if ($Csv->getReferenceFieldName() == 'Bureau') {
+                            $ExportCsvRow->setData($Customer->getCustomerBasicInfo()->getBureau()->getName());
+                        } else if ($Csv->getReferenceFieldName() == 'MembershipExemption') {
+                            $ExportCsvRow->setData($Customer->getCustomerBasicInfo()->getMembershipExemption()->getName());
+                        } else if ($Csv->getReferenceFieldName() == 'Status') {
+                            $ExportCsvRow->setData($Customer->getCustomerBasicInfo()->getStatus()->getName());
+                        } else {
+                            $ExportCsvRow->setData($csvService->getData($Csv, $Customer));
+                        }
+                    } else {
+                        $ExportCsvRow->setData($csvService->getData($Csv, $Customer));
+                    }
 
                     $event = new EventArgs(
                         array(
@@ -549,10 +571,26 @@ class CustomerController extends AbstractController
             return $app->redirect($app->url('admin_customer'));
         }
 
+        $oldestMembershipPayment = (int) date('Y', strtotime($Customer->getCustomerBasicInfo()->getRegularMemberPromoted()));
         $currentYear = (int) date('Y');
+        $termInfos = $app['eccube.repository.master.term_info']->createQueryBuilder('t')
+                ->andWhere("t.term_end >= '" . date('Y-m-d') . "'")
+                ->andWhere('t.del_flg = 0')
+                ->addOrderBy('t.term_year', 'desc')
+                ->getQuery()
+                ->getResult();
+        if ((0 < count($termInfos)) && (!is_null($termInfos))) {
+            $currentYear = (int) $termInfos[0]->getTermYear();
+        }
         $annualFeeStatuses = array();
         $annualFees = array();
         foreach ($billingStatuses as $billingStatus) {
+            if ($billingStatus->getProductMembership()->getMembershipYear() < $oldestMembershipPayment) {
+                $oldestMembershipPayment = $billingStatus->getProductMembership()->getMembershipYear();
+            }
+            if ($billingStatus->getProductMembership()->getMembershipYear() > $currentYear) {
+                $currentYear = $billingStatus->getProductMembership()->getMembershipYear();
+            }
             $annualFeeStatuses[$billingStatus->getProductMembership()->getMembershipYear()] = [
                 $billingStatus->getProductMembership()->getMembershipYear(),
                 $billingStatus->getStatus()->getName(),
@@ -560,15 +598,14 @@ class CustomerController extends AbstractController
             ];
         }
 
-        $arrMembership = $app['eccube.repository.product_membership']->getList(null, true);
-        foreach ($arrMembership as $Membership) {
-            if (isset($annualFeeStatuses[$Membership->getMembershipYear()])) {
-                $annualFees[$Membership->getMembershipYear()] = $annualFeeStatuses[$Membership->getMembershipYear()];
+        for ($i = $currentYear; $i >= $oldestMembershipPayment; $i--) {
+            if (isset($annualFeeStatuses[$i])) {
+                $annualFees[$i] = $annualFeeStatuses[$i];
             } else {
-                $annualFees[$Membership->getMembershipYear()] = [
-                    $Membership->getMembershipYear(),
+                $annualFees[$i] = [
+                    $i,
                     '未納',
-                    $app['eccube.repository.product_membership']->getMembershipProductName($Membership->getMembershipYear())
+                    $app['eccube.repository.product_membership']->getMembershipProductName($i)
                 ];
             }
         }

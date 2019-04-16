@@ -25,7 +25,6 @@ class MembershipBillingCheckCommand extends \Knp\Command\Command
     }
 
     protected function execute(InputInterface $input, OutputInterface $output) {
-
         $this->app = $this->getSilexApplication();
         $this->app->initialize();
         $this->app->boot();
@@ -33,7 +32,7 @@ class MembershipBillingCheckCommand extends \Knp\Command\Command
         $logfile_path = $this->app['config']['root_dir'].'/app/log/MembershipBillingCheck.log';
         $this->app['orm.em']->getConnection()->getConfiguration()->setSQLLogger(null);
         $termInfos = $this->app['eccube.repository.master.term_info']->createQueryBuilder('t')
-                ->andWhere("t.term_end < '" . date('Y-m-d') . "'")
+                ->andWhere("t.term_end >= '" . date('Y-m-d') . "'")
                 ->andWhere('t.del_flg = 0')
                 ->addOrderBy('t.term_year', 'desc')
                 ->getQuery()
@@ -52,25 +51,38 @@ class MembershipBillingCheckCommand extends \Knp\Command\Command
         }
         $targetCount = $MembershipBillingStatusRep->countNotPaymentStatus($this->app['config']['membership_billing_target_status']);
         if (0 < $targetCount) {
-            file_put_contents($logfile_path, date('Y-m-d H:i:s: ') . "年会費支払受注なし実績未登録 " . $targetCount . "件 検出\n", FILE_APPEND);
+            file_put_contents($logfile_path, date('Y-m-d H:i:s: ') . "年会費支払受注なし実績登録 " . $targetCount . "件 検出\n", FILE_APPEND);
             $MembershipBillingStatusRep->deleteFromOrder($this->app['config']['membership_billing_target_status']);
         }
-        $newMemberPromotedDate = date('Y-m-d 00:00:00', strtotime('-2 year', strtotime($termInfo->getTermStart()->format('Y-m-d'))));
-        $targetCount = $MembershipBillingStatusRep->countPaymentMember($newMemberPromotedDate, $termInfo->getTermYear() - 2, array(7));
+        $targetCount = $MembershipBillingStatusRep->countRealFormerMenber($termInfo->getTermYear());
+        if (0 < $targetCount) {
+            file_put_contents($logfile_path, date('Y-m-d H:i:s: ') . "前々年度年会費未払い休眠者 " . $targetCount . "件 検出\n", FILE_APPEND);
+            $result = $MembershipBillingStatusRep->updateRealFormerMember($termInfo->getTermYear());
+        }
+        $targetCount = $MembershipBillingStatusRep->countRealDormantMenber($termInfo->getTermYear());
+        if (0 < $targetCount) {
+            file_put_contents($logfile_path, date('Y-m-d H:i:s: ') . "前年度年会費未払い滞納者 " . $targetCount . "件 検出\n", FILE_APPEND);
+            $result = $MembershipBillingStatusRep->updateRealDormantMember($termInfo->getTermYear());
+        }
+        $targetCount = $MembershipBillingStatusRep->countRealDelinquentMenber($termInfo->getTermYear(), array(6));
+        if (0 < $targetCount) {
+            file_put_contents($logfile_path, date('Y-m-d H:i:s: ') . "年会費未払い正会員 " . $targetCount . "件 検出\n", FILE_APPEND);
+            $result = $MembershipBillingStatusRep->updateRealDelinquentMember($termInfo->getTermYear());
+        }
+        $targetCount = $MembershipBillingStatusRep->countPaymentMember($termInfo->getTermYear() - 2, array(7));
         if (0 < $targetCount) {
             file_put_contents($logfile_path, date('Y-m-d H:i:s: ') . "前々年度年会費支払済み元会員 " . $targetCount . "件 検出\n", FILE_APPEND);
-            $result = $MembershipBillingStatusRep->updatePaymentMember($newMemberPromotedDate, $termInfo->getTermYear() - 2, array(7), 5);
+            $result = $MembershipBillingStatusRep->updatePaymentMember($termInfo->getTermYear() - 2, array(7), 5);
         }
-        $newMemberPromotedDate = date('Y-m-d 00:00:00', strtotime('-1 year', strtotime($termInfo->getTermStart()->format('Y-m-d'))));
-        $targetCount = $MembershipBillingStatusRep->countPaymentMember($newMemberPromotedDate, $termInfo->getTermYear() - 1, array(5));
+        $targetCount = $MembershipBillingStatusRep->countPaymentMember($termInfo->getTermYear() - 1, array(5));
         if (0 < $targetCount) {
             file_put_contents($logfile_path, date('Y-m-d H:i:s: ') . "前年度年会費支払済み休眠者 " . $targetCount . "件 検出\n", FILE_APPEND);
-            $result = $MembershipBillingStatusRep->updatePaymentMember($newMemberPromotedDate, $termInfo->getTermYear() - 1, array(5), 6);
+            $result = $MembershipBillingStatusRep->updatePaymentMember($termInfo->getTermYear() - 1, array(5), 6);
         }
-        $targetCount = $MembershipBillingStatusRep->countPaymentMember($termInfo->getTermStart()->format('Y-m-d 00:00:00'), $termInfo->getTermYear(), array(6));
+        $targetCount = $MembershipBillingStatusRep->countPaymentMember($termInfo->getTermYear(), array(6));
         if (0 < $targetCount) {
             file_put_contents($logfile_path, date('Y-m-d H:i:s: ') . "年会費支払済み滞納者 " . $targetCount . "件 検出\n", FILE_APPEND);
-            $result = $MembershipBillingStatusRep->updatePaymentMember($termInfo->getTermStart()->format('Y-m-d 00:00:00'), $termInfo->getTermYear(), array(6), 1);
+            $result = $MembershipBillingStatusRep->updatePaymentMember($termInfo->getTermYear(), array(6), 1);
         }
     }
 }

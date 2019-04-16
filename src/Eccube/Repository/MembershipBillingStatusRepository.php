@@ -50,6 +50,7 @@ class MembershipBillingStatusRepository extends EntityRepository
         $sql .= " dtb_membership_billing_status";
         $sql .= " LEFT JOIN dtb_product_membership ON dtb_product_membership.product_membership_id = dtb_membership_billing_status.product_membership";
         $sql .= " ) ";
+        $sql .= " AND dtb_order.`del_flg` <> 1";
         $sql .= " GROUP BY";
         $sql .= " dtb_order.order_id";
         $sql .= " ) TEMP;";
@@ -87,6 +88,7 @@ class MembershipBillingStatusRepository extends EntityRepository
         $sql .= " dtb_membership_billing_status";
         $sql .= " LEFT JOIN dtb_product_membership ON dtb_product_membership.product_membership_id = dtb_membership_billing_status.product_membership";
         $sql .= " )";
+        $sql .= " AND dtb_order.`del_flg` <> 1";
         $sql .= " GROUP BY";
         $sql .= " dtb_order.order_id;";
         $result = $em->getConnection()->executeQuery($sql);
@@ -117,6 +119,7 @@ class MembershipBillingStatusRepository extends EntityRepository
             ++$cnt;
         }
         $sql .= " )";
+        $sql .= " AND dtb_order.`del_flg` <> 1";
         $sql .= " );";
         $result = $em->getConnection()->fetchColumn($sql);
         return $result;
@@ -150,6 +153,7 @@ class MembershipBillingStatusRepository extends EntityRepository
             ++$cnt;
         }
         $sql .= " )";
+        $sql .= " AND dtb_order.`del_flg` <> 1";
         $sql .= " )";
         $sql .= " ) AS TEMP";
         $sql .= " );";
@@ -157,7 +161,7 @@ class MembershipBillingStatusRepository extends EntityRepository
         return $result;
     }
 
-    public function countPaymentMember($newMemberPromotedDate, $targetYear, $target_status_list)
+    public function countPaymentMember($targetYear, $target_status_list)
     {
         $em = $this->getEntityManager();
         $sql = "SELECT";
@@ -178,8 +182,7 @@ class MembershipBillingStatusRepository extends EntityRepository
         $sql .= " dtb_customer";
         $sql .= " LEFT JOIN dtb_customer_basic_info ON dtb_customer_basic_info.customer_id = dtb_customer.customer_id";
         $sql .= " WHERE";
-        $sql .= " dtb_customer_basic_info.regular_member_promoted < '" . $newMemberPromotedDate . "'";
-        $sql .= " AND dtb_customer_basic_info.`status` IN (";
+        $sql .= " dtb_customer_basic_info.`status` IN (";
         $cnt = 0;
         foreach($target_status_list as $target_status) {
             $sql .= (($cnt>0)?",":"") . $target_status;
@@ -200,7 +203,7 @@ class MembershipBillingStatusRepository extends EntityRepository
         return $result;
     }
 
-    public function updatePaymentMember($newMemberPromotedDate, $targetYear, $target_status_list, $update_status)
+    public function updatePaymentMember($targetYear, $target_status_list, $update_status)
     {
         $em = $this->getEntityManager();
         $sql = "UPDATE";
@@ -224,8 +227,7 @@ class MembershipBillingStatusRepository extends EntityRepository
         $sql .= " dtb_customer";
         $sql .= " LEFT JOIN dtb_customer_basic_info ON dtb_customer_basic_info.customer_id = dtb_customer.customer_id";
         $sql .= " WHERE";
-        $sql .= " dtb_customer_basic_info.regular_member_promoted < '" . $newMemberPromotedDate . "'";
-        $sql .= " AND dtb_customer_basic_info.`status` IN (";
+        $sql .= " dtb_customer_basic_info.`status` IN (";
         $cnt = 0;
         foreach($target_status_list as $target_status) {
             $sql .= (($cnt>0)?",":"") . $target_status;
@@ -246,4 +248,239 @@ class MembershipBillingStatusRepository extends EntityRepository
         $result = $em->getConnection()->executeQuery($sql);
         return $result;
     }
+
+    public function countRealDelinquentMenber($nowTermYear)
+    {
+        $em = $this->getEntityManager();
+        $sql = "SELECT";
+        $sql .= " count(*)";
+        $sql .= " FROM";
+        $sql .= " dtb_customer_basic_info";
+        $sql .= " WHERE";
+        $sql .= " dtb_customer_basic_info.`status` NOT IN (6, 8)";
+        $sql .= " AND dtb_customer_basic_info.regular_member_promoted IS NOT NULL";
+        $sql .= " AND dtb_customer_basic_info.regular_member_promoted < '" . $nowTermYear . "-04-01 00:00:00'";
+        $sql .= " AND dtb_customer_basic_info.customer_id NOT IN (";
+        $sql .= " SELECT";
+        $sql .= " dtb_membership_billing_status.customer";
+        $sql .= " FROM";
+        $sql .= " dtb_membership_billing_status";
+        $sql .= " LEFT JOIN dtb_product_membership ON dtb_product_membership.product_membership_id = dtb_membership_billing_status.product_membership";
+        $sql .= " WHERE";
+        $sql .= " dtb_product_membership.membership_year = " . $nowTermYear . ")";
+        $sql .= " AND dtb_customer_basic_info.customer_id IN (";
+        $sql .= " SELECT";
+        $sql .= " dtb_membership_billing_status.customer";
+        $sql .= " FROM";
+        $sql .= " dtb_membership_billing_status";
+        $sql .= " LEFT JOIN dtb_product_membership ON dtb_product_membership.product_membership_id = dtb_membership_billing_status.product_membership";
+        $sql .= " WHERE";
+        $sql .= " dtb_product_membership.membership_year = " . ($nowTermYear - 1) . ");";
+        $result = $em->getConnection()->fetchColumn($sql);
+        return $result;
+    }
+
+    public function updateRealDelinquentMember($nowTermYear)
+    {
+        $em = $this->getEntityManager();
+        $sql = "UPDATE";
+        $sql .= " dtb_customer_basic_info";
+        $sql .= " SET";
+        $sql .= " dtb_customer_basic_info.`status` = 6";
+        $sql .= " WHERE";
+        $sql .= " dtb_customer_basic_info.`status` NOT IN (6, 8)";
+        $sql .= " AND dtb_customer_basic_info.regular_member_promoted IS NOT NULL";
+        $sql .= " AND dtb_customer_basic_info.regular_member_promoted < '" . $nowTermYear . "-04-01 00:00:00'";
+        $sql .= " AND dtb_customer_basic_info.customer_id NOT IN (";
+        $sql .= " SELECT";
+        $sql .= " dtb_membership_billing_status.customer";
+        $sql .= " FROM";
+        $sql .= " dtb_membership_billing_status";
+        $sql .= " LEFT JOIN dtb_product_membership ON dtb_product_membership.product_membership_id = dtb_membership_billing_status.product_membership";
+        $sql .= " WHERE";
+        $sql .= " dtb_product_membership.membership_year = " . $nowTermYear . ")";
+        $sql .= " AND dtb_customer_basic_info.customer_id IN (";
+        $sql .= " SELECT";
+        $sql .= " dtb_membership_billing_status.customer";
+        $sql .= " FROM";
+        $sql .= " dtb_membership_billing_status";
+        $sql .= " LEFT JOIN dtb_product_membership ON dtb_product_membership.product_membership_id = dtb_membership_billing_status.product_membership";
+        $sql .= " WHERE";
+        $sql .= " dtb_product_membership.membership_year = " . ($nowTermYear - 1) . ");";
+        $result = $em->getConnection()->executeQuery($sql);
+        return $result;
+    }
+
+    public function countRealDormantMenber($nowTermYear)
+    {
+        $em = $this->getEntityManager();
+        $sql = "SELECT";
+        $sql .= " count(*)";
+        $sql .= " FROM";
+        $sql .= " dtb_customer_basic_info";
+        $sql .= " WHERE";
+        $sql .= " dtb_customer_basic_info.`status` NOT IN (5, 8)";
+        $sql .= " AND dtb_customer_basic_info.regular_member_promoted IS NOT NULL";
+        $sql .= " AND dtb_customer_basic_info.regular_member_promoted < '" . $nowTermYear . "-04-01 00:00:00'";
+        $sql .= " AND dtb_customer_basic_info.customer_id NOT IN (";
+        $sql .= " SELECT";
+        $sql .= " dtb_membership_billing_status.customer";
+        $sql .= " FROM";
+        $sql .= " dtb_membership_billing_status";
+        $sql .= " LEFT JOIN dtb_product_membership ON dtb_product_membership.product_membership_id = dtb_membership_billing_status.product_membership";
+        $sql .= " WHERE";
+        $sql .= " dtb_product_membership.membership_year = " . $nowTermYear . ")";
+        $sql .= " AND dtb_customer_basic_info.customer_id NOT IN (";
+        $sql .= " SELECT";
+        $sql .= " dtb_membership_billing_status.customer";
+        $sql .= " FROM";
+        $sql .= " dtb_membership_billing_status";
+        $sql .= " LEFT JOIN dtb_product_membership ON dtb_product_membership.product_membership_id = dtb_membership_billing_status.product_membership";
+        $sql .= " WHERE";
+        $sql .= " dtb_product_membership.membership_year = " . ($nowTermYear - 1) . ")";
+        $sql .= " AND dtb_customer_basic_info.customer_id IN (";
+        $sql .= " SELECT";
+        $sql .= " dtb_membership_billing_status.customer";
+        $sql .= " FROM";
+        $sql .= " dtb_membership_billing_status";
+        $sql .= " LEFT JOIN dtb_product_membership ON dtb_product_membership.product_membership_id = dtb_membership_billing_status.product_membership";
+        $sql .= " WHERE";
+        $sql .= " dtb_product_membership.membership_year = " . ($nowTermYear - 2) . ");";
+        $result = $em->getConnection()->fetchColumn($sql);
+        return $result;
+    }
+
+    public function updateRealDormantMember($nowTermYear)
+    {
+        $em = $this->getEntityManager();
+        $sql = "UPDATE";
+        $sql .= " dtb_customer_basic_info";
+        $sql .= " SET";
+        $sql .= " dtb_customer_basic_info.`status` = 5";
+        $sql .= " WHERE";
+        $sql .= " dtb_customer_basic_info.`status` NOT IN (5, 8)";
+        $sql .= " AND dtb_customer_basic_info.regular_member_promoted IS NOT NULL";
+        $sql .= " AND dtb_customer_basic_info.regular_member_promoted < '" . $nowTermYear . "-04-01 00:00:00'";
+        $sql .= " AND dtb_customer_basic_info.customer_id NOT IN (";
+        $sql .= " SELECT";
+        $sql .= " dtb_membership_billing_status.customer";
+        $sql .= " FROM";
+        $sql .= " dtb_membership_billing_status";
+        $sql .= " LEFT JOIN dtb_product_membership ON dtb_product_membership.product_membership_id = dtb_membership_billing_status.product_membership";
+        $sql .= " WHERE";
+        $sql .= " dtb_product_membership.membership_year = " . $nowTermYear . ")";
+        $sql .= " AND dtb_customer_basic_info.customer_id NOT IN (";
+        $sql .= " SELECT";
+        $sql .= " dtb_membership_billing_status.customer";
+        $sql .= " FROM";
+        $sql .= " dtb_membership_billing_status";
+        $sql .= " LEFT JOIN dtb_product_membership ON dtb_product_membership.product_membership_id = dtb_membership_billing_status.product_membership";
+        $sql .= " WHERE";
+        $sql .= " dtb_product_membership.membership_year = " . ($nowTermYear - 1) . ")";
+        $sql .= " AND dtb_customer_basic_info.customer_id IN (";
+        $sql .= " SELECT";
+        $sql .= " dtb_membership_billing_status.customer";
+        $sql .= " FROM";
+        $sql .= " dtb_membership_billing_status";
+        $sql .= " LEFT JOIN dtb_product_membership ON dtb_product_membership.product_membership_id = dtb_membership_billing_status.product_membership";
+        $sql .= " WHERE";
+        $sql .= " dtb_product_membership.membership_year = " . ($nowTermYear - 2) . ");";
+        $result = $em->getConnection()->executeQuery($sql);
+        return $result;
+    }
+
+    public function countRealFormerMenber($nowTermYear)
+    {
+        $em = $this->getEntityManager();
+        $sql = "SELECT";
+        $sql .= " count(*)";
+        $sql .= " FROM";
+        $sql .= " dtb_customer_basic_info";
+        $sql .= " WHERE";
+        $sql .= " dtb_customer_basic_info.`status` NOT IN (7, 8)";
+        $sql .= " AND dtb_customer_basic_info.regular_member_promoted IS NOT NULL";
+        $sql .= " AND dtb_customer_basic_info.regular_member_promoted < '" . $nowTermYear . "-04-01 00:00:00'";
+        $sql .= " AND dtb_customer_basic_info.customer_id NOT IN (";
+        $sql .= " SELECT";
+        $sql .= " dtb_membership_billing_status.customer";
+        $sql .= " FROM";
+        $sql .= " dtb_membership_billing_status";
+        $sql .= " LEFT JOIN dtb_product_membership ON dtb_product_membership.product_membership_id = dtb_membership_billing_status.product_membership";
+        $sql .= " WHERE";
+        $sql .= " dtb_product_membership.membership_year = " . $nowTermYear . ")";
+        $sql .= " AND dtb_customer_basic_info.customer_id NOT IN (";
+        $sql .= " SELECT";
+        $sql .= " dtb_membership_billing_status.customer";
+        $sql .= " FROM";
+        $sql .= " dtb_membership_billing_status";
+        $sql .= " LEFT JOIN dtb_product_membership ON dtb_product_membership.product_membership_id = dtb_membership_billing_status.product_membership";
+        $sql .= " WHERE";
+        $sql .= " dtb_product_membership.membership_year = " . ($nowTermYear - 1) . ")";
+        $sql .= " AND dtb_customer_basic_info.customer_id NOT IN (";
+        $sql .= " SELECT";
+        $sql .= " dtb_membership_billing_status.customer";
+        $sql .= " FROM";
+        $sql .= " dtb_membership_billing_status";
+        $sql .= " LEFT JOIN dtb_product_membership ON dtb_product_membership.product_membership_id = dtb_membership_billing_status.product_membership";
+        $sql .= " WHERE";
+        $sql .= " dtb_product_membership.membership_year = " . ($nowTermYear - 2) . ")";
+        $sql .= " AND dtb_customer_basic_info.customer_id IN (";
+        $sql .= " SELECT";
+        $sql .= " dtb_membership_billing_status.customer";
+        $sql .= " FROM";
+        $sql .= " dtb_membership_billing_status";
+        $sql .= " LEFT JOIN dtb_product_membership ON dtb_product_membership.product_membership_id = dtb_membership_billing_status.product_membership";
+        $sql .= " WHERE";
+        $sql .= " dtb_product_membership.membership_year = " . ($nowTermYear - 3) . ");";
+        $result = $em->getConnection()->fetchColumn($sql);
+        return $result;
+    }
+
+    public function updateRealFormerMember($nowTermYear)
+    {
+        $em = $this->getEntityManager();
+        $sql = "UPDATE";
+        $sql .= " dtb_customer_basic_info";
+        $sql .= " SET";
+        $sql .= " dtb_customer_basic_info.`status` = 7";
+        $sql .= " WHERE";
+        $sql .= " dtb_customer_basic_info.`status` NOT IN (7, 8)";
+        $sql .= " AND dtb_customer_basic_info.regular_member_promoted IS NOT NULL";
+        $sql .= " AND dtb_customer_basic_info.regular_member_promoted < '" . $nowTermYear . "-04-01 00:00:00'";
+        $sql .= " AND dtb_customer_basic_info.customer_id NOT IN (";
+        $sql .= " SELECT";
+        $sql .= " dtb_membership_billing_status.customer";
+        $sql .= " FROM";
+        $sql .= " dtb_membership_billing_status";
+        $sql .= " LEFT JOIN dtb_product_membership ON dtb_product_membership.product_membership_id = dtb_membership_billing_status.product_membership";
+        $sql .= " WHERE";
+        $sql .= " dtb_product_membership.membership_year = " . $nowTermYear . ")";
+        $sql .= " AND dtb_customer_basic_info.customer_id NOT IN (";
+        $sql .= " SELECT";
+        $sql .= " dtb_membership_billing_status.customer";
+        $sql .= " FROM";
+        $sql .= " dtb_membership_billing_status";
+        $sql .= " LEFT JOIN dtb_product_membership ON dtb_product_membership.product_membership_id = dtb_membership_billing_status.product_membership";
+        $sql .= " WHERE";
+        $sql .= " dtb_product_membership.membership_year = " . ($nowTermYear - 1) . ")";
+        $sql .= " AND dtb_customer_basic_info.customer_id NOT IN (";
+        $sql .= " SELECT";
+        $sql .= " dtb_membership_billing_status.customer";
+        $sql .= " FROM";
+        $sql .= " dtb_membership_billing_status";
+        $sql .= " LEFT JOIN dtb_product_membership ON dtb_product_membership.product_membership_id = dtb_membership_billing_status.product_membership";
+        $sql .= " WHERE";
+        $sql .= " dtb_product_membership.membership_year = " . ($nowTermYear - 2) . ")";
+        $sql .= " AND dtb_customer_basic_info.customer_id IN (";
+        $sql .= " SELECT";
+        $sql .= " dtb_membership_billing_status.customer";
+        $sql .= " FROM";
+        $sql .= " dtb_membership_billing_status";
+        $sql .= " LEFT JOIN dtb_product_membership ON dtb_product_membership.product_membership_id = dtb_membership_billing_status.product_membership";
+        $sql .= " WHERE";
+        $sql .= " dtb_product_membership.membership_year = " . ($nowTermYear - 3) . ");";
+        $result = $em->getConnection()->executeQuery($sql);
+        return $result;
+    }
+
 }
