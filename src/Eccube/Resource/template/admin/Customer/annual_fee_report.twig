@@ -26,8 +26,22 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 {% block title %}会員管理{% endblock %}
 {% block sub_title %}年会費支払い状況{% endblock %}
 
-{% block main %}
+{% block javascript %}
+<script>
+  $(function() {
+      $('#all_request').click(function() {
+        $("#membership-form").attr('action', "{{ path('admin_customer_request_membership_select', {'id': Customer.id}) }}");
+        $("#membership-form").submit();
+      });
+      $('#all_payment').click(function() {
+        $("#membership-form").attr('action', "{{ path('admin_customer_payment_membership_select', {'id': Customer.id}) }}");
+        $("#membership-form").submit();
+      });
+  });
+</script>
+{% endblock javascript %}
 
+{% block main %}
 <!--年会費支払い状況-->
 <div class="row">
   <div class="col-md-12">
@@ -36,28 +50,55 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
         <h3 class="box-title">会員名 <span class="normal"> <a href="{{ url('admin_customer_edit', { 'id': Customer.id}) }}">{{ Customer.name01 }}&nbsp;{{ Customer.name02 }}</a></span></h3>
       </div><!-- /.box-header -->
       <div class="box-body">
+        <!--個別/一括プルダウン作成-->
+        <ul style="width:170px;margin-bottom:50px;">
+          <!--一括実行プルダウン-->
+          <li id="result_list_main__all_output_menu" class="dropdown">
+          <a class="dropdown-toggle" data-toggle="dropdown">各種一括実行<svg class="cb cb-angle-down icon_down"><use xlink:href="#cb-angle-down"></svg></a>
+          <ul class="dropdown-menu">
+            <li><a id="all_request" href="javascript:void(0);"">一括請求</a></li>
+            <li><a id="all_payment" href="javascript:void(0);"">一括入金</a></li>
+          </ul>
+          </li>
+        </ul>
+        <form name="membership-form" id="membership-form" method="post">
         <div class="table_list">
-	        <div class="table-responsive with-border">
-	            <table class="table table-striped">
-	                <thead>
-	                <tr>
-	                    <th>商品名</th>
-	                    <th>対象年度</th>
-	                    <th>支払いステータス</th>
-	                </tr>
-	                </thead>
-	                <tbody>
-	                {% for annualFeeStatus in annualFeeStatuses %}
-	                <tr>
-	                    <td>{{annualFeeStatus[2]}}</td>
-	                    <td>{{annualFeeStatus[0]}}</td>
-	                    <td>{{annualFeeStatus[1]}}</td>
-	                </tr>
-	                {% endfor %}
-	                </tbody>
-	            </table>
-	        </div>
+            <div class="table-responsive with-border">
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th class="text-center"></th>
+                        <th>商品名</th>
+                        <th>対象年度</th>
+                        <th>支払いステータス</th>
+                        <th style="border-left:0px;width:40px;"></th>
+                        <th style="border-left:0px;width:40px;"></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for annualFeeStatus in annualFeeStatuses %}
+                    <tr>
+                        <td class="text-center"><input type="checkbox" id="check_target_year-{{ annualFeeStatus[0] }}" name="check_target_year[]" value="{{ annualFeeStatus[0] }}"></td>
+                        <td>{{annualFeeStatus[2]}}</td>
+                        <td>{{annualFeeStatus[0]}}</td>
+                        <td>{{annualFeeStatus[1]}}</td>
+                        <td style="border-left:0px;width:40px;padding:2px;text-align: center;">
+                        {% if annualFeeStatus[3] %}
+                        <button type="button" id="request" class="btn-sm btn-primary" onclick="location.href='{{ url('admin_customer_request_membership', {'id': Customer.id, 'target_year': annualFeeStatus[0]}) }}'" style="padding:2px;">請求</button>
+                        {% endif %}
+                        </td>
+                        <td style="border-left:0px;width:40px;padding:2px;text-align: center;">
+                        {% if annualFeeStatus[3] %}
+                        <button type="button" id="payment" class="btn-sm btn-primary" onclick="location.href='{{ url('admin_customer_payment_membership', {'id': Customer.id, 'target_year': annualFeeStatus[0]}) }}'" style="padding:2px;">入金</button>
+                        {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
+        </form>
       </div><!-- /.box-body -->
     </div><!-- /.box -->
   </div><!-- /.col -->

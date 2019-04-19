@@ -731,6 +731,20 @@ class OrderRepository extends EntityRepository
             ->getResult();
     }
 
+    public function getProductOrder(\Eccube\Entity\Customer $Customer, \Eccube\Entity\Product $Product)
+    {
+        $qb = $this->createQueryBuilder('o')
+                ->leftJoin('o.OrderDetails', 'od')
+                ->leftJoin('o.Customer', 'c')
+                ->leftJoin('od.Product', 'p')
+                ->where('o.OrderStatus <> 3')
+                ->andWhere('p.id = ' . $Product->getId())
+                ->andWhere('c.id = ' . $Customer->getId());
+        return $qb
+            ->getQuery()
+            ->getResult();
+    }
+
     /**
      * 会員の合計購入金額を取得、回数を取得
      *

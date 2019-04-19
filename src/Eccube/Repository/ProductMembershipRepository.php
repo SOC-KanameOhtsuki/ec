@@ -83,6 +83,42 @@ class ProductMembershipRepository extends EntityRepository
         return '';
     }
 
+    public function getProductMembershipByMembershipYear($membershipYear)
+    {
+        $productMembership = $this->createQueryBuilder('pm')
+            ->where('pm.membership_year = :membership_year')
+            ->setParameter('membership_year', $membershipYear)
+            ->getQuery()
+            ->getOneOrNullResult();
+        
+        return $productMembership;
+    }
+
+    public function existsMembershipProductOrderByMembershipYear($customerId, $membershipYear)
+    {
+        $productMembership = $this->createQueryBuilder('pm')
+            ->where('pm.membership_year = :membership_year')
+            ->setParameter('membership_year', $membershipYear)
+            ->getQuery()
+            ->getOneOrNullResult();
+        if (is_null($productMembership)) {
+            return false;
+        }
+        $key = sprintf("%011d%011d", $customerId, $productMembership->getProduct()->getId());
+        $em = $this->getEntityManager();
+        $sql = "SELECT";
+        $sql .= " COUNT(dtb_order.order_id)";
+        $sql .= " FROM";
+        $sql .= " dtb_order";
+        $sql .= " LEFT JOIN dtb_order_detail ON dtb_order_detail.order_id = dtb_order.order_id";
+        $sql .= " INNER JOIN dtb_product_membership ON dtb_product_membership.product_id = dtb_order_detail.product_id";
+        $sql .= " WHERE";
+        $sql .= " CONCAT(LPAD(dtb_order.customer_id, 11, '0'), LPAD(dtb_order_detail.product_id, 11, '0')) = " . $key;
+        $sql .= " AND dtb_order.del_flg <> 1;";
+        $result = $em->getConnection()->fetchColumn($sql);
+        return (0 < $result);
+    }
+
     /**
      * get query builder.
      *

@@ -28,6 +28,8 @@ use Eccube\Application;
 use Eccube\Common\Constant;
 use Eccube\Controller\AbstractController;
 use Eccube\Entity\Master\CsvType;
+use Eccube\Entity\Master\DeviceType;
+use Eccube\Entity\ShipmentItem;
 use Eccube\Event\EccubeEvents;
 use Eccube\Event\EventArgs;
 use Symfony\Component\HttpFoundation\Request;
@@ -594,10 +596,12 @@ class CustomerController extends AbstractController
             $annualFeeStatuses[$billingStatus->getProductMembership()->getMembershipYear()] = [
                 $billingStatus->getProductMembership()->getMembershipYear(),
                 $billingStatus->getStatus()->getName(),
-                $billingStatus->getProductMembership()->getProduct()->getName()
+                $billingStatus->getProductMembership()->getProduct()->getName(),
+                false
             ];
         }
 
+        $not_pay_min = "";
         for ($i = $currentYear; $i >= $oldestMembershipPayment; $i--) {
             if (isset($annualFeeStatuses[$i])) {
                 $annualFees[$i] = $annualFeeStatuses[$i];
@@ -605,15 +609,192 @@ class CustomerController extends AbstractController
                 $annualFees[$i] = [
                     $i,
                     '未納',
-                    $app['eccube.repository.product_membership']->getMembershipProductName($i)
+                    $app['eccube.repository.product_membership']->getMembershipProductName($i),
+                    false
                 ];
+                $not_pay_min = $i;
             }
         }
-
+        if ($not_pay_min != "") {
+            $annualFees[$not_pay_min][3] = true;
+        }
         return $app->render('Customer/annual_fee_report.twig', array(
             'Customer' => $Customer,
             'annualFeeStatuses' => $annualFees
         ));
+    }
+
+    /**
+     * 年会費支払い請求作成.
+     * @param Application $app
+     * @param Request $request
+     * @param $id Customer ID
+     * @return StreamedResponse
+     */
+    public function requestMembership(Application $app, Request $request, $id, $target_year)
+    {
+        log_info('年会費支払い請求作成開始', array($id, $target_year));
+        $Customer = $app['eccube.repository.customer']->find($request->get('id'));
+        $ProductMembership = $app['eccube.repository.product_membership']->getProductMembershipByMembershipYear($target_year);
+        $result = true;
+        $connoection = $app['orm.em']->getConnection();
+        $connoection->beginTransaction();
+        if ($app['eccube.repository.product_membership']->existsMembershipProductOrderByMembershipYear($id, $target_year)) {
+            $app->addError('すでに請求済みです', 'admin');
+            $result = false;
+        }
+        if ($result) {
+            $result = $this->insertMembershipOrdere($app, $Customer, $ProductMembership);
+            if (!$result) {
+                $app->addError('受注登録に失敗しました', 'admin');
+            }
+        }
+        if ($result) {
+            $app->addSuccess('年会費支払い請求を登録しました', 'admin');
+            $connoection->commit();
+        } else {
+            $connoection->rollBack();
+        }
+        log_info('年会費支払い請求作成完了', array($id, $target_year));
+        return $app->redirect($app->url('admin_customer_annual_fee_report', array('id' => $id)));
+    }
+
+    /**
+     * 選択年会費支払い請求作成.
+     * @param Application $app
+     * @param Request $request
+     * @param $id Customer ID
+     * @return StreamedResponse
+     */
+    public function requestMembershipSelect(Application $app, Request $request, $id)
+    {
+        log_info('選択年会費支払い請求作成開始', array($id));
+        $Customer = $app['eccube.repository.customer']->find($request->get('id'));
+        $targetYears = array();
+        if (!is_null($request->get('check_target_year'))) {
+            $targetYears = $request->get('check_target_year');
+        }
+        if (count($targetYears) < 1) {
+            $app->addError('対象が選択されていません', 'admin');
+            $result = false;
+        } else {
+            $result = true;
+            $connoection = $app['orm.em']->getConnection();
+            $connoection->beginTransaction();
+            $requested = "";
+            foreach($targetYears as $targetYear) {
+                if ($app['eccube.repository.product_membership']->existsMembershipProductOrderByMembershipYear($id, $targetYear)) {
+                    $requested .= ((strlen($requested) < 1)?"":"、") . $targetYear . "年度";
+                    $result = false;
+                }
+            }
+            if ($result) {
+                foreach($targetYears as $targetYear) {
+                    $ProductMembership = $app['eccube.repository.product_membership']->getProductMembershipByMembershipYear($targetYear);
+                    $result = $this->insertMembershipOrdere($app, $Customer, $ProductMembership);
+                    if (!$result) {
+                        $app->addError('受注登録に失敗しました', 'admin');
+                        break;
+                    }
+                }
+            } else {
+                $app->addError($requested . 'は、すでに請求済みです', 'admin');
+            }
+        }
+        if ($result) {
+            $app->addSuccess('選択された年度の年会費支払い請求を登録しました', 'admin');
+            $connoection->commit();
+        } else {
+            $connoection->rollBack();
+        }
+        log_info('選択年会費支払い請求作成完了', array($id));
+        return $app->redirect($app->url('admin_customer_annual_fee_report', array('id' => $id)));
+    }
+
+    /**
+     * 年会費入金実績作成.
+     * @param Application $app
+     * @param Request $request
+     * @param $id Customer ID
+     * @return StreamedResponse
+     */
+    public function paymentMembership(Application $app, Request $request, $id, $target_year)
+    {
+        log_info('年会費入金実績作成開始', array($id, $target_year));
+        $Customer = $app['eccube.repository.customer']->find($request->get('id'));
+        $ProductMembership = $app['eccube.repository.product_membership']->getProductMembershipByMembershipYear($target_year);
+        $result = false;
+        $connoection = $app['orm.em']->getConnection();
+        $connoection->beginTransaction();
+        if (!$app['eccube.repository.membership_billing_status']->existsMembershipStatus($id, $target_year)) {
+            $result = $this->insertMembershipPaymentRecorde($app, $Customer, $ProductMembership);
+            if (!$result) {
+                $app->addError('入金実績登録に失敗しました', 'admin');
+            }
+        } else {
+            $result = false;
+            $app->addError('すでに入金実績が存在します', 'admin');
+        }
+        if ($result) {
+            $app->addSuccess('年会費入金実績を登録しました', 'admin');
+            $connoection->commit();
+        } else {
+            $connoection->rollBack();
+        }
+        log_info('年会費入金実績作成完了', array($id, $target_year));
+        return $app->redirect($app->url('admin_customer_annual_fee_report', array('id' => $id)));
+    }
+
+    /**
+     * 選択年会費入金実績作成.
+     * @param Application $app
+     * @param Request $request
+     * @param $id Customer ID
+     * @return StreamedResponse
+     */
+    public function paymentMembershipSelect(Application $app, Request $request, $id)
+    {
+        log_info('選択年会費入金実績作成開始', array($id));
+        $Customer = $app['eccube.repository.customer']->find($request->get('id'));
+        $targetYears = array();
+        if (!is_null($request->get('check_target_year'))) {
+            $targetYears = $request->get('check_target_year');
+        }
+        if (count($targetYears) < 1) {
+            $result = false;
+            $app->addError('対象が選択されていません', 'admin');
+        } else {
+            $result = true;
+            $connoection = $app['orm.em']->getConnection();
+            $connoection->beginTransaction();
+            $requested = "";
+            foreach($targetYears as $targetYear) {
+                if ($app['eccube.repository.membership_billing_status']->existsMembershipStatus($id, $targetYear)) {
+                    $requested .= ((strlen($requested) < 1)?"":"、") . $targetYear . "年度";
+                    $result = false;
+                }
+            }
+            if ($result) {
+                foreach($targetYears as $targetYear) {
+                    $ProductMembership = $app['eccube.repository.product_membership']->getProductMembershipByMembershipYear($targetYear);
+                    $result = $this->insertMembershipPaymentRecorde($app, $Customer, $ProductMembership);
+                    if (!$result) {
+                        $app->addError('受注登録に失敗しました', 'admin');
+                        break;
+                    }
+                }
+            } else {
+                $app->addError($requested . 'は、すでに入金実績が存在します', 'admin');
+            }
+            if ($result) {
+                $app->addSuccess('選択された年度の年会費入金実績を登録しました', 'admin');
+                $connoection->commit();
+            } else {
+                $connoection->rollBack();
+            }
+        }
+        log_info('選択年会費入金実績作成完了', array($id));
+        return $app->redirect($app->url('admin_customer_annual_fee_report', array('id' => $id)));
     }
 
     /**
@@ -684,6 +865,249 @@ class CustomerController extends AbstractController
             'Customer' => $Customer,
             'contributionOrders' => $contributionOrders
         ));
+    }
+
+    private function insertMembershipOrdere(Application $app, \Eccube\Entity\Customer $Customer, \Eccube\Entity\ProductMembership $ProductMembership) {
+        $result = true;
+        try {
+            $Product = $ProductMembership->getProduct();
+            $price = $Product->getPrice02IncTaxMax();
+            $productClass = $Product->getProductClasses()[0];
+            $deviceType = $app['eccube.repository.master.device_type']->find(DeviceType::DEVICE_TYPE_ADMIN);
+            $CommonTaxRule = $app['eccube.repository.tax_rule']->getByRule($Product, $Product->getProductClasses()[0]);
+            $taxRate = $CommonTaxRule->getTaxRate();
+            $taxRuleId = $CommonTaxRule->getId();
+            $OrderStatus = $app['eccube.repository.master.order_status']->find(1);
+            $Payment = $app['eccube.repository.payment']->find(3);
+            $keepAliveTime = date('Y-m-d H:i:s');
+
+            // 空のエンティティを作成.
+            $order = new \Eccube\Entity\Order();
+            $order->setDeviceType($deviceType);
+            // 受注情報を設定
+            $order->setCustomer($Customer)
+                        ->setDiscount(0)
+                        ->setSubtotal($price)
+                        ->setTotal($price)
+                        ->setPaymentTotal($price)
+                        ->setCharge(0)
+                        ->setTax($price - $Product->getPrice02Min())
+                        ->setDeliveryFeeTotal(0)
+                        ->setOrderStatus($OrderStatus)
+                        ->setDelFlg(Constant::DISABLED)
+                        ->setName01($Customer->getName01())
+                        ->setName02($Customer->getName02())
+                        ->setKana01($Customer->getKana01())
+                        ->setKana02($Customer->getKana02())
+                        ->setPref($Customer->getPref())
+                        ->setZip01($Customer->getZip01())
+                        ->setZip02($Customer->getZip02())
+                        ->setAddr01($Customer->getAddr01())
+                        ->setAddr02($Customer->getAddr02())
+                        ->setEmail($Customer->getEmail())
+                        ->setTel01($Customer->getTel01())
+                        ->setTel02($Customer->getTel02())
+                        ->setTel03($Customer->getTel03())
+                        ->setFax01($Customer->getFax01())
+                        ->setFax02($Customer->getFax02())
+                        ->setFax03($Customer->getFax03())
+                        ->setSex($Customer->getSex())
+                        ->setJob($Customer->getJob())
+                        ->setBirth($Customer->getBirth())
+                        ->setPayment($Payment)
+                        ->setPaymentMethod($Payment->getMethod());
+            // 受注明細を作成
+            $OrderDetail = new \Eccube\Entity\OrderDetail();
+            $OrderDetail->setPriceIncTax($price);
+            $OrderDetail->setProductName($Product->getName());
+            $OrderDetail->setProductCode($productClass->getCode());
+            $OrderDetail->setPrice($Product->getPrice02Min());
+            $OrderDetail->setQuantity(1);
+            $OrderDetail->setTaxRate($taxRate);
+            $OrderDetail->setTaxRule($taxRuleId);
+            $OrderDetail->setProduct($Product);
+            $OrderDetail->setProductClass($productClass);
+            $OrderDetail->setClassName1($Product->getClassName1());
+            $OrderDetail->setClassName2($Product->getClassName2());
+            $OrderDetail->setOrder($order);
+            $order->addOrderDetail($OrderDetail);
+
+            // 会員の場合、購入回数、購入金額などを更新
+            $app['eccube.repository.customer']->updateBuyData($app, $Customer, 1);
+
+            // 配送業者・お届け時間の更新
+            $NewShipmentItem = new ShipmentItem();
+            $NewShipmentItem
+                ->setProduct($Product)
+                ->setProductClass($productClass)
+                ->setProductName($Product->getName())
+                ->setProductCode($productClass->getCode())
+                ->setClassCategoryName1($OrderDetail->getClassCategoryName1())
+                ->setClassCategoryName2($OrderDetail->getClassCategoryName2())
+                ->setClassName1($Product->getClassName1())
+                ->setClassName2($Product->getClassName2())
+                ->setPrice($Product->getPrice02Min())
+                ->setQuantity(1)
+                ->setOrder($order);
+
+            // 配送商品の設定.
+            $Shipping = new \Eccube\Entity\Shipping();
+            $Shipping->setDelFlg(0);
+            $Shipping->setName01($Customer->getName01());
+            $Shipping->setName02($Customer->getName02());
+            $Shipping->setKana01($Customer->getKana01());
+            $Shipping->setKana02($Customer->getKana02());
+            $NewShipmentItem->setShipping($Shipping);
+            $Shipping->getShipmentItems()->add($NewShipmentItem);
+            $order->addShipping($Shipping);
+            $Shipping->setOrder($order);
+
+            // 受注日/発送日/入金日の更新.
+            $order->setOrderDate(new \DateTime());
+
+            $app['orm.em']->persist($order);
+            $app['orm.em']->flush();
+        } catch (\Exception $ex) {
+            $result = false;
+        }
+        return $result;
+    }
+
+    private function insertMembershipPaymentRecorde(Application $app, \Eccube\Entity\Customer $Customer, \Eccube\Entity\ProductMembership $ProductMembership) {
+        $result = true;
+        try {
+            $Product = $ProductMembership->getProduct();
+            $orders = $app['eccube.repository.order']->getProductOrder($Customer, $Product);
+            if ($orders) {
+                if (count($orders) == 1) {
+                    $order = $orders[0];
+                    // 単一受注のみ
+                    if (1 == count($order->getOrderDetails())) {
+                        if (!in_array($order->getOrderStatus()->getId(), array(5, 6))) {
+                            // 受注日/発送日/入金日の更新.
+                            $order->setOrderDate(new \DateTime());
+                            $order->setOrderStatus($app['eccube.repository.master.order_status']->find(5));
+                            $app['orm.em']->persist($order);
+                            $app['orm.em']->flush();
+                        }
+                    } else {
+                        throw new Exception('複数商品受注のため更新不可');
+                    }
+                } else {
+                    throw new Exception('複数受注のため更新不可');
+                }
+            } else {
+                $price = $Product->getPrice02IncTaxMax();
+                $productClass = $Product->getProductClasses()[0];
+                $deviceType = $app['eccube.repository.master.device_type']->find(DeviceType::DEVICE_TYPE_ADMIN);
+                $CommonTaxRule = $app['eccube.repository.tax_rule']->getByRule($Product, $Product->getProductClasses()[0]);
+                $taxRate = $CommonTaxRule->getTaxRate();
+                $taxRuleId = $CommonTaxRule->getId();
+                $OrderStatus = $app['eccube.repository.master.order_status']->find(1);
+                $Payment = $app['eccube.repository.payment']->find(3);
+                $keepAliveTime = date('Y-m-d H:i:s');
+
+                // 空のエンティティを作成.
+                $order = new \Eccube\Entity\Order();
+                $order->setDeviceType($deviceType);
+                // 受注情報を設定
+                $order->setCustomer($Customer)
+                            ->setDiscount(0)
+                            ->setSubtotal($price)
+                            ->setTotal($price)
+                            ->setPaymentTotal($price)
+                            ->setCharge(0)
+                            ->setTax($price - $Product->getPrice02Min())
+                            ->setDeliveryFeeTotal(0)
+                            ->setOrderStatus($OrderStatus)
+                            ->setDelFlg(Constant::DISABLED)
+                            ->setName01($Customer->getName01())
+                            ->setName02($Customer->getName02())
+                            ->setKana01($Customer->getKana01())
+                            ->setKana02($Customer->getKana02())
+                            ->setPref($Customer->getPref())
+                            ->setZip01($Customer->getZip01())
+                            ->setZip02($Customer->getZip02())
+                            ->setAddr01($Customer->getAddr01())
+                            ->setAddr02($Customer->getAddr02())
+                            ->setEmail($Customer->getEmail())
+                            ->setTel01($Customer->getTel01())
+                            ->setTel02($Customer->getTel02())
+                            ->setTel03($Customer->getTel03())
+                            ->setFax01($Customer->getFax01())
+                            ->setFax02($Customer->getFax02())
+                            ->setFax03($Customer->getFax03())
+                            ->setSex($Customer->getSex())
+                            ->setJob($Customer->getJob())
+                            ->setBirth($Customer->getBirth())
+                            ->setPayment($Payment)
+                            ->setPaymentMethod($Payment->getMethod());
+                // 受注明細を作成
+                $OrderDetail = new \Eccube\Entity\OrderDetail();
+                $OrderDetail->setPriceIncTax($price);
+                $OrderDetail->setProductName($Product->getName());
+                $OrderDetail->setProductCode($productClass->getCode());
+                $OrderDetail->setPrice($Product->getPrice02Min());
+                $OrderDetail->setQuantity(1);
+                $OrderDetail->setTaxRate($taxRate);
+                $OrderDetail->setTaxRule($taxRuleId);
+                $OrderDetail->setProduct($Product);
+                $OrderDetail->setProductClass($productClass);
+                $OrderDetail->setClassName1($Product->getClassName1());
+                $OrderDetail->setClassName2($Product->getClassName2());
+                $OrderDetail->setOrder($order);
+                $order->addOrderDetail($OrderDetail);
+
+                // 会員の場合、購入回数、購入金額などを更新
+                $app['eccube.repository.customer']->updateBuyData($app, $Customer, 1);
+
+                // 配送業者・お届け時間の更新
+                $NewShipmentItem = new ShipmentItem();
+                $NewShipmentItem
+                    ->setProduct($Product)
+                    ->setProductClass($productClass)
+                    ->setProductName($Product->getName())
+                    ->setProductCode($productClass->getCode())
+                    ->setClassCategoryName1($OrderDetail->getClassCategoryName1())
+                    ->setClassCategoryName2($OrderDetail->getClassCategoryName2())
+                    ->setClassName1($Product->getClassName1())
+                    ->setClassName2($Product->getClassName2())
+                    ->setPrice($Product->getPrice02Min())
+                    ->setQuantity(1)
+                    ->setOrder($order);
+
+                // 配送商品の設定.
+                $Shipping = new \Eccube\Entity\Shipping();
+                $Shipping->setDelFlg(0);
+                $Shipping->setName01($Customer->getName01());
+                $Shipping->setName02($Customer->getName02());
+                $Shipping->setKana01($Customer->getKana01());
+                $Shipping->setKana02($Customer->getKana02());
+                $NewShipmentItem->setShipping($Shipping);
+                $Shipping->getShipmentItems()->add($NewShipmentItem);
+                $order->addShipping($Shipping);
+                $Shipping->setOrder($order);
+
+                // 受注日/発送日/入金日の更新.
+                $order->setOrderDate(new \DateTime());
+
+                $app['orm.em']->persist($order);
+                $app['orm.em']->flush();
+            }
+
+            // 入金記録を作成
+            $MembershipBillingStatus = new \Eccube\Entity\MembershipBillingStatus();
+            $MembershipBillingStatus->setCustomer($Customer)
+                                    ->setProductMembership($ProductMembership)
+                                    ->setStatus($app['eccube.repository.master.billing_status']->find(1));
+
+            $app['orm.em']->persist($MembershipBillingStatus);
+            $app['orm.em']->flush();
+        } catch (\Exception $ex) {
+            log_info('Exception:' . $ex);
+            $result = false;
+        }
+        return $result;
     }
 
     public function membershipExemption(Application $app, Request $request)

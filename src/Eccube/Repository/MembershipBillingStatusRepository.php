@@ -483,4 +483,17 @@ class MembershipBillingStatusRepository extends EntityRepository
         return $result;
     }
 
+    public function existsMembershipStatus($customerId, $membershipYear)
+    {
+        $recorde = $this->createQueryBuilder('ms')
+                ->leftJoin('ms.Customer', 'c')
+                ->leftJoin('ms.ProductMembership', 'pm')
+                ->where('c.id = :Customer')
+                ->andWhere('pm.membership_year = :MembershipYear')
+                ->setParameter('Customer', $customerId)
+                ->setParameter('MembershipYear', $membershipYear)
+                ->getQuery()
+                ->getResult();
+        return (0 < count($recorde));
+    }
 }

@@ -202,7 +202,6 @@ class TermInfo extends \Eccube\Entity\AbstractEntity
      */
     private $japanese_year;
 
-
     /**
      * Set term_year
      *

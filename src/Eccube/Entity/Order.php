@@ -1569,7 +1569,6 @@ class Order extends \Eccube\Entity\AbstractEntity
      */
     private $CustomerGroup;
 
-
     /**
      * Set CustomerGroup
      *

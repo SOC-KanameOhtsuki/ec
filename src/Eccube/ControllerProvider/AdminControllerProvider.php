@@ -95,6 +95,10 @@ class AdminControllerProvider implements ControllerProviderInterface
         $c->match('/customer/new', '\Eccube\Controller\Admin\Customer\CustomerEditController::index')->bind('admin_customer_new');
         $c->match('/customer/{id}/edit', '\Eccube\Controller\Admin\Customer\CustomerEditController::index')->assert('id', '\d+')->bind('admin_customer_edit');
         $c->match('/customer/{id}/annual_fee', '\Eccube\Controller\Admin\Customer\CustomerController::annualFeeReport')->assert('id', '\d+')->bind('admin_customer_annual_fee_report');
+        $c->match('/customer/{id}/request_membership/{target_year}', '\Eccube\Controller\Admin\Customer\CustomerController::requestMembership')->assert('id', '\d+')->assert('target_year', '\d+')->bind('admin_customer_request_membership');
+        $c->match('/customer/{id}/request_membership_select', '\Eccube\Controller\Admin\Customer\CustomerController::requestMembershipSelect')->assert('id', '\d+')->bind('admin_customer_request_membership_select');
+        $c->match('/customer/{id}/payment_membership/{target_year}', '\Eccube\Controller\Admin\Customer\CustomerController::paymentMembership')->assert('id', '\d+')->assert('target_year', '\d+')->bind('admin_customer_payment_membership');
+        $c->match('/customer/{id}/payment_membership_select', '\Eccube\Controller\Admin\Customer\CustomerController::paymentMembershipSelect')->assert('id', '\d+')->bind('admin_customer_payment_membership_select');
         $c->post('/customer/membership_exemption', '\Eccube\Controller\Admin\Customer\CustomerController::membershipExemption')->bind('admin_customer_membership_exemption');
         $c->match('/customer/{id}/training_order_history', '\Eccube\Controller\Admin\Customer\CustomerController::trainingOrderHistory')->assert('id', '\d+')->bind('admin_customer_training_order_history');
         $c->match('/customer/{id}/contribution_order_history', '\Eccube\Controller\Admin\Customer\CustomerController::contributionOrderHistory')->assert('id', '\d+')->bind('admin_customer_contribution_order_history');
