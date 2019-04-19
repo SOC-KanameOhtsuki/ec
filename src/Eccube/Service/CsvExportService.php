@@ -24,6 +24,7 @@
 
 namespace Eccube\Service;
 
+use Eccube\Application;
 use Eccube\Common\Constant;
 use Eccube\Util\EntityUtil;
 use Symfony\Component\Form\FormFactory;
@@ -148,6 +149,7 @@ class CsvExportService
      */
     public function setCustomerGroupRepository(\Eccube\Repository\CustomerGroupRepository $customerGroupRepository)
     {
+
         $this->customerGroupRepository = $customerGroupRepository;
     }
 
@@ -441,24 +443,24 @@ class CsvExportService
      * 会員グループ検索用のクエリビルダを返す.
      *
      * @param Request $request
+     * @param Application $app
      * @return \Doctrine\ORM\QueryBuilder
      */
-    public function getCustomerGroupQueryBuilder(Request $request)
+    public function getCustomerGroupQueryBuilder(Request $request,Application $app)
     {
+
         $session = $request->getSession();
         $viewData = $session->get('eccube.admin.customer_group.search', array());
 
-        $app = \Eccube\Application::getInstance();
+        $appM = \Eccube\Application::getInstance();
 
-        $searchForm = $app['form.factory']
+        $searchForm = $appM['form.factory']
             ->create('admin_search_customer_group', null, array('csrf_protection' => true));
 
         $searchData = \Eccube\Util\FormUtil::submitAndGetData($searchForm, $viewData);
-
         // 会員グループのクエリビルダを構築.
-        $qb = $this->customerGroupRepository
-            ->getQueryBuilderBySearchData($searchData);
-
+        //$qb = $this->customerGroupRepository->getQueryBuilderBySearchData($searchData);
+        $qb = $app['eccube.repository.customer_group']->getQueryBuilderBySearchData($searchData);
         return $qb;
 
     }
