@@ -1895,7 +1895,6 @@ class TrainingController extends AbstractController
                     $CopyProductTraining->setCollaborators($ProductTraining->getCollaborators());
                     $CopyProductTraining->setArea($ProductTraining->getArea());
                     $CopyProductTraining->setAcceptLimitDate($ProductTraining->getAcceptLimitDate());
-                    $CopyProductTraining->setAttendanceHistories($ProductTraining->getAttendanceHistories());
                     $CopyProductTraining->setLecturer($ProductTraining->getLecturer());
                     $CopyProductTraining->setPlaceKana($ProductTraining->getPlaceKana());
                     $CopyProductTraining->setPlaceRoom($ProductTraining->getPlaceRoom());
