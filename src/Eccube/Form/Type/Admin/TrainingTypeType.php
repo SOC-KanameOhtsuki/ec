@@ -46,6 +46,34 @@ class TrainingTypeType extends AbstractType
                     new Assert\NotBlank(),
                 ),
             ))
+            // 認定資格
+            ->add('qualification', 'choice', array(
+                'label' => '認定資格',
+                'required' => true,
+                'multiple' => false,
+                'expanded' => false,
+                'constraints' => array(
+                    new Assert\NotBlank(),
+                ),
+                'mapped' => false,
+            ))
+            // 認定資格種別
+            ->add('qualification_type', 'qualification_type', array(
+                'label' => '認定資格種別',
+                'required' => true,
+                'multiple' => false,
+                'expanded' => false,
+                'constraints' => array(
+                    new Assert\NotBlank(),
+                ),
+                'mapped' => true,
+            ))
+            ->add('name', 'text', array(
+                'label' => '講習会種別名',
+                'constraints' => array(
+                    new Assert\NotBlank(),
+                ),
+            ))
             ->add('rank', 'integer', array(
                 'label' => '表示順',
                 'required' => false,

@@ -495,6 +495,47 @@ class OrderController extends AbstractController
     }
 
     /**
+     * 年会費一括受注CSVの出力.
+     * @param Application $app
+     * @param Request $request
+     * @return StreamedResponse
+     */
+    public function csvDownloadMembershipBilling(Application $app, Request $request, $id)
+    {
+        // タイムアウトを無効にする.
+        set_time_limit(0);
+
+        // sql loggerを無効にする.
+        $em = $app['orm.em'];
+        $em->getConfiguration()->setSQLLogger(null);
+
+        $response = new StreamedResponse();
+        $response->setCallback(function () use ($app, $request, $searchData) {
+
+            // 受注情報取得
+            $orders = $app['eccube.repository.order']->getQueryBuilderBySearchDataForAdmin($searchData)
+                    ->getQuery()
+                    ->getResult();
+
+            // サービスの取得
+            /* @var PaymentPdfService $service */
+            $service = $app['eccube.service.csv.paying_slip.export'];
+
+            // 受注情報からCSVを作成する
+            $service->makeBulkCsv($orders);
+        });
+
+        $now = new \DateTime();
+        $filename = 'payment_' . $now->format('YmdHis') . '.csv';
+        $response->headers->set('Content-Type', 'application/octet-stream');
+        $response->headers->set('Content-Disposition', 'attachment; filename=' . $filename);
+        $response->send();
+
+        log_info("CSVファイル名", array($filename));
+        return $response;
+    }
+
+    /**
      * 配送CSVの出力.
      *
      * @param Application $app

@@ -389,6 +389,9 @@ class EccubeServiceProvider implements ServiceProviderInterface
         $app['eccube.repository.order_status'] = $app->share(function () use ($app) {
             return $app['orm.em']->getRepository('Eccube\Entity\Master\OrderStatus');
         });
+        $app['eccube.repository.master.qualification_type'] = $app->share(function () use ($app) {
+            return $app['orm.em']->getRepository('Eccube\Entity\Master\QualificationType');
+        });
         $app['eccube.repository.master.training_type'] = $app->share(function () use ($app) {
             return $app['orm.em']->getRepository('Eccube\Entity\Master\TrainingType');
         });
@@ -490,6 +493,7 @@ class EccubeServiceProvider implements ServiceProviderInterface
             $types[] = new \Eccube\Form\Type\Master\SupporterTypeType();
             $types[] = new \Eccube\Form\Type\Master\InstructorTypeType();
             $types[] = new \Eccube\Form\Type\Master\TrainingTypeType();
+            $types[] = new \Eccube\Form\Type\Master\QualificationTypeType();
             $types[] = new \Eccube\Form\Type\Master\MembershipBillingStatusType();
             $types[] = new \Eccube\Form\Type\Master\BureauType();
             $types[] = new \Eccube\Form\Type\Master\ExemptionTypeType();

@@ -104,6 +104,9 @@ Eccube\Entity\GroupOrder:
         bill_to_fax03:
             type: text
             nullable: true
+        note:
+            type: text
+            nullable: true
         del_flg:
             type: smallint
             nullable: false

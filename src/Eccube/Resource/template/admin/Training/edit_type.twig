@@ -38,6 +38,22 @@ This file is Customized File
                                     {{ form_errors(form.name) }}
                                 </div>
                             </div>
+                            {# 認定資格種別 #}
+                            <div id="type_info_box__name" class="form-group">
+                                <div class="col-sm-3 col-lg-2">認定資格種別</div>
+                                <div id="detail_box__name" class="col-sm-6">
+                                    {{ form_widget(form.qualification_type) }}
+                                    {{ form_errors(form.qualification_type) }}
+                                </div>
+                            </div>
+                            {# 認定資格 #}
+                            <div id="type_info_box__name" class="form-group">
+                                <div class="col-sm-3 col-lg-2">認定資格</div>
+                                <div id="detail_box__name" class="col-sm-6">
+                                    {{ form_widget(form.qualification) }}
+                                    {{ form_errors(form.qualification) }}
+                                </div>
+                            </div>
                             {# 表示順 #}
                             <div id="type_info_box__rank" class="form-group">
                                 <div class="col-sm-3 col-lg-2">表示順</div>

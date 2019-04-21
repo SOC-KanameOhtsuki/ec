@@ -15,6 +15,9 @@ Eccube\Entity\Master\TrainingType:
         name:
             type: text
             nullable: false
+        qualification:
+            type: integer
+            nullable: true
         rank:
             type: smallint
             nullable: false

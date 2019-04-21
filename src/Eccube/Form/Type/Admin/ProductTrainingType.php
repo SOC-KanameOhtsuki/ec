@@ -46,15 +46,21 @@ class ProductTrainingType extends AbstractType
                 'multiple' => false,
                 'expanded' => false,
             ))
-            ->add('training_date_start', 'text', array(
+            ->add('training_date_start', 'date', array(
                 'label' => '開始日付',
+                'mapped' => false,
+                'input' => 'datetime',
+                'widget' => 'single_text',
                 'constraints' => array(
                     new Assert\NotBlank(),
                     new Assert\Regex(array('pattern' => '/^[0-9]{4}\/([0][1-9]|[1][0-2])\/([0][1-9]|[1-2][0-9]|[3][0-1]) ([0-1][0-9]|[2][0-3]):[0-5][0-9]$/')),
                 ),
             ))
-            ->add('training_date_end', 'text', array(
+            ->add('training_date_end', 'date', array(
                 'label' => '終了日付',
+                'input' => 'datetime',
+                'widget' => 'single_text',
+                'mapped' => false,
                 'constraints' => array(
                     new Assert\NotBlank(),
                     new Assert\Regex(array('pattern' => '/^[0-9]{4}\/([0][1-9]|[1][0-2])\/([0][1-9]|[1-2][0-9]|[3][0-1]) ([0-1][0-9]|[2][0-3]):[0-5][0-9]$/')),

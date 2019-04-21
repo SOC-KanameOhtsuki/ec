@@ -32,9 +32,8 @@ class MembershipBillingCommand extends \Knp\Command\Command
         $this->app->boot();
         $console = new Application();
         $this->app['orm.em']->getConnection()->getConfiguration()->setSQLLogger(null);
-        $logfile_path = $this->app['config']['root_dir'].'/app/log/MembershipBilling_' . $BillingId . '.log';
-
         $BillingId = $input->getArgument('BillingId');
+        $logfile_path = $this->app['config']['root_dir'].'/app/log/MembershipBilling.log';
         file_put_contents($logfile_path, date('Y-m-d H:i:s: ') . '年会費受注登録バッチ起動 BillingId:' . $BillingId . "\n", FILE_APPEND);
         $membershipBilling = $this->app['eccube.repository.membership_billing']
                     ->find($BillingId);
@@ -47,162 +46,548 @@ class MembershipBillingCommand extends \Knp\Command\Command
                 $this->app['orm.em']->persist($membershipBilling);
                 $this->app['orm.em']->flush();
                 try {
-                    $membershipProduct = $membershipBilling->getProductMembership()->getProduct();
-                    $price = $membershipProduct->getPrice02IncTaxMax();
-                    $productClass = $membershipProduct->getProductClasses()[0];
-                    $deviceType = $this->app['eccube.repository.master.device_type']->find(DeviceType::DEVICE_TYPE_ADMIN);
-                    $CommonTaxRule = $this->app['eccube.repository.tax_rule']->getByRule($membershipProduct, $membershipProduct->getProductClasses()[0]);
-                    $taxRate = $CommonTaxRule->getTaxRate();
-                    $taxRuleId = $CommonTaxRule->getId();
-                    $OrderStatus = $this->app['eccube.repository.master.order_status']->find(1);
-                    $Payment = $this->app['eccube.repository.payment']->find(3);
-                    $membershipBillingProcessing = $this->app['eccube.repository.master.membership_billing_detail_status']->find(3);
-                    $membershipBillingSuccess = $this->app['eccube.repository.master.membership_billing_detail_status']->find(3);
-                    $membershipBillingFail = $this->app['eccube.repository.master.membership_billing_detail_status']->find(4);
-                    $keepAliveTime = date('Y-m-d H:i:s');
-                    if (0 < count($membershipBilling->getMembershipBillingDetail())) {
-                        $countSkip = 0;
-                        $countRegist = 0;
-                        foreach($membershipBilling->getMembershipBillingDetail() as $membershipBillingDetail) {
-                            if (strtotime("now") >= strtotime("+" . $this->app['config']['keep_alive_seconds'] . " seconds", strtotime($keepAliveTime))) {
-                                file_put_contents($logfile_path, date('Y-m-d H:i:s: ') . $total . '件中 登録:' . $countRegist . '件 処理済みスキップ:' . $countSkip. "件\n", FILE_APPEND);
-                                $keepAliveTime = date('Y-m-d H:i:s');
-                            }
-                            $success = true;
-                            $info = '';
-                            $order = null;
-                            if ($membershipBillingDetail->getStatus()->getId() != 1) {
-                                ++$countSkip;
-                                continue;
-                            } else {
-                                ++$countRegist;
-                            }
-                            // 詳細処理状態更新
-                            $membershipBillingDetail->setStatus($membershipBillingProcessing);
-                            $this->app['orm.em']->persist($membershipBillingDetail);
-                            $this->app['orm.em']->flush();
-                            try {
-                                // 会員エンティティを取得.
-                                $customer = $membershipBillingDetail->getCustomer();
-                                if (is_null($customer)) {
-                                    throw new Exception('処理時、会員情報取得失敗');
-                                } else if ($customer->getDelFlg() != 0) {
-                                    throw new Exception('処理時、会員情報削除済み');
-                                }
-                                // 空のエンティティを作成.
-                                $order = new \Eccube\Entity\Order();
-                                $order->setDeviceType($deviceType);
-                                // 受注情報を設定
-                                $order->setCustomer($customer)
-                                            ->setDiscount(0)
-                                            ->setSubtotal($price)
-                                            ->setTotal($price)
-                                            ->setPaymentTotal($price)
-                                            ->setCharge(0)
-                                            ->setTax($price - $membershipProduct->getPrice02Min())
-                                            ->setDeliveryFeeTotal(0)
-                                            ->setOrderStatus($OrderStatus)
-                                            ->setDelFlg(Constant::DISABLED)
-                                            ->setName01($customer->getName01())
-                                            ->setName02($customer->getName02())
-                                            ->setKana01($customer->getKana01())
-                                            ->setKana02($customer->getKana02())
-                                            ->setPref($customer->getPref())
-                                            ->setZip01($customer->getZip01())
-                                            ->setZip02($customer->getZip02())
-                                            ->setAddr01($customer->getAddr01())
-                                            ->setAddr02($customer->getAddr02())
-                                            ->setEmail($customer->getEmail())
-                                            ->setTel01($customer->getTel01())
-                                            ->setTel02($customer->getTel02())
-                                            ->setTel03($customer->getTel03())
-                                            ->setFax01($customer->getFax01())
-                                            ->setFax02($customer->getFax02())
-                                            ->setFax03($customer->getFax03())
-                                            ->setSex($customer->getSex())
-                                            ->setJob($customer->getJob())
-                                            ->setBirth($customer->getBirth())
-                                            ->setPayment($Payment)
-                                            ->setPaymentMethod($Payment->getMethod());
-                                // 受注明細を作成
-                                $OrderDetail = new \Eccube\Entity\OrderDetail();
-                                $OrderDetail->setPriceIncTax($price);
-                                $OrderDetail->setProductName($membershipProduct->getName());
-                                $OrderDetail->setProductCode($productClass->getCode());
-                                $OrderDetail->setPrice($membershipProduct->getPrice02Min());
-                                $OrderDetail->setQuantity(1);
-                                $OrderDetail->setTaxRate($taxRate);
-                                $OrderDetail->setTaxRule($taxRuleId);
-                                $OrderDetail->setProduct($membershipProduct);
-                                $OrderDetail->setProductClass($productClass);
-                                $OrderDetail->setClassName1($membershipProduct->getClassName1());
-                                $OrderDetail->setClassName2($membershipProduct->getClassName2());
-                                $OrderDetail->setOrder($order);
-                                $order->addOrderDetail($OrderDetail);
+                    $this->app['orm.em']->getConnection()->beginTransaction();
+                    file_put_contents($logfile_path, date('Y-m-d H:i:s: ') . '非グループ会員受注処理開始:' . $total . "\n", FILE_APPEND);
+                    $sql = "UPDATE dtb_membership_billing_detail SET dtb_membership_billing_detail.status = 2, dtb_membership_billing_detail.update_date = NOW() WHERE dtb_membership_billing_detail.membership_billing = " . $BillingId . " AND dtb_membership_billing_detail.customer IN (\n";
+                    $sql .= " SELECT\n";
+                    $sql .= " customer_id\n";
+                    $sql .= " FROM(\n";
+                    $sql .= " SELECT\n";
+                    $sql .= " dtb_customer.customer_id\n";
+                    $sql .= " FROM\n";
+                    $sql .= " dtb_membership_billing\n";
+                    $sql .= " INNER JOIN dtb_membership_billing_detail ON dtb_membership_billing_detail.membership_billing = dtb_membership_billing.membership_billing_id\n";
+                    $sql .= " INNER JOIN dtb_customer ON dtb_customer.customer_id = dtb_membership_billing_detail.customer\n";
+                    $sql .= " INNER JOIN dtb_membership_billing_target_year ON dtb_membership_billing_target_year.membership_billing = dtb_membership_billing_detail.membership_billing\n";
+                    $sql .= " INNER JOIN dtb_product_membership ON dtb_product_membership.product_membership_id = dtb_membership_billing_target_year.product_membership\n";
+                    $sql .= " INNER JOIN dtb_product_class ON dtb_product_class.product_id = dtb_product_membership.product_id\n";
+                    $sql .= " WHERE\n";
+                    $sql .= ' CONCAT(LPAD(dtb_customer.customer_id, 11, "0"),  LPAD(dtb_product_membership.product_id, 11, "0")) NOT IN (' . "\n";
+                    $sql .= " SELECT\n";
+                    $sql .= ' CONCAT(LPAD(dtb_order.customer_id, 11, "0"),  LPAD(dtb_product_membership.product_id, 11, "0"))' . "\n";
+                    $sql .= " FROM\n";
+                    $sql .= " dtb_order\n";
+                    $sql .= " LEFT JOIN dtb_order_detail ON dtb_order_detail.order_id = dtb_order.order_id\n";
+                    $sql .= " INNER JOIN dtb_product_membership ON dtb_product_membership.product_id = dtb_order_detail.product_id\n";
+                    $sql .= " WHERE\n";
+                    $sql .= " dtb_order.del_flg = 0\n";
+                    $sql .= " )\n";
+                    $sql .= " AND dtb_membership_billing.membership_billing_id = " . $BillingId;
+                    $sql .= " AND (dtb_customer.customer_group IS NULL OR dtb_customer.customer_group = 0)\n";
+                    $sql .= " GROUP BY\n";
+                    $sql .= " dtb_customer.customer_id\n";
+                    $sql .= ") AS TEMP\n";
+                    $sql .= ");";
+                    $result = $this->app['orm.em']->getConnection()->executeQuery($sql);
 
-                                // 会員の場合、購入回数、購入金額などを更新
-                                $this->app['eccube.repository.customer']->updateBuyData($this->app, $customer, 1);
+                    file_put_contents($logfile_path, date('Y-m-d H:i:s: ') . '非グループ会員受注登録:' . $total . "\n", FILE_APPEND);
+                    $sql = "INSERT INTO dtb_order (`group_order_id`, `customer_id`, `customer_group_id`, `order_country_id`, `order_pref`, `order_sex`, `order_job`, `payment_id`, `device_type_id`, `pre_order_id`, `message`, `order_name01`, `order_name02`, `order_kana01`, `order_kana02`, `order_company_name`, `order_email`, `order_tel01`, `order_tel02`, `order_tel03`, `order_fax01`, `order_fax02`, `order_fax03`, `order_zip01`, `order_zip02`, `order_zipcode`, `order_addr01`, `order_addr02`, `order_birth`, `subtotal`, `discount`, `delivery_fee_total`, `charge`, `tax`, `total`, `payment_total`, `payment_method`, `note`, `create_date`, `update_date`, `order_date`, `commit_date`, `payment_date`, `del_flg`, `status`)\n";
+                    $sql .= " SELECT\n";
+                    $sql .= " NULL,\n";
+                    $sql .= " TEMP.customer_id,\n";
+                    $sql .= " NULL,\n";
+                    $sql .= " TEMP.country_id,\n";
+                    $sql .= " TEMP.pref,\n";
+                    $sql .= " TEMP.sex,\n";
+                    $sql .= " TEMP.job,\n";
+                    $sql .= " 3,\n";
+                    $sql .= " 99,\n";
+                    $sql .= " NULL,\n";
+                    $sql .= " NULL,\n";
+                    $sql .= " TEMP.name01,\n";
+                    $sql .= " TEMP.name02,\n";
+                    $sql .= " TEMP.kana01,\n";
+                    $sql .= " TEMP.kana02,\n";
+                    $sql .= " TEMP.company_name,\n";
+                    $sql .= " TEMP.email,\n";
+                    $sql .= " TEMP.tel01,\n";
+                    $sql .= " TEMP.tel02,\n";
+                    $sql .= " TEMP.tel03,\n";
+                    $sql .= " TEMP.fax01,\n";
+                    $sql .= " TEMP.fax02,\n";
+                    $sql .= " TEMP.fax03,\n";
+                    $sql .= " TEMP.zip01,\n";
+                    $sql .= " TEMP.zip02,\n";
+                    $sql .= " TEMP.zipcode,\n";
+                    $sql .= " TEMP.addr01,\n";
+                    $sql .= " TEMP.addr02,\n";
+                    $sql .= " TEMP.birth,\n";
+                    $sql .= " TEMP.total,\n";
+                    $sql .= " 0,\n";
+                    $sql .= " 0,\n";
+                    $sql .= " 0,\n";
+                    $sql .= " 0,\n";
+                    $sql .= " TEMP.total,\n";
+                    $sql .= " TEMP.total,\n";
+                    $sql .= ' "郵便振込",' . "\n";
+                    $sql .= ' CONCAT("membership_bulk_", ' . $BillingId . ', "_", TEMP.customer_id), ' . "\n";
+                    $sql .= " NOW(),\n";
+                    $sql .= " NOW(),\n";
+                    $sql .= " NOW(),\n";
+                    $sql .= " NOW(),\n";
+                    $sql .= " NOW(),\n";
+                    $sql .= " 0,\n";
+                    $sql .= " 5\n";
+                    $sql .= " FROM (\n";
+                    $sql .= " SELECT \n";
+                    $sql .= " INNER_TEMP.customer_id,\n";
+                    $sql .= " INNER_TEMP.customer_group,\n";
+                    $sql .= " INNER_TEMP.country_id,\n";
+                    $sql .= " INNER_TEMP.pref,\n";
+                    $sql .= " INNER_TEMP.sex,\n";
+                    $sql .= " INNER_TEMP.job,\n";
+                    $sql .= " INNER_TEMP.name01, \n";
+                    $sql .= " INNER_TEMP.name02, \n";
+                    $sql .= " INNER_TEMP.kana01, \n";
+                    $sql .= " INNER_TEMP.kana02, \n";
+                    $sql .= " INNER_TEMP.company_name, \n";
+                    $sql .= " INNER_TEMP.email, \n";
+                    $sql .= " INNER_TEMP.tel01, \n";
+                    $sql .= " INNER_TEMP.tel02, \n";
+                    $sql .= " INNER_TEMP.tel03, \n";
+                    $sql .= " INNER_TEMP.fax01, \n";
+                    $sql .= " INNER_TEMP.fax02, \n";
+                    $sql .= " INNER_TEMP.fax03, \n";
+                    $sql .= " INNER_TEMP.zip01, \n";
+                    $sql .= " INNER_TEMP.zip02, \n";
+                    $sql .= " INNER_TEMP.zipcode, \n";
+                    $sql .= " INNER_TEMP.addr01, \n";
+                    $sql .= " INNER_TEMP.addr02, \n";
+                    $sql .= " INNER_TEMP.birth,\n";
+                    $sql .= " count(INNER_TEMP.product_id) AS quantity,\n";
+                    $sql .= " SUM(INNER_TEMP.price) AS total\n";
+                    $sql .= " FROM (\n";
+                    $sql .= " SELECT\n";
+                    $sql .= " dtb_membership_billing.membership_billing_id AS membership_billing_id,\n";
+                    $sql .= " dtb_membership_billing_detail.membership_billing_detail_id AS membership_billing_detail_id,\n";
+                    $sql .= " dtb_customer.customer_id AS customer_id,\n";
+                    $sql .= " dtb_customer.customer_group AS customer_group,\n";
+                    $sql .= " dtb_customer.country_id AS country_id,\n";
+                    $sql .= " dtb_customer.pref AS pref,\n";
+                    $sql .= " dtb_customer.sex AS sex,\n";
+                    $sql .= " dtb_customer.job AS job,\n";
+                    $sql .= " dtb_customer.name01 AS name01,\n";
+                    $sql .= " dtb_customer.name02 AS name02,\n";
+                    $sql .= " dtb_customer.kana01 AS kana01,\n";
+                    $sql .= " dtb_customer.kana02 AS kana02,\n";
+                    $sql .= " dtb_customer.company_name AS company_name,\n";
+                    $sql .= " dtb_customer.email AS email,\n";
+                    $sql .= " dtb_customer.tel01 AS tel01,\n";
+                    $sql .= " dtb_customer.tel02 AS tel02,\n";
+                    $sql .= " dtb_customer.tel03 AS tel03,\n";
+                    $sql .= " dtb_customer.fax01 AS fax01,\n";
+                    $sql .= " dtb_customer.fax02 AS fax02,\n";
+                    $sql .= " dtb_customer.fax03 AS fax03,\n";
+                    $sql .= " dtb_customer.zip01 AS zip01,\n";
+                    $sql .= " dtb_customer.zip02 AS zip02,\n";
+                    $sql .= " dtb_customer.zipcode AS zipcode,\n";
+                    $sql .= " dtb_customer.addr01 AS addr01,\n";
+                    $sql .= " dtb_customer.addr02 AS addr02,\n";
+                    $sql .= " dtb_customer.birth AS birth,\n";
+                    $sql .= " dtb_product_class.product_id AS product_id,\n";
+                    $sql .= " dtb_product_class.price02 AS price\n";
+                    $sql .= " FROM\n";
+                    $sql .= " dtb_membership_billing\n";
+                    $sql .= " INNER JOIN dtb_membership_billing_detail ON dtb_membership_billing_detail.membership_billing = dtb_membership_billing.membership_billing_id\n";
+                    $sql .= " INNER JOIN dtb_customer ON dtb_customer.customer_id = dtb_membership_billing_detail.customer\n";
+                    $sql .= " INNER JOIN dtb_membership_billing_target_year ON dtb_membership_billing_target_year.membership_billing = dtb_membership_billing_detail.membership_billing\n";
+                    $sql .= " INNER JOIN dtb_product_membership ON dtb_product_membership.product_membership_id = dtb_membership_billing_target_year.product_membership\n";
+                    $sql .= " INNER JOIN dtb_product_class ON dtb_product_class.product_id = dtb_product_membership.product_id\n";
+                    $sql .= " WHERE\n";
+                    $sql .= ' CONCAT(LPAD(dtb_customer.customer_id, 11, "0"),  LPAD(dtb_product_membership.product_id, 11, "0")) NOT IN (' . "\n";
+                    $sql .= " SELECT\n";
+                    $sql .= ' CONCAT(LPAD(dtb_order.customer_id, 11, "0"),  LPAD(dtb_product_membership.product_id, 11, "0"))' . "\n";
+                    $sql .= " FROM\n";
+                    $sql .= " dtb_order\n";
+                    $sql .= " LEFT JOIN dtb_order_detail ON dtb_order_detail.order_id = dtb_order.order_id\n";
+                    $sql .= " INNER JOIN dtb_product_membership ON dtb_product_membership.product_id = dtb_order_detail.product_id\n";
+                    $sql .= " WHERE\n";
+                    $sql .= " dtb_order.del_flg = 0\n";
+                    $sql .= " )\n";
+                    $sql .= " AND dtb_membership_billing.membership_billing_id = " . $BillingId ."\n";
+                    $sql .= " AND (dtb_customer.customer_group IS NULL OR dtb_customer.customer_group = 0)\n";
+                    $sql .= " GROUP BY\n";
+                    $sql .= " dtb_membership_billing.membership_billing_id,\n";
+                    $sql .= " dtb_membership_billing_detail.membership_billing_detail_id,\n";
+                    $sql .= " dtb_customer.customer_id,\n";
+                    $sql .= " dtb_product_class.product_id\n";
+                    $sql .= " ) AS INNER_TEMP\n";
+                    $sql .= " GROUP BY INNER_TEMP.customer_id\n";
+                    $sql .= " ORDER BY INNER_TEMP.customer_id\n";
+                    $sql .= " ) AS TEMP;";
+                    $result = $this->app['orm.em']->getConnection()->executeQuery($sql);
 
-                                // 配送業者・お届け時間の更新
-                                $NewShipmentItem = new ShipmentItem();
-                                $NewShipmentItem
-                                    ->setProduct($membershipProduct)
-                                    ->setProductClass($productClass)
-                                    ->setProductName($membershipProduct->getName())
-                                    ->setProductCode($productClass->getCode())
-                                    ->setClassCategoryName1($OrderDetail->getClassCategoryName1())
-                                    ->setClassCategoryName2($OrderDetail->getClassCategoryName2())
-                                    ->setClassName1($membershipProduct->getClassName1())
-                                    ->setClassName2($membershipProduct->getClassName2())
-                                    ->setPrice($membershipProduct->getPrice02Min())
-                                    ->setQuantity(1)
-                                    ->setOrder($order);
+                    file_put_contents($logfile_path, date('Y-m-d H:i:s: ') . '非グループ会員受注詳細登録:' . $total . "\n", FILE_APPEND);
+                    $sql = "INSERT INTO `dtb_order_detail` (`order_id`, `product_id`, `product_class_id`, `product_name`, `product_code`, `class_name1`, `class_name2`, `class_category_name1`, `class_category_name2`, `price`, `quantity`, `tax_rate`, `tax_rule`, `kifu_no_pub`)\n";
+                    $sql .= " SELECT\n";
+                    $sql .= " dtb_order.order_id AS order_id,\n";
+                    $sql .= " dtb_product.product_id AS product_id,\n";
+                    $sql .= " dtb_product_class.product_class_id AS product_class_id,\n";
+                    $sql .= " dtb_product.name AS product_name,\n";
+                    $sql .= " dtb_product_class.product_code AS product_code,\n";
+                    $sql .= " NULL,\n";
+                    $sql .= " NULL,\n";
+                    $sql .= " NULL,\n";
+                    $sql .= " NULL,\n";
+                    $sql .= " dtb_product_class.price02 AS price,\n";
+                    $sql .= " 1,\n";
+                    $sql .= " 0,\n";
+                    $sql .= " 0,\n";
+                    $sql .= " 0\n";
+                    $sql .= " FROM\n";
+                    $sql .= " dtb_membership_billing\n";
+                    $sql .= " INNER JOIN dtb_membership_billing_detail ON dtb_membership_billing_detail.membership_billing = dtb_membership_billing.membership_billing_id\n";
+                    $sql .= " INNER JOIN dtb_customer ON dtb_customer.customer_id = dtb_membership_billing_detail.customer\n";
+                    $sql .= " INNER JOIN dtb_membership_billing_target_year ON dtb_membership_billing_target_year.membership_billing = dtb_membership_billing_detail.membership_billing\n";
+                    $sql .= " INNER JOIN dtb_product_membership ON dtb_product_membership.product_membership_id = dtb_membership_billing_target_year.product_membership\n";
+                    $sql .= " INNER JOIN dtb_product ON dtb_product.product_id = dtb_product_membership.product_id\n";
+                    $sql .= " INNER JOIN dtb_product_class ON dtb_product_class.product_id = dtb_product_membership.product_id\n";
+                    $sql .= ' INNER JOIN dtb_order ON dtb_order.note = CONCAT("membership_bulk_", ' . $BillingId . ', "_", dtb_customer.customer_id)' . "\n";
+                    $sql .= " WHERE\n";
+                    $sql .= ' CONCAT(LPAD(dtb_customer.customer_id, 11, "0"),  LPAD(dtb_product_membership.product_id, 11, "0")) NOT IN (' . "\n";
+                    $sql .= " SELECT\n";
+                    $sql .= ' CONCAT(LPAD(dtb_order.customer_id, 11, "0"),  LPAD(dtb_product_membership.product_id, 11, "0"))' . "\n";
+                    $sql .= " FROM\n";
+                    $sql .= " dtb_order\n";
+                    $sql .= " LEFT JOIN dtb_order_detail ON dtb_order_detail.order_id = dtb_order.order_id\n";
+                    $sql .= " INNER JOIN dtb_product_membership ON dtb_product_membership.product_id = dtb_order_detail.product_id\n";
+                    $sql .= " WHERE\n";
+                    $sql .= " dtb_order.del_flg = 0\n";
+                    $sql .= " )\n";
+                    $sql .= " AND dtb_membership_billing.membership_billing_id = " . $BillingId . "\n";
+                    $sql .= " AND (dtb_customer.customer_group IS NULL OR dtb_customer.customer_group = 0)\n";
+                    $sql .= " GROUP BY\n";
+                    $sql .= " dtb_membership_billing.membership_billing_id,\n";
+                    $sql .= " dtb_membership_billing_detail.membership_billing_detail_id,\n";
+                    $sql .= " dtb_customer.customer_id,\n";
+                    $sql .= " dtb_product_class.product_id;";
+                    $result = $this->app['orm.em']->getConnection()->executeQuery($sql);
 
-                                // 配送商品の設定.
-                                $Shipping = new \Eccube\Entity\Shipping();
-                                $Shipping->setDelFlg(0);
-                                $Shipping->setName01($customer->getName01());
-                                $Shipping->setName02($customer->getName02());
-                                $Shipping->setKana01($customer->getKana01());
-                                $Shipping->setKana02($customer->getKana02());
-                                $NewShipmentItem->setShipping($Shipping);
-                                $Shipping->getShipmentItems()->add($NewShipmentItem);
-                                $order->addShipping($Shipping);
-                                $Shipping->setOrder($order);
+                    file_put_contents($logfile_path, date('Y-m-d H:i:s: ') . '非グループ会員受注処理完了:' . $total . "\n", FILE_APPEND);
+                    $sql = "UPDATE dtb_membership_billing_detail SET dtb_membership_billing_detail.status = 3, dtb_membership_billing_detail.update_date = NOW() WHERE dtb_membership_billing_detail.membership_billing = " . $BillingId . " AND dtb_membership_billing_detail.customer IN (\n";
+                    $sql .= " SELECT\n";
+                    $sql .= " dtb_order.customer_id\n";
+                    $sql .= " FROM\n";
+                    $sql .= " dtb_order\n";
+                    $sql .= " WHERE\n";
+                    $sql .= ' dtb_order.note LIKE CONCAT("membership_bulk_", ' . $BillingId . ', "%")' . "\n";
+                    $sql .= " );";
+                    $result = $this->app['orm.em']->getConnection()->executeQuery($sql);
 
-                                // 受注日/発送日/入金日の更新.
-                                $order->setOrderDate(new \DateTime());
+                    file_put_contents($logfile_path, date('Y-m-d H:i:s: ') . 'グループ会員受注処理開始:' . $total . "\n", FILE_APPEND);
+                    $sql = "UPDATE dtb_membership_billing_detail SET dtb_membership_billing_detail.status = 2, dtb_membership_billing_detail.update_date = NOW() WHERE dtb_membership_billing_detail.membership_billing = " . $BillingId . " AND dtb_membership_billing_detail.customer IN (\n";
+                    $sql .= " SELECT\n";
+                    $sql .= " customer_id\n";
+                    $sql .= " FROM(\n";
+                    $sql .= " SELECT\n";
+                    $sql .= " dtb_customer.customer_id\n";
+                    $sql .= " FROM\n";
+                    $sql .= " dtb_membership_billing\n";
+                    $sql .= " INNER JOIN dtb_membership_billing_detail ON dtb_membership_billing_detail.membership_billing = dtb_membership_billing.membership_billing_id\n";
+                    $sql .= " INNER JOIN dtb_customer ON dtb_customer.customer_id = dtb_membership_billing_detail.customer\n";
+                    $sql .= " INNER JOIN dtb_membership_billing_target_year ON dtb_membership_billing_target_year.membership_billing = dtb_membership_billing_detail.membership_billing\n";
+                    $sql .= " INNER JOIN dtb_product_membership ON dtb_product_membership.product_membership_id = dtb_membership_billing_target_year.product_membership\n";
+                    $sql .= " INNER JOIN dtb_product_class ON dtb_product_class.product_id = dtb_product_membership.product_id\n";
+                    $sql .= " WHERE\n";
+                    $sql .= ' CONCAT(LPAD(dtb_customer.customer_id, 11, "0"),  LPAD(dtb_product_membership.product_id, 11, "0")) NOT IN (';
+                    $sql .= " SELECT\n";
+                    $sql .= ' CONCAT(LPAD(dtb_order.customer_id, 11, "0"),  LPAD(dtb_product_membership.product_id, 11, "0"))';
+                    $sql .= " FROM\n";
+                    $sql .= " dtb_order\n";
+                    $sql .= " LEFT JOIN dtb_order_detail ON dtb_order_detail.order_id = dtb_order.order_id\n";
+                    $sql .= " INNER JOIN dtb_product_membership ON dtb_product_membership.product_id = dtb_order_detail.product_id\n";
+                    $sql .= " WHERE\n";
+                    $sql .= " dtb_order.del_flg = 0\n";
+                    $sql .= " )\n";
+                    $sql .= " AND dtb_membership_billing.membership_billing_id = " . $BillingId;
+                    $sql .= " AND dtb_customer.customer_group IS NOT NULL \n";
+                    $sql .= " AND dtb_customer.customer_group <> 0\n";
+                    $sql .= " GROUP BY\n";
+                    $sql .= " dtb_customer.customer_id\n";
+                    $sql .= ") AS TEMP\n";
+                    $sql .= ");\n";
+                    $result = $this->app['orm.em']->getConnection()->executeQuery($sql);
 
-                                $this->app['orm.em']->persist($order);
-                            } catch (\Exception $e) {
-                                $success = false;
-                                $info = $e->getMessage();
-                                $order = null;
-                            } finally {
-                                // 詳細処理状態更新
-                                if ($success) {
-                                    $membershipBillingDetail->setStatus($membershipBillingSuccess);
-                                } else {
-                                    $membershipBillingDetail->setStatus($membershipBillingFail);
-                                    $membershipBillingDetail->setInfo($info);
-                                }
-                                if (!is_null($order)) {
-                                    $membershipBillingDetail->setOrder($order);
-                                }
-                                $this->app['orm.em']->persist($membershipBillingDetail);
-                                $this->app['orm.em']->flush();
-                            }
-                        }
+                    file_put_contents($logfile_path, date('Y-m-d H:i:s: ') . 'グループ会員グループ受注登録:' . $total . "\n", FILE_APPEND);
+                    $sql = "INSERT INTO `dtb_group_order` (`customer_group_id`, `name`, `kana`, `send_to_pref`, `send_to_zip01`, `send_to_zip02`, `send_to_zipcode`, `send_to_addr01`, `send_to_addr02`, `send_to_email`, `send_to_tel01`, `send_to_tel02`, `send_to_tel03`, `send_to_fax01`, `send_to_fax02`, `send_to_fax03`, `bill_to`, `bill_to_pref`, `bill_to_zip01`, `bill_to_zip02`, `bill_to_zipcode`, `bill_to_addr01`, `bill_to_addr02`, `bill_to_email`, `bill_to_tel01`, `bill_to_tel02`, `bill_to_tel03`, `bill_to_fax01`, `bill_to_fax02`, `bill_to_fax03`, `note`, `del_flg`, `create_date`, `update_date`, `order_date`)\n";
+                    $sql .= " SELECT\n";
+                    $sql .= " dtb_customer_group.customer_group_id AS customer_group_id,\n";
+                    $sql .= " dtb_customer_group.name AS name, \n";
+                    $sql .= " dtb_customer_group.kana AS kana, \n";
+                    $sql .= " dtb_customer_group.send_to_pref AS send_to_pref, \n";
+                    $sql .= " dtb_customer_group.send_to_zip01 AS send_to_zip01, \n";
+                    $sql .= " dtb_customer_group.send_to_zip02 AS send_to_zip02, \n";
+                    $sql .= " dtb_customer_group.send_to_zipcode AS send_to_zipcode, \n";
+                    $sql .= " dtb_customer_group.send_to_addr01 AS send_to_addr01, \n";
+                    $sql .= " dtb_customer_group.send_to_addr02 AS send_to_addr02, \n";
+                    $sql .= " dtb_customer_group.send_to_email AS send_to_email, \n";
+                    $sql .= " dtb_customer_group.send_to_tel01 AS send_to_tel01, \n";
+                    $sql .= " dtb_customer_group.send_to_tel02 AS send_to_tel02, \n";
+                    $sql .= " dtb_customer_group.send_to_tel03 AS send_to_tel03, \n";
+                    $sql .= " dtb_customer_group.send_to_fax01 AS send_to_fax01, \n";
+                    $sql .= " dtb_customer_group.send_to_fax02 AS send_to_fax02, \n";
+                    $sql .= " dtb_customer_group.send_to_fax03 AS send_to_fax03, \n";
+                    $sql .= " dtb_customer_group.bill_to AS bill_to, \n";
+                    $sql .= " dtb_customer_group.bill_to_pref AS bill_to_pref, \n";
+                    $sql .= " dtb_customer_group.bill_to_zip01 AS bill_to_zip01, \n";
+                    $sql .= " dtb_customer_group.bill_to_zip02 AS bill_to_zip02, \n";
+                    $sql .= " dtb_customer_group.bill_to_zipcode AS bill_to_zipcode, \n";
+                    $sql .= " dtb_customer_group.bill_to_addr01 AS bill_to_addr01, \n";
+                    $sql .= " dtb_customer_group.bill_to_addr02 AS bill_to_addr02, \n";
+                    $sql .= " dtb_customer_group.bill_to_email AS bill_to_email, \n";
+                    $sql .= " dtb_customer_group.bill_to_tel01 AS bill_to_tel01, \n";
+                    $sql .= " dtb_customer_group.bill_to_tel02 AS bill_to_tel02, \n";
+                    $sql .= " dtb_customer_group.bill_to_tel03 AS bill_to_tel03, \n";
+                    $sql .= " dtb_customer_group.bill_to_fax01 AS bill_to_fax01, \n";
+                    $sql .= " dtb_customer_group.bill_to_fax02 AS bill_to_fax02, \n";
+                    $sql .= " dtb_customer_group.bill_to_fax03 AS bill_to_fax03, \n";
+                    $sql .= ' CONCAT("membership_bulk_group_", ' . $BillingId . ', "_", dtb_customer_group.customer_group_id),' . "\n";
+                    $sql .= " 0,\n";
+                    $sql .= " NOW(),\n";
+                    $sql .= " NOW(),\n";
+                    $sql .= " NOW()\n";
+                    $sql .= " FROM\n";
+                    $sql .= " dtb_membership_billing\n";
+                    $sql .= " INNER JOIN dtb_membership_billing_detail ON dtb_membership_billing_detail.membership_billing = dtb_membership_billing.membership_billing_id\n";
+                    $sql .= " INNER JOIN dtb_customer ON dtb_customer.customer_id = dtb_membership_billing_detail.customer\n";
+                    $sql .= " INNER JOIN dtb_customer_group ON dtb_customer_group.customer_group_id = dtb_customer.customer_group\n";
+                    $sql .= " INNER JOIN dtb_membership_billing_target_year ON dtb_membership_billing_target_year.membership_billing = dtb_membership_billing_detail.membership_billing\n";
+                    $sql .= " INNER JOIN dtb_product_membership ON dtb_product_membership.product_membership_id = dtb_membership_billing_target_year.product_membership\n";
+                    $sql .= " WHERE\n";
+                    $sql .= ' CONCAT(LPAD(dtb_customer.customer_id, 11, "0"),  LPAD(dtb_product_membership.product_id, 11, "0")) NOT IN (' . "\n";
+                    $sql .= " SELECT\n";
+                    $sql .= ' CONCAT(LPAD(dtb_order.customer_id, 11, "0"),  LPAD(dtb_product_membership.product_id, 11, "0"))' . "\n";
+                    $sql .= " FROM\n";
+                    $sql .= " dtb_order\n";
+                    $sql .= " LEFT JOIN dtb_order_detail ON dtb_order_detail.order_id = dtb_order.order_id\n";
+                    $sql .= " INNER JOIN dtb_product_membership ON dtb_product_membership.product_id = dtb_order_detail.product_id\n";
+                    $sql .= " WHERE\n";
+                    $sql .= " dtb_order.del_flg = 0\n";
+                    $sql .= " )\n";
+                    $sql .= " AND dtb_membership_billing.membership_billing_id = " . $BillingId . "\n";
+                    $sql .= " AND dtb_customer.customer_group IS NOT NULL \n";
+                    $sql .= " AND dtb_customer.customer_group <> 0\n";
+                    $sql .= " GROUP BY\n";
+                    $sql .= " dtb_customer.customer_group;";
+                    $result = $this->app['orm.em']->getConnection()->executeQuery($sql);
+
+                    file_put_contents($logfile_path, date('Y-m-d H:i:s: ') . 'グループ会員受注登録:' . $total . "\n", FILE_APPEND);
+                    $sql = "INSERT INTO dtb_order (`group_order_id`, `customer_id`, `customer_group_id`, `order_country_id`, `order_pref`, `order_sex`, `order_job`, `payment_id`, `device_type_id`, `pre_order_id`, `message`, `order_name01`, `order_name02`, `order_kana01`, `order_kana02`, `order_company_name`, `order_email`, `order_tel01`, `order_tel02`, `order_tel03`, `order_fax01`, `order_fax02`, `order_fax03`, `order_zip01`, `order_zip02`, `order_zipcode`, `order_addr01`, `order_addr02`, `order_birth`, `subtotal`, `discount`, `delivery_fee_total`, `charge`, `tax`, `total`, `payment_total`, `payment_method`, `note`, `create_date`, `update_date`, `order_date`, `commit_date`, `payment_date`, `del_flg`, `status`)\n";
+                    $sql .= " SELECT\n";
+                    $sql .= " TEMP.group_order_id,\n";
+                    $sql .= " TEMP.customer_id,\n";
+                    $sql .= " TEMP.customer_group,\n";
+                    $sql .= " TEMP.country_id,\n";
+                    $sql .= " TEMP.pref,\n";
+                    $sql .= " TEMP.sex,\n";
+                    $sql .= " TEMP.job,\n";
+                    $sql .= " 3,\n";
+                    $sql .= " 99,\n";
+                    $sql .= " NULL,\n";
+                    $sql .= " NULL,\n";
+                    $sql .= " TEMP.name01,\n";
+                    $sql .= " TEMP.name02,\n";
+                    $sql .= " TEMP.kana01,\n";
+                    $sql .= " TEMP.kana02,\n";
+                    $sql .= " TEMP.company_name,\n";
+                    $sql .= " TEMP.email,\n";
+                    $sql .= " TEMP.tel01,\n";
+                    $sql .= " TEMP.tel02,\n";
+                    $sql .= " TEMP.tel03,\n";
+                    $sql .= " TEMP.fax01,\n";
+                    $sql .= " TEMP.fax02,\n";
+                    $sql .= " TEMP.fax03,\n";
+                    $sql .= " TEMP.zip01,\n";
+                    $sql .= " TEMP.zip02,\n";
+                    $sql .= " TEMP.zipcode,\n";
+                    $sql .= " TEMP.addr01,\n";
+                    $sql .= " TEMP.addr02,\n";
+                    $sql .= " TEMP.birth,\n";
+                    $sql .= " TEMP.total,\n";
+                    $sql .= " 0,\n";
+                    $sql .= " 0,\n";
+                    $sql .= " 0,\n";
+                    $sql .= " 0,\n";
+                    $sql .= " TEMP.total,\n";
+                    $sql .= " TEMP.total,\n";
+                    $sql .= ' "郵便振込",' . "\n";
+                    $sql .= ' CONCAT("membership_bulk_group_", ' . $BillingId . ', "_", TEMP.customer_group, "_", TEMP.customer_id), ' . "\n";
+                    $sql .= " NOW(),\n";
+                    $sql .= " NOW(),\n";
+                    $sql .= " NOW(),\n";
+                    $sql .= " NOW(),\n";
+                    $sql .= " NOW(),\n";
+                    $sql .= " 0,\n";
+                    $sql .= " 5\n";
+                    $sql .= " FROM (\n";
+                    $sql .= " SELECT \n";
+                    $sql .= " INNER_TEMP.group_order_id,\n";
+                    $sql .= " INNER_TEMP.customer_id,\n";
+                    $sql .= " INNER_TEMP.customer_group,\n";
+                    $sql .= " INNER_TEMP.country_id,\n";
+                    $sql .= " INNER_TEMP.pref,\n";
+                    $sql .= " INNER_TEMP.sex,\n";
+                    $sql .= " INNER_TEMP.job,\n";
+                    $sql .= " INNER_TEMP.name01, \n";
+                    $sql .= " INNER_TEMP.name02, \n";
+                    $sql .= " INNER_TEMP.kana01, \n";
+                    $sql .= " INNER_TEMP.kana02, \n";
+                    $sql .= " INNER_TEMP.company_name, \n";
+                    $sql .= " INNER_TEMP.email, \n";
+                    $sql .= " INNER_TEMP.tel01, \n";
+                    $sql .= " INNER_TEMP.tel02, \n";
+                    $sql .= " INNER_TEMP.tel03, \n";
+                    $sql .= " INNER_TEMP.fax01, \n";
+                    $sql .= " INNER_TEMP.fax02, \n";
+                    $sql .= " INNER_TEMP.fax03, \n";
+                    $sql .= " INNER_TEMP.zip01, \n";
+                    $sql .= " INNER_TEMP.zip02, \n";
+                    $sql .= " INNER_TEMP.zipcode, \n";
+                    $sql .= " INNER_TEMP.addr01, \n";
+                    $sql .= " INNER_TEMP.addr02, \n";
+                    $sql .= " INNER_TEMP.birth,\n";
+                    $sql .= " count(INNER_TEMP.product_id) AS quantity,\n";
+                    $sql .= " SUM(INNER_TEMP.price) AS total\n";
+                    $sql .= " FROM (\n";
+                    $sql .= " SELECT\n";
+                    $sql .= " dtb_membership_billing.membership_billing_id AS membership_billing_id,\n";
+                    $sql .= " dtb_membership_billing_detail.membership_billing_detail_id AS membership_billing_detail_id,\n";
+                    $sql .= " dtb_group_order.group_order_id AS group_order_id,\n";
+                    $sql .= " dtb_customer.customer_id AS customer_id,\n";
+                    $sql .= " dtb_customer.customer_group AS customer_group,\n";
+                    $sql .= " dtb_customer.country_id AS country_id,\n";
+                    $sql .= " dtb_customer.pref AS pref,\n";
+                    $sql .= " dtb_customer.sex AS sex,\n";
+                    $sql .= " dtb_customer.job AS job,\n";
+                    $sql .= " dtb_customer.name01 AS name01,\n";
+                    $sql .= " dtb_customer.name02 AS name02,\n";
+                    $sql .= " dtb_customer.kana01 AS kana01,\n";
+                    $sql .= " dtb_customer.kana02 AS kana02,\n";
+                    $sql .= " dtb_customer.company_name AS company_name,\n";
+                    $sql .= " dtb_customer.email AS email,\n";
+                    $sql .= " dtb_customer.tel01 AS tel01,\n";
+                    $sql .= " dtb_customer.tel02 AS tel02,\n";
+                    $sql .= " dtb_customer.tel03 AS tel03,\n";
+                    $sql .= " dtb_customer.fax01 AS fax01,\n";
+                    $sql .= " dtb_customer.fax02 AS fax02,\n";
+                    $sql .= " dtb_customer.fax03 AS fax03,\n";
+                    $sql .= " dtb_customer.zip01 AS zip01,\n";
+                    $sql .= " dtb_customer.zip02 AS zip02,\n";
+                    $sql .= " dtb_customer.zipcode AS zipcode,\n";
+                    $sql .= " dtb_customer.addr01 AS addr01,\n";
+                    $sql .= " dtb_customer.addr02 AS addr02,\n";
+                    $sql .= " dtb_customer.birth AS birth,\n";
+                    $sql .= " dtb_product_class.product_id AS product_id,\n";
+                    $sql .= " dtb_product_class.price02 AS price\n";
+                    $sql .= " FROM\n";
+                    $sql .= " dtb_membership_billing\n";
+                    $sql .= " INNER JOIN dtb_membership_billing_detail ON dtb_membership_billing_detail.membership_billing = dtb_membership_billing.membership_billing_id\n";
+                    $sql .= " INNER JOIN dtb_customer ON dtb_customer.customer_id = dtb_membership_billing_detail.customer\n";
+                    $sql .= " INNER JOIN dtb_membership_billing_target_year ON dtb_membership_billing_target_year.membership_billing = dtb_membership_billing_detail.membership_billing\n";
+                    $sql .= " INNER JOIN dtb_product_membership ON dtb_product_membership.product_membership_id = dtb_membership_billing_target_year.product_membership\n";
+                    $sql .= " INNER JOIN dtb_product_class ON dtb_product_class.product_id = dtb_product_membership.product_id\n";
+                    $sql .= ' INNER JOIN dtb_group_order ON dtb_group_order.note = CONCAT("membership_bulk_group_", ' . $BillingId . ', "_", dtb_customer.customer_group)' . "\n";
+                    $sql .= " WHERE\n";
+                    $sql .= ' CONCAT(LPAD(dtb_customer.customer_id, 11, "0"),  LPAD(dtb_product_membership.product_id, 11, "0")) NOT IN (' . "\n";
+                    $sql .= " SELECT\n";
+                    $sql .= ' CONCAT(LPAD(dtb_order.customer_id, 11, "0"),  LPAD(dtb_product_membership.product_id, 11, "0"))' . "\n";
+                    $sql .= " FROM\n";
+                    $sql .= " dtb_order\n";
+                    $sql .= " LEFT JOIN dtb_order_detail ON dtb_order_detail.order_id = dtb_order.order_id\n";
+                    $sql .= " INNER JOIN dtb_product_membership ON dtb_product_membership.product_id = dtb_order_detail.product_id\n";
+                    $sql .= " WHERE\n";
+                    $sql .= " dtb_order.del_flg = 0\n";
+                    $sql .= " )\n";
+                    $sql .= " AND dtb_membership_billing.membership_billing_id = " . $BillingId . "\n";
+                    $sql .= " AND dtb_customer.customer_group IS NOT NULL \n";
+                    $sql .= " AND dtb_customer.customer_group <> 0\n";
+                    $sql .= " GROUP BY\n";
+                    $sql .= " dtb_membership_billing.membership_billing_id,\n";
+                    $sql .= " dtb_membership_billing_detail.membership_billing_detail_id,\n";
+                    $sql .= " dtb_customer.customer_id,\n";
+                    $sql .= " dtb_product_class.product_id\n";
+                    $sql .= " ) AS INNER_TEMP\n";
+                    $sql .= " GROUP BY INNER_TEMP.customer_id\n";
+                    $sql .= " ORDER BY INNER_TEMP.customer_id\n";
+                    $sql .= " ) AS TEMP;";
+                    $result = $this->app['orm.em']->getConnection()->executeQuery($sql);
+
+                    file_put_contents($logfile_path, date('Y-m-d H:i:s: ') . '非グループ会員受注詳細登録:' . $total . "\n", FILE_APPEND);
+                    $sql = "INSERT INTO `dtb_order_detail` (`order_id`, `product_id`, `product_class_id`, `product_name`, `product_code`, `class_name1`, `class_name2`, `class_category_name1`, `class_category_name2`, `price`, `quantity`, `tax_rate`, `tax_rule`, `kifu_no_pub`)\n";
+                    $sql .= " SELECT\n";
+                    $sql .= " dtb_order.order_id AS order_id,\n";
+                    $sql .= " dtb_product.product_id AS product_id,\n";
+                    $sql .= " dtb_product_class.product_class_id AS product_class_id,\n";
+                    $sql .= " dtb_product.name AS product_name,\n";
+                    $sql .= " dtb_product_class.product_code AS product_code,\n";
+                    $sql .= " NULL,\n";
+                    $sql .= " NULL,\n";
+                    $sql .= " NULL,\n";
+                    $sql .= " NULL,\n";
+                    $sql .= " dtb_product_class.price02 AS price,\n";
+                    $sql .= " 1,\n";
+                    $sql .= " 0,\n";
+                    $sql .= " 0,\n";
+                    $sql .= " 0\n";
+                    $sql .= " FROM\n";
+                    $sql .= " dtb_membership_billing\n";
+                    $sql .= " INNER JOIN dtb_membership_billing_detail ON dtb_membership_billing_detail.membership_billing = dtb_membership_billing.membership_billing_id\n";
+                    $sql .= " INNER JOIN dtb_customer ON dtb_customer.customer_id = dtb_membership_billing_detail.customer\n";
+                    $sql .= " INNER JOIN dtb_membership_billing_target_year ON dtb_membership_billing_target_year.membership_billing = dtb_membership_billing_detail.membership_billing\n";
+                    $sql .= " INNER JOIN dtb_product_membership ON dtb_product_membership.product_membership_id = dtb_membership_billing_target_year.product_membership\n";
+                    $sql .= " INNER JOIN dtb_product ON dtb_product.product_id = dtb_product_membership.product_id\n";
+                    $sql .= " INNER JOIN dtb_product_class ON dtb_product_class.product_id = dtb_product_membership.product_id\n";
+                    $sql .= ' INNER JOIN dtb_order ON dtb_order.note = CONCAT("membership_bulk_group_", ' . $BillingId . ', "_", dtb_customer.customer_group, "_", dtb_customer.customer_id)' . "\n";
+                    $sql .= " WHERE\n";
+                    $sql .= ' CONCAT(LPAD(dtb_customer.customer_id, 11, "0"),  LPAD(dtb_product_membership.product_id, 11, "0")) NOT IN (' . "\n";
+                    $sql .= " SELECT\n";
+                    $sql .= ' CONCAT(LPAD(dtb_order.customer_id, 11, "0"),  LPAD(dtb_product_membership.product_id, 11, "0"))' . "\n";
+                    $sql .= " FROM\n";
+                    $sql .= " dtb_order\n";
+                    $sql .= " LEFT JOIN dtb_order_detail ON dtb_order_detail.order_id = dtb_order.order_id\n";
+                    $sql .= " INNER JOIN dtb_product_membership ON dtb_product_membership.product_id = dtb_order_detail.product_id\n";
+                    $sql .= " WHERE\n";
+                    $sql .= " dtb_order.del_flg = 0\n";
+                    $sql .= " )\n";
+                    $sql .= " AND dtb_membership_billing.membership_billing_id = " . $BillingId . "\n";
+                    $sql .= " AND (dtb_customer.customer_group IS NULL OR dtb_customer.customer_group = 0)\n";
+                    $sql .= " GROUP BY\n";
+                    $sql .= " dtb_membership_billing.membership_billing_id,\n";
+                    $sql .= " dtb_membership_billing_detail.membership_billing_detail_id,\n";
+                    $sql .= " dtb_customer.customer_id,\n";
+                    $sql .= " dtb_product_class.product_id;";
+                    $result = $this->app['orm.em']->getConnection()->executeQuery($sql);
+
+                    file_put_contents($logfile_path, date('Y-m-d H:i:s: ') . 'グループ会員受注処理完了:' . $total . "\n", FILE_APPEND);
+                    $sql = "UPDATE dtb_membership_billing_detail SET dtb_membership_billing_detail.status = 3, dtb_membership_billing_detail.update_date = NOW() WHERE dtb_membership_billing_detail.membership_billing = " . $BillingId . " AND dtb_membership_billing_detail.customer IN (\n";
+                    $sql .= " SELECT\n";
+                    $sql .= " dtb_order.customer_id\n";
+                    $sql .= " FROM\n";
+                    $sql .= " dtb_order\n";
+                    $sql .= " WHERE\n";
+                    $sql .= ' dtb_order.note LIKE CONCAT("membership_bulk_group_", ' . $BillingId . ', "%")' . "\n";
+                    $sql .= " );";
+                    $result = $this->app['orm.em']->getConnection()->executeQuery($sql);
+
+                    $sql = "SELECT COUNT(*) FROM dtb_membership_billing_detail WHERE dtb_membership_billing_detail.membership_billing = " . $BillingId . " AND dtb_membership_billing_detail.status <> 3;";
+                    $result = $this->app['orm.em']->getConnection()->fetchColumn($sql);
+                    if (0 < $result) {
+                        file_put_contents($logfile_path, date('Y-m-d H:i:s: ') . '非完了年会費受注予定異常終了更新:' . $result . "\n", FILE_APPEND);
+                        $sql = "UPDATE dtb_membership_billing_detail SET dtb_membership_billing_detail.status = 4, dtb_membership_billing_detail.update_date = NOW() WHERE dtb_membership_billing_detail.membership_billing = " . $BillingId . " AND dtb_membership_billing_detail.status <> 3;";
+                        $result = $this->app['orm.em']->getConnection()->executeQuery($sql);
                     }
+
+                    $this->app['orm.em']->getConnection()->commit();
                 } catch (\Exception $e) {
                     echo "予期せぬエラー:" . $e->getMessage() . "\n";
+                    $this->app['orm.em']->getConnection()->rollBack();
                 } finally {
                     // 処理状態更新
                     $membershipBilling->setStatus($this->app['eccube.repository.master.membership_billing_status']->find(3));
                     $this->app['orm.em']->persist($membershipBilling);
                     $this->app['orm.em']->flush();
                 }
-                file_put_contents($logfile_path, date('Y-m-d H:i:s: ') . '受注処理登録完了:' . count($taretCustomers). "\n", FILE_APPEND);
+                file_put_contents($logfile_path, date('Y-m-d H:i:s: ') . "受注処理登録完了\n", FILE_APPEND);
             }
         }
         file_put_contents($logfile_path, date('Y-m-d H:i:s: ') . '年会費受注登録バッチ終了 BillingId:' . $BillingId . "\n", FILE_APPEND);

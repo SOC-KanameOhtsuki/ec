@@ -830,7 +830,7 @@ class EditController extends AbstractController
                 }
                 $cmd = $domainSvPath . '/app/console membershipbilling:billing ' . $membershipBilling->getId() . ' > /dev/null &';
 
-//                    exec($cmd);
+                exec($cmd);
                 $app->addSuccess('年会費登録の実行を開始しました', 'admin');
                 return $app->redirect($app->url('admin_membership_order_page', array('page_no' => 1, 'resume' => 1)));
             }
