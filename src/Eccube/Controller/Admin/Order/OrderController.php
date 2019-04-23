@@ -510,19 +510,94 @@ class OrderController extends AbstractController
         $em->getConfiguration()->setSQLLogger(null);
 
         $response = new StreamedResponse();
-        $response->setCallback(function () use ($app, $request, $searchData) {
+        $response->setCallback(function () use ($app, $request, $id) {
 
             // 受注情報取得
-            $orders = $app['eccube.repository.order']->getQueryBuilderBySearchDataForAdmin($searchData)
-                    ->getQuery()
-                    ->getResult();
+            $orders = $app['eccube.repository.order']->getBulkNonGroupOrder($id);
+            $groupOrders = $app['eccube.repository.group_order']->getBulkGroupOrder($id);
+
+            foreach($groupOrders as $groupOrder) {
+                $orderDetails = array();
+                foreach($groupOrder->getOrder() as $eachOrder) {
+                    foreach ($eachOrder->getOrderDetails() as $eachDetail) {
+                        if (isset($orderDetails[$eachDetail->getProduct()->getId()])) {
+                            $orderDetails[$eachDetail->getProduct()->getId()]->setQuantity(
+                                    $orderDetails[$eachDetail->getProduct()->getId()]->getQuantity() + $eachDetail->getQuantity());
+                        } else {
+                            $orderDetails[$eachDetail->getProduct()->getId()] = new \Eccube\Entity\OrderDetail();
+                            $orderDetails[$eachDetail->getProduct()->getId()]->setPriceIncTax($eachDetail->getPriceIncTax())
+                                                                            ->setProductName($eachDetail->getProductName())
+                                                                            ->setProductCode($eachDetail->getProductCode())
+                                                                            ->setClassCategoryName1($eachDetail->getClassCategoryName1())
+                                                                            ->setClassCategoryName2($eachDetail->getClassCategoryName2())
+                                                                            ->setPrice($eachDetail->getPrice())
+                                                                            ->setQuantity($eachDetail->getQuantity())
+                                                                            ->setTaxRate($eachDetail->getTaxRate())
+                                                                            ->setTaxRule($eachDetail->getTaxRule())
+                                                                            ->setProduct($eachDetail->getProduct())
+                                                                            ->setProductClass($eachDetail->getProductClass())
+                                                                            ->setClassName1($eachDetail->getClassName1())
+                                                                            ->setClassName2($eachDetail->getClassName2())
+                                                                            ->setKifuNoPub($eachDetail->getKifuNoPub());
+                        }
+                    }
+                }
+                log_info("createOrder new:");
+                $createOrder = new \Eccube\Entity\Order();
+                try {
+                log_info("createOrder set:");
+                $createOrder->setId(sprintf("999%011d", $groupOrder->getId()))
+                            ->setMessage("")
+                            ->setName01($groupOrder->getBillTo())
+                            ->setName02("")
+                            ->setKana01("")
+                            ->setKana02("")
+                            ->setCompanyName($groupOrder->getBillTo())
+                            ->setEmail($groupOrder->getBillToEmail())
+                            ->setTel01($groupOrder->getBillToTel01())
+                            ->setTel02($groupOrder->getBillToTel02())
+                            ->setTel03($groupOrder->getBillToTel03())
+                            ->setFax01($groupOrder->getBillToFax01())
+                            ->setFax02($groupOrder->getBillToFax02())
+                            ->setFax03($groupOrder->getBillToFax03())
+                            ->setZip01($groupOrder->getBillToZip01())
+                            ->setZip02($groupOrder->getBillToZip02())
+                            ->setZipcode($groupOrder->getBillToZipcode())
+                            ->setAddr01($groupOrder->getBillToAddr01())
+                            ->setAddr02($groupOrder->getBillToAddr02())
+                            ->setBirth(null)
+                            ->setDiscount(0)
+                            ->setDeliveryFeeTotal(0)
+                            ->setCharge(0)
+                            ->setTax(0)
+                            ->setPaymentMethod("郵便振込")
+                            ->setNote($groupOrder->getNote())
+                            ->setCreateDate($groupOrder->getCreateDate())
+                            ->setUpdateDate($groupOrder->getUpdateDate())
+                            ->setOrderDate($groupOrder->getCreateDate());
+                } catch (\Exception $ex) {
+                    log_info("Exception :" . $ex);
+                }
+                $total = 0;
+                foreach($orderDetails as $createOrderDetail) {
+                    $createOrderDetail->setOrder($createOrder);
+                    $createOrder->addOrderDetail($createOrderDetail);
+                    $total += ($createOrderDetail->getPrice() * $createOrderDetail->getQuantity());
+                }
+                log_info("total:" . $total);
+                $createOrder->setSubtotal($total)
+                            ->setTotal($total)
+                            ->setPaymentTotal($total);
+                $orders[] = $createOrder;
+            }
+            log_info("orders:" . count($orders));
 
             // サービスの取得
             /* @var PaymentPdfService $service */
             $service = $app['eccube.service.csv.paying_slip.export'];
 
             // 受注情報からCSVを作成する
-            $service->makeBulkCsv($orders);
+            $service->makeCsv($orders);
         });
 
         $now = new \DateTime();
