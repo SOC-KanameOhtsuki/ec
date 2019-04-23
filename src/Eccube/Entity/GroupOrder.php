@@ -1021,4 +1021,32 @@ class GroupOrder extends \Eccube\Entity\AbstractEntity
     {
         return $this->del_flg;
     }
+    /**
+     * @var string
+     */
+    private $note;
+
+
+    /**
+     * Set note
+     *
+     * @param string $note
+     * @return GroupOrder
+     */
+    public function setNote($note)
+    {
+        $this->note = $note;
+
+        return $this;
+    }
+
+    /**
+     * Get note
+     *
+     * @return string 
+     */
+    public function getNote()
+    {
+        return $this->note;
+    }
 }
