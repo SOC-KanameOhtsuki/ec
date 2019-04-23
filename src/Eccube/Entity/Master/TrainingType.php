@@ -146,4 +146,60 @@ class TrainingType extends \Eccube\Entity\AbstractEntity
     {
         return $this->ProductTraining;
     }
+    /**
+     * @var integer
+     */
+    private $qualification;
+
+    /**
+     * @var \Eccube\Entity\Master\QualificationType
+     */
+    private $QualificationType;
+
+
+    /**
+     * Set qualification
+     *
+     * @param integer $qualification
+     * @return TrainingType
+     */
+    public function setQualification($qualification)
+    {
+        $this->qualification = $qualification;
+
+        return $this;
+    }
+
+    /**
+     * Get qualification
+     *
+     * @return integer 
+     */
+    public function getQualification()
+    {
+        return $this->qualification;
+    }
+
+    /**
+     * Set QualificationType
+     *
+     * @param \Eccube\Entity\Master\QualificationType $qualificationType
+     * @return TrainingType
+     */
+    public function setQualificationType(\Eccube\Entity\Master\QualificationType $qualificationType = null)
+    {
+        $this->QualificationType = $qualificationType;
+
+        return $this;
+    }
+
+    /**
+     * Get QualificationType
+     *
+     * @return \Eccube\Entity\Master\QualificationType 
+     */
+    public function getQualificationType()
+    {
+        return $this->QualificationType;
+    }
 }
