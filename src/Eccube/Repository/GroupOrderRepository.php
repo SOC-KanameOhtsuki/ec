@@ -361,4 +361,18 @@ class GroupOrderRepository extends EntityRepository
 
         return $qb;
     }
+
+    public function getBulkGroupOrder($BulkOrderId)
+    {
+        $serach_note = "membership_bulk_group_" . $BulkOrderId . "_%";
+        $orders = $this->createQueryBuilder('go')
+                ->where('go.del_flg = 0')
+                ->andWhere('go.note LIKE :serach_note')
+                ->setParameter('serach_note', $serach_note)
+                ->orderBy('go.create_date', 'desc')
+                ->getQuery()
+                ->getResult();
+
+        return $orders;
+    }
 }

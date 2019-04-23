@@ -804,4 +804,18 @@ class OrderRepository extends EntityRepository
 
         return $orders;
     }
+
+    public function getBulkNonGroupOrder($BulkOrderId)
+    {
+        $serach_note = "membership_bulk_" . $BulkOrderId . "_%";
+        $orders = $this->createQueryBuilder('o')
+                ->where('o.del_flg = 0')
+                ->andWhere('o.note LIKE :serach_note')
+                ->setParameter('serach_note', $serach_note)
+                ->orderBy('o.create_date', 'desc')
+                ->getQuery()
+                ->getResult();
+
+        return $orders;
+    }
 }

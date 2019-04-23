@@ -416,6 +416,18 @@ class Order extends \Eccube\Entity\AbstractEntity
     }
 
     /**
+     * Set id
+     *
+     * @param  integer $orderId
+     * @return Order
+     */
+    public function setId($orderId)
+    {
+        $this->id = $orderId;
+        return $this;
+    }
+
+    /**
      * Get id
      *
      * @return integer
