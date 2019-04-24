@@ -174,6 +174,27 @@ class CustomerEditController extends AbstractController
                     );
                 }
                 $CustomerBasicInfo = $form['basic_info']->getData();
+                if (isset($request->get('admin_customer')['basic_info']['bulk_setthing'])) {
+                    if (in_array(1, $request->get('admin_customer')['basic_info']['bulk_setthing'])) {
+                        $CustomerBasicInfo->setBulkSendGroup(1);
+                    } else {
+                        $CustomerBasicInfo->setBulkSendGroup(0);
+                    }
+                    if (in_array(2, $request->get('admin_customer')['basic_info']['bulk_setthing'])) {
+                        $CustomerBasicInfo->setBulkBillingGroup(1);
+                    } else {
+                        $CustomerBasicInfo->setBulkBillingGroup(0);
+                    }
+                    if (in_array(3, $request->get('admin_customer')['basic_info']['bulk_setthing'])) {
+                        $CustomerBasicInfo->setEnvelopeUnneeded(1);
+                    } else {
+                        $CustomerBasicInfo->setEnvelopeUnneeded(0);
+                    }
+                } else {
+                    $CustomerBasicInfo->setBulkSendGroup(0);
+                    $CustomerBasicInfo->setBulkBillingGroup(0);
+                    $CustomerBasicInfo->setEnvelopeUnneeded(0);
+                }
                 if (strlen($CustomerBasicInfo->getCustomerPinCode()) < 1) {
                     $CustomerBasicInfo->setCustomerPinCode(rand(10000000, 99999999));
                 }
@@ -347,6 +368,23 @@ class CustomerEditController extends AbstractController
                 )));
             } else {
                 $app->addError('admin.customer.save.failed', 'admin');
+                $inputBulkSendGroup = 0;
+                $inputBulkBillingGroup = 0;
+                $inputEnvelopeUnneeded = 0;
+                if (isset($request->get('admin_customer')['basic_info']['bulk_setthing'])) {
+                    if (in_array(1, $request->get('admin_customer')['basic_info']['bulk_setthing'])) {
+                        $inputBulkSendGroup = 1;
+                    }
+                    if (in_array(2, $request->get('admin_customer')['basic_info']['bulk_setthing'])) {
+                        $inputBulkBillingGroup = 1;
+                    }
+                    if (in_array(3, $request->get('admin_customer')['basic_info']['bulk_setthing'])) {
+                        $inputEnvelopeUnneeded = 1;
+                    }
+                }
+                $Customer->getCustomerBasicInfo()->setBulkSendGroup($inputBulkSendGroup);
+                $Customer->getCustomerBasicInfo()->setBulkBillingGroup($inputBulkBillingGroup);
+                $Customer->getCustomerBasicInfo()->setEnvelopeUnneeded($inputEnvelopeUnneeded);
             }
         }
 

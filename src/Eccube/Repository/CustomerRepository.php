@@ -429,6 +429,19 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
                 ->setParameter('statuses', $searchData['customer_basicinfo_status']);
         }
 
+        // Bulk Setthing
+        if (!empty($searchData['customer_basicinfo_bulk_setthing']) && count($searchData['customer_basicinfo_bulk_setthing']) > 0) {
+            if (in_array(1, $searchData['customer_basicinfo_bulk_setthing'])) {
+                $qb->andWhere('bc.bulk_send_group = 1');
+            }
+            if (in_array(2, $searchData['customer_basicinfo_bulk_setthing'])) {
+                $qb->andWhere('bc.bulk_billing_group = 1');
+            }
+            if (in_array(3, $searchData['customer_basicinfo_bulk_setthing'])) {
+                $qb->andWhere('bc.envelope_unneeded = 1');
+            }
+        }
+
         // Bureau
         if (!empty($searchData['customer_basicinfo_bureau']) && $searchData['customer_basicinfo_bureau']) {
             $qb
@@ -795,6 +808,19 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
                 $subQuery
                     ->andWhere($subQuery->expr()->in('bc' . $subQueryIndex . '.Status', ':statuses' . $subQueryIndex));
                 $params['statuses' . $subQueryIndex] = $searchData['searchData']['customer_basicinfo_status'];
+            }
+
+            // Bulk Setthing
+            if (!empty($searchData['customer_basicinfo_bulk_setthing']) && count($searchData['customer_basicinfo_bulk_setthing']) > 0) {
+                if (in_array(1, $searchData['customer_basicinfo_bulk_setthing'])) {
+                    $subQuery->andWhere('bc.bulk_send_group = 1');
+                }
+                if (in_array(2, $searchData['customer_basicinfo_bulk_setthing'])) {
+                    $subQuery->andWhere('bc.bulk_billing_group = 1');
+                }
+                if (in_array(3, $searchData['customer_basicinfo_bulk_setthing'])) {
+                    $subQuery->andWhere('bc.envelope_unneeded = 1');
+                }
             }
 
             // Bureau

@@ -151,7 +151,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
         $('#plg_fomdb_list').html(data);
       },
       error: function(e) {
-        alert('通信エラー');
+        setTimeout("plg_formDb_list()", 1000);
       }
     });
   };
@@ -293,6 +293,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
                 <div id="search_box_main__customer_status" class="form-group">
                   <label>EC会員ステータス</label>
                   {{ form_widget(searchForm.customer_status) }}
+                </div>
+                <div id="search_box_main__basicinfo_bulk_setthing" class="form-group">
+                  <label>おまとめ</label>
+                  {{ form_widget(searchForm.customer_basicinfo_bulk_setthing) }}
                 </div>
               </div>
               <div class="col-xs-6 col-md-4">

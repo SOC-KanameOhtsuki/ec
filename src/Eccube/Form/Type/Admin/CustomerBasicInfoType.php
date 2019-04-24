@@ -100,6 +100,15 @@ class CustomerBasicInfoType extends AbstractType
                 ),
                 'mapped' => true,
             ))
+            ->add('bulk_setthing', 'choice', array(
+                'label' => 'おまとめ',
+                'required' => false,
+                'choices' => array(1 => 'おまとめ発送', 2 => 'おまとめ請求', 3 => '封筒無し'),
+                'expanded' => true,
+                'multiple' => true,
+                'mapped' => false,
+                'empty_value' => false,
+            ))
             ->add('nobulletin', 'nobulletin_type', array(
                 'label' => '機関紙お届け',
                 'constraints' => array(

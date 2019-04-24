@@ -528,4 +528,87 @@ class CustomerBasicInfo extends \Eccube\Entity\AbstractEntity
     {
         return $this->AnonymousCompany;
     }
+    /**
+     * @var integer
+     */
+    private $bulk_send_group;
+
+    /**
+     * @var integer
+     */
+    private $bulk_billing_group;
+
+    /**
+     * Set bulk_send_group
+     *
+     * @param integer $bulkSendGroup
+     * @return CustomerBasicInfo
+     */
+    public function setBulkSendGroup($bulkSendGroup)
+    {
+        $this->bulk_send_group = $bulkSendGroup;
+
+        return $this;
+    }
+
+    /**
+     * Get bulk_send_group
+     *
+     * @return integer 
+     */
+    public function getBulkSendGroup()
+    {
+        return $this->bulk_send_group;
+    }
+
+    /**
+     * Set bulk_billing_group
+     *
+     * @param integer $bulkBillingGroup
+     * @return CustomerBasicInfo
+     */
+    public function setBulkBillingGroup($bulkBillingGroup)
+    {
+        $this->bulk_billing_group = $bulkBillingGroup;
+
+        return $this;
+    }
+
+    /**
+     * Get bulk_billing_group
+     *
+     * @return integer 
+     */
+    public function getBulkBillingGroup()
+    {
+        return $this->bulk_billing_group;
+    }
+
+    /**
+     * @var integer
+     */
+    private $envelope_unneeded;
+
+    /**
+     * Set envelope_unneeded
+     *
+     * @param integer $envelopeUnneeded
+     * @return CustomerBasicInfo
+     */
+    public function setEnvelopeUnneeded($envelopeUnneeded)
+    {
+        $this->envelope_unneeded = $envelopeUnneeded;
+
+        return $this;
+    }
+
+    /**
+     * Get envelope_unneeded
+     *
+     * @return integer 
+     */
+    public function getEnvelopeUnneeded()
+    {
+        return $this->envelope_unneeded;
+    }
 }

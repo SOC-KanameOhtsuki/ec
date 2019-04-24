@@ -32,6 +32,15 @@ Eccube\Entity\CustomerBasicInfo:
         qualification:
             type: text
             nullable: true
+        bulk_send_group:
+            type: smallint
+            nullable: false
+        bulk_billing_group:
+            type: smallint
+            nullable: false
+        envelope_unneeded:
+            type: smallint
+            nullable: false
         last_pay_membership_year:
             type: integer
             nullable: true

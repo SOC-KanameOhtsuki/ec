@@ -187,6 +187,17 @@
     function deleteCustomerGroup() {
         $('#customer_group_list').empty();
     }
+    $(document).ready(function(){
+        {% if not Customer.CustomerBasicInfo.bulk_send_group == 0 %}
+        $("#admin_customer_basic_info_bulk_setthing_0").prop("checked",true);
+        {% endif %}
+        {% if not Customer.CustomerBasicInfo.bulk_billing_group == 0 %}
+        $("#admin_customer_basic_info_bulk_setthing_1").prop("checked",true);
+        {% endif %}
+        {% if not Customer.CustomerBasicInfo.envelope_unneeded == 0 %}
+        $("#admin_customer_basic_info_bulk_setthing_2").prop("checked",true);
+        {% endif %}
+    });
 </script>
 {% endblock javascript %}
 
@@ -424,10 +435,10 @@
                 </div><!-- /.box-body -->
             </div><!-- /.box -->
             <div id="detail_box" class="box accordion">
-                <div id="detail_box__header" class="box-header toggle active">
+                <div id="detail_box_basicinfo__header" class="box-header toggle active">
                     <h3 class="box-title">会員基本情報<svg class="cb cb-angle-down icon_down"> <use xlink:href="#cb-angle-down" /></svg></h3>
                 </div><!-- /.box-header -->
-                <div id="detail_box__body" class="box-body accpanel" style="display: block;">
+                <div id="detail_box_basicinfo__body" class="box-body accpanel" style="display: block;">
                     <div class="form-horizontal">
                         {# 会員ID #}
                         <div id="detail_box__customer_number" class="form-group">
@@ -553,12 +564,12 @@
                 </div><!-- /.box-body -->
             </div><!-- /.box -->
             <div id="detail_box" class="box accordion">
-                <div id="detail_box__header" class="box-header toggle active">
+                <div id="detail_box_group__header" class="box-header toggle active">
                     <h3 class="box-title">会員グループ情報<svg class="cb cb-angle-down icon_down"> <use xlink:href="#cb-angle-down" /></svg></h3>
                     <div id="customer_info_list__button_search" class="btn_area">
                     </div>
                 </div><!-- /.box-header -->
-                <div id="detail_box__body" class="box-body accpanel" style="display: block;">
+                <div id="detail_box_group__body" class="box-body accpanel" style="display: block;">
                     <div class="form-horizontal">
                         <ul>
                             <li><a class="btn btn-default" data-toggle="modal" data-target="#searchCustomerGroupModal">会員グループ検索</a></li>
@@ -592,6 +603,18 @@
                                 {% endif %}
                             </tbody>
                         </table>
+                    </div>
+                </div><!-- /.box-body -->
+            </div><!-- /.box -->
+
+            <div id="detail_box" class="box accordion">
+                <div id="detail_box_bulk__header" class="box-header toggle active">
+                    <h3 class="box-title">おまとめ情報<svg class="cb cb-angle-down icon_down"> <use xlink:href="#cb-angle-down" /></svg></h3>
+                </div><!-- /.box-header -->
+                <div id="detail_box_bulk__body" class="box-body accpanel" style="display: block;">
+                    <div class="form-horizontal">
+                        {# おまとめ設定 #}
+                        {{ form_widget(form.basic_info.bulk_setthing) }}
                     </div>
                 </div><!-- /.box-body -->
             </div><!-- /.box -->
