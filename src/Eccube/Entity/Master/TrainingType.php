@@ -202,4 +202,32 @@ class TrainingType extends \Eccube\Entity\AbstractEntity
     {
         return $this->QualificationType;
     }
+    /**
+     * @var integer
+     */
+    private $rank_up;
+
+
+    /**
+     * Set rank_up
+     *
+     * @param integer $rankUp
+     * @return TrainingType
+     */
+    public function setRankUp($rankUp)
+    {
+        $this->rank_up = $rankUp;
+
+        return $this;
+    }
+
+    /**
+     * Get rank_up
+     *
+     * @return integer 
+     */
+    public function getRankUp()
+    {
+        return $this->rank_up;
+    }
 }

@@ -18,10 +18,20 @@ Eccube\Entity\Master\TrainingType:
         qualification:
             type: integer
             nullable: true
+        rank_up:
+            type: smallint
+            nullable: false
+            unsigned: false
         rank:
             type: smallint
             nullable: false
             unsigned: false
+    manyToOne:
+        QualificationType:
+            targetEntity: Eccube\Entity\Master\QualificationType
+            joinColumn:
+                name: qualification_type
+                referencedColumnName: id
     oneToMany:
         ProductTraining:
             targetEntity: Eccube\Entity\ProductTraining

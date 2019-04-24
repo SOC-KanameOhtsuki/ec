@@ -49,7 +49,7 @@ $(function() {
             <!--検索条件設定テーブルここから-->
             <div id="search_wrap" class="search-box">
                 <form name="search_form" id="search_form" method="post" action="{{ url('admin_training_type') }}">
-                	{{ form_widget(searchForm._token) }}
+                    {{ form_widget(searchForm._token) }}
                     <div id="search_box" class="row">
                         <div class="col-md-12 accordion">
                             {{ form_widget(searchForm.training_type_name, { attr: { placeholder: '講習会種別名', class : 'input_search' } } ) }}

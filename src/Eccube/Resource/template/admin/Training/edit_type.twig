@@ -19,19 +19,35 @@ This file is Customized File
 <script src="{{ app.config.admin_urlpath }}/assets/js/vendor/fileupload/jquery.iframe-transport.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
 <script>
+function pulldownCange() {
+    $("#qualification").children().remove();
+    $("#qualification").append('<option value="-1"></option>');
+    var val = $("#admin_training_type_qualification_type").val();
+    if (val == 2) {
+        $("#qualification").prop('disabled', false);
+        {% for key, value in SupporterType %}
+        $("#qualification").append('<option value="{{ key }}">{{ value }}</option>');
+        {% endfor %}
+    } else if (val == 3) {
+        $("#qualification").prop('disabled', false);
+        {% for key, value in InstructorType %}
+        $("#qualification").append('<option value="{{ key }}">{{ value }}</option>');
+        {% endfor %}
+    } else {
+        $("#qualification").val(-1);
+        $("#qualification").prop('disabled', true);
+    }
+}
 $(function() {
     $("#admin_training_type_qualification_type").change(function() {
-        $("#admin_training_type_qualification").val(-1);
-        $("#admin_training_type_qualification").children().remove();
-        var val = $(this).val();
-        if (val == 2) {
-            $("#admin_training_type_qualification").prop('disabled', false);
-        } else if (val == 3) {
-            $("#admin_training_type_qualification").prop('disabled', false);
-        } else {
-            $("#admin_training_type_qualification").prop('disabled', true);
-        }
+        pulldownCange();
     });
+});
+$(document).ready(function(){
+    pulldownCange();
+    {% if not QualificationError %}
+    $("#qualification").val({{ TrainingType.qualification }});
+    {% endif %}
 });
 </script>
 {% endblock javascript %}
@@ -66,8 +82,22 @@ $(function() {
                             <div id="type_info_box__name" class="form-group">
                                 <div class="col-sm-3 col-lg-2">認定資格</div>
                                 <div id="detail_box__name" class="col-sm-6">
-                                    {{ form_widget(form.qualification) }}
-                                    {{ form_errors(form.qualification) }}
+                                    <select id="qualification" name="qualification" class="form-control"></select>
+                                    {% if QualificationError %}
+                                    <span class="help-block">
+                                        <ul class="list-unstyled">
+                                            <p class="errormsg text-danger">{{ QualificationError }}</p>
+                                        </ul>
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {# 正会員昇格 #}
+                            <div id="type_info_box__name" class="form-group">
+                                <div class="col-sm-3 col-lg-2">正会員昇格</div>
+                                <div id="detail_box__name" class="col-sm-6">
+                                    {{ form_widget(form.rank_up) }}
+                                    {{ form_errors(form.rank_up) }}
                                 </div>
                             </div>
                             {# 表示順 #}

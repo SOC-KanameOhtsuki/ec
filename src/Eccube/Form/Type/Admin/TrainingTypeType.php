@@ -46,16 +46,18 @@ class TrainingTypeType extends AbstractType
                     new Assert\NotBlank(),
                 ),
             ))
-            // 認定資格
-            ->add('qualification', 'choice', array(
-                'label' => '認定資格',
+            // 正会員昇格
+            ->add('rank_up', 'choice', array(
+                'label' => '正会員昇格',
                 'required' => true,
-                'multiple' => false,
-                'expanded' => false,
-                'constraints' => array(
-                    new Assert\NotBlank(),
+                'choices' => array(
+                    '1' => 'する',
+                    '0' => 'しない',
                 ),
-                'mapped' => false,
+                'expanded' => true,
+                'multiple' => false,
+                'empty_value' => false,
+                'mapped' => true,
             ))
             // 認定資格種別
             ->add('qualification_type', 'qualification_type', array(
@@ -66,7 +68,6 @@ class TrainingTypeType extends AbstractType
                 'constraints' => array(
                     new Assert\NotBlank(),
                 ),
-                'mapped' => true,
             ))
             ->add('name', 'text', array(
                 'label' => '講習会種別名',

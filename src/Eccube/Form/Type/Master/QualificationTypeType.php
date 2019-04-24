@@ -18,7 +18,7 @@ class QualificationTypeType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        $options['instructor_type_options']['required'] = $options['required'];
+        $options['qualification_type_options']['required'] = $options['required'];
     }
 
     public function configureOptions(OptionsResolver $resolver)

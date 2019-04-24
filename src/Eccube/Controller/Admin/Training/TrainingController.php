@@ -56,7 +56,6 @@ class TrainingController extends AbstractController
                 }
             }
         }
-
         $page_status = null;
 
         if ('POST' === $request->getMethod()) {
@@ -135,6 +134,18 @@ class TrainingController extends AbstractController
             }
         }
 
+        $QualificationError = false;
+        $SupporterType = array();
+        $SupporterTypeMasters = $app['eccube.repository.master.supporter_type']->findAll(array('rank' => 'asc'));
+        foreach($SupporterTypeMasters as $SupporterTypeMaster) {
+            $SupporterType[$SupporterTypeMaster->getId()] = $SupporterTypeMaster->getName();
+        }
+        $InstructorType = array();
+        $InstructorTypeMasters = $app['eccube.repository.master.instructor_type']->findAll(array('rank' => 'asc'));
+        foreach($InstructorTypeMasters as $InstructorTypeMaster) {
+            $InstructorType[$InstructorTypeMaster->getId()] = $InstructorTypeMaster->getName();
+        }
+
         $builder = $app['form.factory']
             ->createBuilder('admin_training_type', $TrainingType);
 
@@ -145,10 +156,24 @@ class TrainingController extends AbstractController
             $request_data['admin_training']['class']['product_type'] = $app['eccube.repository.master.product_type']->find($app['config']['product_type_training']);
             $request->request->add($request_data);
             $form->handleRequest($request);
-            if ($form->isValid()) {
+            if ($request_data['admin_training_type']['qualification_type'] == 2) {
+                if ($request_data['qualification'] == -1) {
+                    $QualificationError = '入力されていません。';
+                } else if(!array_key_exists($request_data['qualification'], $SupporterType)) {
+                    $QualificationError = '有効な選択肢ではありません。';
+                }
+            } if ($request_data['admin_training_type']['qualification_type'] == 3) {
+                if ($request_data['qualification'] == -1) {
+                    $QualificationError = '入力されていません。';
+                } else if(!array_key_exists($request_data['qualification'], $InstructorType)) {
+                    $QualificationError = '有効な選択肢ではありません。';
+                }
+            }
+            if ($form->isValid() && !$QualificationError) {
                 log_info('講習会種別登録開始', array($id));
                 // 講習会種別の登録
                 $TrainingType = $form->getData();
+                $TrainingType->setQualification($request_data['qualification']);
                 $app['orm.em']->persist($TrainingType);
                 $app['orm.em']->flush();
 
@@ -177,6 +202,9 @@ class TrainingController extends AbstractController
 
         return $app->render('Training/edit_type.twig', array(
             'TrainingType' => $TrainingType,
+            'QualificationError' => $QualificationError,
+            'SupporterType' => $SupporterType,
+            'InstructorType' => $InstructorType,
             'form' => $form->createView(),
             'searchForm' => $searchForm->createView(),
             'id' => $id,
@@ -588,7 +616,7 @@ class TrainingController extends AbstractController
             'page_status' => $page_status,
             'page_count' => $page_count,
             'Product' => $Product,
-            'ProductTrainingStart' => explode(' ',$ProductTraining->getTrainingDateStart()),
+            'ProductTrainingStart' => explode(' ',$ProductTraining->getTrainingDateStart()->format('Y/m/d H:i')),
             'ProductTrainingAddr' => $match[1].$match[2],
             'ProductClassStock' => $Product->getStockMax(),
             'ProductId' => $id,
@@ -785,6 +813,12 @@ class TrainingController extends AbstractController
 
         $form = $builder->getForm();
         $form['product_training']->setData($ProductTraining);
+        if (!is_null($ProductTraining->getTrainingDateStart())) {
+            $form['product_training']['training_date_start']->setData($ProductTraining->getTrainingDateStart()->format('Y/m/d H:i'));
+        }
+        if (!is_null($ProductTraining->getTrainingDateEnd())) {
+            $form['product_training']['training_date_end']->setData($ProductTraining->getTrainingDateEnd()->format('Y/m/d H:i'));
+        }
         $ProductClass->setStockUnlimited((boolean)$ProductClass->getStockUnlimited());
         $form['class']->setData($ProductClass);
 
@@ -1844,7 +1878,7 @@ class TrainingController extends AbstractController
                 $CopyProductClasses = $CopyProduct->getProductClasses();
                 foreach ($CopyProductClasses as $Class) {
                     $Stock = $Class->getProductStock();
-                    $CopyStock = clone $Stock;
+                    $CopyStock = new \Eccube\Entity\ProductStock();
                     $CopyStock->setProductClass($Class);
                     $app['orm.em']->persist($CopyStock);
 
@@ -1889,8 +1923,6 @@ class TrainingController extends AbstractController
                     $CopyProductTraining->setPurpose($ProductTraining->getPurpose());
                     $CopyProductTraining->setItem($ProductTraining->getItem());
                     $CopyProductTraining->setPref($ProductTraining->getPref());
-                    $CopyProductTraining->setTrainingDateStart(new \DateTime($ProductTraining->getTrainingDateStart()));
-                    $CopyProductTraining->setTrainingDateEnd(new \DateTime($ProductTraining->getTrainingDateEnd()));
                     $CopyProductTraining->setTrainingType($ProductTraining->getTrainingType());
                     $CopyProductTraining->setCollaborators($ProductTraining->getCollaborators());
                     $CopyProductTraining->setArea($ProductTraining->getArea());
