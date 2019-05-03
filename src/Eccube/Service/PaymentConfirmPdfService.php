@@ -1,11 +1,6 @@
 <?php
 /*
- * This file is part of the Order Pdf plugin
- *
- * Copyright (C) 2016 LOCKON CO.,LTD. All Rights Reserved.
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+ * This file is customized File
  */
 
 namespace Eccube\Service;
@@ -126,9 +121,9 @@ class PaymentConfirmPdfService extends AbstractFPDIService
             $this->lfText(40.4, 81.0, $customerData->getName01() . $customerData->getName02() . '様', 9, 'B');
             if ($product->hasProductTraining()) {
                 // 講習会種別
-                $this->lfText(39.9, 52.3, $product->getProductTraining()->getTrainingType()->getName(), 11, 'B');
+                $this->lfText(35.0, 52.3, $product->getProductTraining()->getTrainingType()->getName(), 11, 'B');
                 // 受講日
-                $this->lfText(40.4, 86.4, date('Y年m月d日(', strtotime($product->getProductTraining()->getTrainingDateStart())) . $this->WeekDay[date('w', strtotime($product->getProductTraining()->getTrainingDateStart()))] . date(') H:i～', strtotime($product->getProductTraining()->getTrainingDateStart())) . date('H:i', strtotime($product->getProductTraining()->getTrainingDateEnd())), 9);
+                $this->lfText(40.4, 86.4, $product->getProductTraining()->getTrainingDateStart()->format('Y年m月d日(') . $this->WeekDay[$product->getProductTraining()->getTrainingDateStart()->format('w')] . $product->getProductTraining()->getTrainingDateStart()->format('H:i～') . $product->getProductTraining()->getTrainingDateEnd()->format('H:i'), 9);
                 // 場所
                 $this->lfText(40.4, 91.7, $product->getProductTraining()->getPlace(), 9, 'B');
                 // 住所
@@ -137,7 +132,7 @@ class PaymentConfirmPdfService extends AbstractFPDIService
                 $this->lfText(40.4, 103.4, $product->getProductTraining()->getItem(), 9, 'B');
             }
             // 備考
-            $this->lfText(40.4, 109.2, $product->getDescriptionDetail(), 9, 'B');
+            $this->lfText(40.4, 109.2, str_replace("　", "", $product->getDescriptionDetail()), 9, 'B');
             // 会社情報電話番号
             $this->lfText(30.8, 170.4, $BaseInfo->getTel01() . '-' . $BaseInfo->getTel02() . '-' . $BaseInfo->getTel03(), 11, 'B');
             // 会社情報Fax

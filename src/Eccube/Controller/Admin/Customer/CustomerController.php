@@ -817,7 +817,7 @@ class CustomerController extends AbstractController
                 if ($orderDetail->getProduct()->getProductClasses()[0]->getProductType()->getId() == 4) {
                     $trainingOrders[] = [
                             $orderDetail->getProduct()->getName(),
-                            $orderDetail->getProduct()->getProductTraining()->getTrainingDateStartDay(),
+                            (is_null($orderDetail->getProduct()->getProductTraining()->getTrainingDateStart())?null:$orderDetail->getProduct()->getProductTraining()->getTrainingDateStart()->format('Y/m/d')),
                             $order->getCreateDate()->format('Y/m/d'),
                             $orderDetail->getProduct()->getId()
                         ];

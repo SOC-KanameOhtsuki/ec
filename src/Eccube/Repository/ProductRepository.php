@@ -120,9 +120,9 @@ class ProductRepository extends EntityRepository
             }
             $now = date('Y-m-d h H:i:s');
             if ($history) {
-                $qb->andWhere('(pt.accept_limit_date IS NULL ) OR (pt.accept_limit_date IS NOT NULL AND pt.accept_limit_date <= :now) AND (pt.training_date_start IS NULL) OR (pt.training_date_start IS NOT NULL AND pt.training_date_start <= :now)');
+                $qb->andWhere('(pt.accept_limit_date IS NULL ) OR (pt.accept_limit_date IS NOT NULL AND pt.accept_limit_date <= :now) AND ((pt.training_date_start IS NULL) OR (pt.training_date_start IS NOT NULL AND pt.training_date_start <= :now))');
             } else {
-                $qb->andWhere('(pt.accept_limit_date IS NOT NULL AND pt.accept_limit_date > :now) OR (pt.training_date_start IS NOT NULL AND pt.training_date_start > :now)');
+                $qb->andWhere('((pt.accept_limit_date IS NOT NULL AND pt.accept_limit_date > :now) OR (pt.training_date_start IS NOT NULL AND pt.training_date_start > :now))');
             }
             $qb->setParameter('now', $now);
             if (!empty($searchData['year']) && $searchData['year']) {

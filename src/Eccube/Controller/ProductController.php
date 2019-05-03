@@ -289,7 +289,7 @@ class ProductController
                 }
                 $forms[$TrainingTypeId]['Product'][$Product->getId()] = $Product;
                 $forms[$TrainingTypeId]['CartFormView'][$Product->getId()] = $addCartForm->createView();
-                $forms[$TrainingTypeId]['Training_Date'][$Product->getId()] = date('Y年m月d日 H時i分', strtotime($Product->getProductTraining()->getTrainingDateStart())) . '～' . date('H時i分', strtotime($Product->getProductTraining()->getTrainingDateEnd()));
+                $forms[$TrainingTypeId]['Training_Date'][$Product->getId()] = $Product->getProductTraining()->getTrainingDateStart()->format('Y年m月d日 H時i分') . '～' . $Product->getProductTraining()->getTrainingDateEnd()->format('H時i分');
                 ++$tainingCnt;
                 ++$productCnt;
             }
@@ -377,7 +377,7 @@ class ProductController
                 }
                 $forms[$TrainingTypeId]['Product'][$Product->getId()] = $Product;
                 $forms[$TrainingTypeId]['CartFormView'][$Product->getId()] = $addCartForm->createView();
-                $forms[$TrainingTypeId]['Training_Date'][$Product->getId()] = date('Y年m月d日 H時i分', strtotime($Product->getProductTraining()->getTrainingDateStart())) . '～' . date('H時i分', strtotime($Product->getProductTraining()->getTrainingDateEnd()));
+                $forms[$TrainingTypeId]['Training_Date'][$Product->getId()] = $Product->getProductTraining()->getTrainingDateStart()->format('Y年m月d日 H時i分') . '～' . $Product->getProductTraining()->getTrainingDateEnd()->format('H時i分');
                 ++$tainingCnt;
                 ++$productCnt;
             }

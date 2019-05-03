@@ -445,7 +445,7 @@ $(function() {
                                                         {% set stock = '無制限' %}
                                                     {% elseif ProductClass.ProductStock %}
                                                         {% set ClassStock = ProductClass.stock %}
-                                                        {% set stock = ProductClass.ProductStock.stock %}
+                                                        {% set stock = (ClassStock - ProductClass.ProductStock.stock) %}
                                                     {% endif %}
                                                 {% endif %}
                                             {% endfor %}

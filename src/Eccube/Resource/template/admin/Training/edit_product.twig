@@ -169,31 +169,31 @@ This file is Customized File
             $('#{{ form.product_image.vars.id }}').click();
         });
         var dt = new Date();
-        $("#admin_training_product_training_training_date_start").datetimepicker({
+        $("#admin_training_product_training_training_date_start_str").datetimepicker({
             locale: 'ja',
             format: 'YYYY/MM/DD HH:mm',
             useCurrent: false,
         }).on('dp.show', function () {
-            if ($("#admin_training_product_training_training_date_start").val() == '') {
-                $("#admin_training_product_training_training_date_start").val(moment(dt.getFullYear() + "/" + (("00" + (dt.getMonth()+1)).slice(-2)) + "/" + ("00" + dt.getDate()).slice(-2) + " 10:00", 'YYYY-MM-DD HH:mm:ss').format('YYYY/MM/DD HH:mm'));
+            if ($("#admin_training_product_training_training_date_start_str").val() == '') {
+                $("#admin_training_product_training_training_date_start_str").val(moment(dt.getFullYear() + "/" + (("00" + (dt.getMonth()+1)).slice(-2)) + "/" + ("00" + dt.getDate()).slice(-2) + " 10:00", 'YYYY-MM-DD HH:mm:ss').format('YYYY/MM/DD HH:mm'));
             }
         }).on("dp.hide", function (e) {
-            if (($("#admin_training_product_training_training_date_end").val() == '')) {
-                if (($("#admin_training_product_training_training_date_start").val() != '')) {
-                    $("#admin_training_product_training_training_date_end").val(moment($("#admin_training_product_training_training_date_start").val(), 'YYYY-MM-DD HH:mm:ss').format('YYYY/MM/DD') + " 17:00");
+            if (($("#admin_training_product_training_training_date_end_str").val() == '')) {
+                if (($("#admin_training_product_training_training_date_start_str").val() != '')) {
+                    $("#admin_training_product_training_training_date_end_str").val(moment($("#admin_training_product_training_training_date_start_str").val(), 'YYYY-MM-DD HH:mm:ss').format('YYYY/MM/DD') + " 17:00");
                 }
             }
         });
-        $("#admin_training_product_training_training_date_end").datetimepicker({
+        $("#admin_training_product_training_training_date_end_str").datetimepicker({
             locale: 'ja',
             format: 'YYYY/MM/DD HH:mm',
             useCurrent: false,
         }).on('dp.show', function () {
-            if ($("#admin_training_product_training_training_date_end").val() == '') {
-                $("#admin_training_product_training_training_date_end").val(moment(dt.getFullYear() + "/" + (("00" + (dt.getMonth()+1)).slice(-2)) + "/" + ("00" + dt.getDate()).slice(-2) + " 17:00", 'YYYY-MM-DD HH:mm:ss').format('YYYY/MM/DD HH:mm'));
+            if ($("#admin_training_product_training_training_date_end_str").val() == '') {
+                $("#admin_training_product_training_training_date_end_str").val(moment(dt.getFullYear() + "/" + (("00" + (dt.getMonth()+1)).slice(-2)) + "/" + ("00" + dt.getDate()).slice(-2) + " 17:00", 'YYYY-MM-DD HH:mm:ss').format('YYYY/MM/DD HH:mm'));
             }
         });
-        $("#admin_training_product_training_accept_limit_date").datetimepicker({
+        $("#admin_training_product_training_accept_limit_date_str").datetimepicker({
             locale: 'ja',
             format: 'YYYY/MM/DD HH:mm',
             useCurrent: false,
@@ -269,19 +269,19 @@ This file is Customized File
                                 </div>
                             </div>
                             {# 開始日付 #}
-                            <div id="detail_box__training_date_start" class="form-group">
-                                {{ form_label(form.product_training.training_date_start) }}
-                                <div id="detail_box__training_date_start" class="col-sm-4">
-                                    {{ form_widget(form.product_training.training_date_start) }}
-                                    {{ form_errors(form.product_training.training_date_start) }}
+                            <div id="detail_box__training_date_start_str" class="form-group">
+                                {{ form_label(form.product_training.training_date_start_str) }}
+                                <div id="detail_box__training_date_start_str" class="col-sm-4">
+                                    {{ form_widget(form.product_training.training_date_start_str) }}
+                                    {{ form_errors(form.product_training.training_date_start_str) }}
                                 </div>
                             </div>
                             {# 終了日付 #}
-                            <div id="detail_box__training_date_end" class="form-group">
-                                {{ form_label(form.product_training.training_date_end) }}
-                                <div id="detail_box__training_date_end" class="col-sm-4">
-                                    {{ form_widget(form.product_training.training_date_end) }}
-                                    {{ form_errors(form.product_training.training_date_end) }}
+                            <div id="detail_box__training_date_end_str" class="form-group">
+                                {{ form_label(form.product_training.training_date_end_str) }}
+                                <div id="detail_box__training_date_end_str" class="col-sm-4">
+                                    {{ form_widget(form.product_training.training_date_end_str) }}
+                                    {{ form_errors(form.product_training.training_date_end_str) }}
                                 </div>
                             </div>
                             {# 会場 #}
@@ -462,11 +462,11 @@ This file is Customized File
                             </div>
 
                             {# 応募締切 #}
-                            <div id="detail_box__accept_limit_date" class="form-group">
-                                {{ form_label(form.product_training.accept_limit_date) }}
-                                <div id="detail_box__accept_limit_date" class="col-sm-4">
-                                    {{ form_widget(form.product_training.accept_limit_date) }}
-                                    {{ form_errors(form.product_training.accept_limit_date) }}
+                            <div id="detail_box__accept_limit_date_str" class="form-group">
+                                {{ form_label(form.product_training.accept_limit_date_str) }}
+                                <div id="detail_box__accept_limit_date_str" class="col-sm-4">
+                                    {{ form_widget(form.product_training.accept_limit_date_str) }}
+                                    {{ form_errors(form.product_training.accept_limit_date_str) }}
                                 </div>
                             </div>
 

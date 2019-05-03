@@ -814,10 +814,13 @@ class TrainingController extends AbstractController
         $form = $builder->getForm();
         $form['product_training']->setData($ProductTraining);
         if (!is_null($ProductTraining->getTrainingDateStart())) {
-            $form['product_training']['training_date_start']->setData($ProductTraining->getTrainingDateStart()->format('Y/m/d H:i'));
+            $form['product_training']['training_date_start_str']->setData($ProductTraining->getTrainingDateStart()->format('Y/m/d H:i:s'));
         }
         if (!is_null($ProductTraining->getTrainingDateEnd())) {
-            $form['product_training']['training_date_end']->setData($ProductTraining->getTrainingDateEnd()->format('Y/m/d H:i'));
+            $form['product_training']['training_date_end_str']->setData($ProductTraining->getTrainingDateEnd()->format('Y/m/d H:i:s'));
+        }
+        if (!is_null($ProductTraining->getAcceptLimitDate())) {
+            $form['product_training']['accept_limit_date_str']->setData($ProductTraining->getAcceptLimitDate()->format('Y/m/d H:i:s'));
         }
         $ProductClass->setStockUnlimited((boolean)$ProductClass->getStockUnlimited());
         $form['class']->setData($ProductClass);
@@ -886,9 +889,9 @@ class TrainingController extends AbstractController
                 $app['orm.em']->persist($ProductStock);
 
                 $ProductTraining = $form['product_training']->getData();
-                $ProductTraining->setTrainingDateStart(new \DateTime(date('Y-m-d H:i:s', strtotime($request_data['admin_training']['product_training']['training_date_start']))));
-                $ProductTraining->setTrainingDateEnd(new \DateTime(date('Y-m-d H:i:s', strtotime($request_data['admin_training']['product_training']['training_date_end']))));
-                $ProductTraining->setAcceptLimitDate(new \DateTime(date('Y-m-d H:i:s', strtotime($request_data['admin_training']['product_training']['accept_limit_date']))));
+                $ProductTraining->setTrainingDateStart(new \DateTime(date('Y-m-d H:i:s', strtotime($request_data['admin_training']['product_training']['training_date_start_str']))));
+                $ProductTraining->setTrainingDateEnd(new \DateTime(date('Y-m-d H:i:s', strtotime($request_data['admin_training']['product_training']['training_date_end_str']))));
+                $ProductTraining->setAcceptLimitDate(new \DateTime(date('Y-m-d H:i:s', strtotime($request_data['admin_training']['product_training']['accept_limit_date_str']))));
                 $app['orm.em']->persist($ProductTraining);
 
                 // カテゴリの登録
@@ -1910,8 +1913,8 @@ class TrainingController extends AbstractController
                 $ProductTraining = $Product->getProductTraining();
                 if (!is_null($ProductTraining)) {
                     $CopyProductTraining = new \Eccube\Entity\ProductTraining();
-                    $CopyProductTraining->setTimeStart($ProductTraining->getTimeStart());
-                    $CopyProductTraining->setTimeEnd($ProductTraining->getTimeEnd());
+                    $CopyProductTraining->setTrainingDateStart($ProductTraining->getTrainingDateStart());
+                    $CopyProductTraining->setTrainingDateEnd($ProductTraining->getTrainingDateEnd());
                     $CopyProductTraining->setPlace($ProductTraining->getPlace());
                     $CopyProductTraining->setPlacekana($ProductTraining->getPlacekana());
                     $CopyProductTraining->setZip01($ProductTraining->getZip01());
@@ -2128,28 +2131,30 @@ class TrainingController extends AbstractController
 
             // Update Customer_Basic_info table
             $CustomerInfo = $app['eccube.repository.customer_basic_info']->getCustomerBasicInfoByCustomer($Customer);
-            $InfoStatus = $app['eccube.repository.customer_basic_info_status']->find(1);
-
             if ($CustomerInfo == null) {
                 continue;
             }
-
-            $code = sprintf('%07d', $Customer->getId());
-
-            if ($Customer->getPref() == null) {
-                $code = sprintf("00%s", $code);
-            } else {
-                $code = sprintf(($Customer->getPref()->getRank() < 10 ? "JPN0%d%s" : "JPN%d%s"), $Customer->getPref()->getRank(), $code);
+            if ($ProductTraining->getTrainingType()->getRankUp() == 1) {
+                $InfoStatus = $app['eccube.repository.customer_basic_info_status']->find(1);
+                $code = sprintf('%07d', $Customer->getId());
+                if ($Customer->getPref() == null) {
+                    $code = sprintf("00%s", $code);
+                } else {
+                    $code = sprintf(($Customer->getPref()->getRank() < 10 ? "JPN0%d%s" : "JPN%d%s"), $Customer->getPref()->getRank(), $code);
+                }
+                $CustomerInfo->setStatus($InfoStatus);
+                $CustomerInfo->setCustomerNumber($code);
+                $CustomerInfo->setCustomerPinCode(rand(10000000, 99999999));
+                $CustomerInfo->setLastPayMembershipYear($ProductTraining->getTrainingDateStart()->format('Y'));
+                $CustomerInfo->setMembershipExpired(new \DateTime(Date('Y-m-d', strtotime(sprintf("%d/03/31", ((int)($ProductTraining->getTrainingDateStart()->format('Y')) + 1))))));
+                $CustomerInfo->setRegularMemberPromoted(new \DateTime($ProductTraining->getTrainingDateStart()->format('Y-m-d')));
             }
-
-            $CustomerInfo->setStatus($InfoStatus);
-            $CustomerInfo->setCustomerNumber($code);
-            $CustomerInfo->setCustomerPinCode(rand(10000000, 99999999));
-            $CustomerInfo->setLastPayMembershipYear($ProductTraining->getTimeStartYear());
-            $CustomerInfo->setMembershipExpired(new \DateTime(Date('Y-m-d', strtotime(sprintf("03/31/%d", ((int)($ProductTraining->getTimeStartYear()) + 1))))));
-            $CustomerInfo->setRegularMemberPromoted(new \DateTime($ProductTraining->getTrainingDateStartDay()));
+            if ($ProductTraining->getTrainingType()->getQualificationType() == 2) {
+                $CustomerInfo->setSupporterType($app['eccube.repository.master.supporter_type']->find($ProductTraining->getTrainingType()->getQualification()));
+            } else if ($ProductTraining->getTrainingType()->getQualificationType() == 3) {
+                $CustomerInfo->setInstructorType($app['eccube.repository.master.instructor_type']->find($ProductTraining->getTrainingType()->getQualification()));
+            }
             $CustomerInfo->setUpdateDate(date('Y-m-d H:i:s'));
-            $CustomerInfo->setSupporterType($app['eccube.repository.master.supporter_type']->find(1));
             $app['orm.em']->persist($CustomerInfo);
 
             $app['orm.em']->flush();

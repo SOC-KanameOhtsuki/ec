@@ -128,7 +128,7 @@ class FaxAcceptPdfService extends AbstractFPDIService
                 // 講習会種別
                 $this->lfText(39.9, 52.3, $product->getProductTraining()->getTrainingType()->getName(), 11, 'B');
                 // 受講日
-                $this->lfText(40.4, 86.4, date('Y年m月d日(', strtotime($product->getProductTraining()->getTrainingDateStart())) . $this->WeekDay[date('w', strtotime($product->getProductTraining()->getTrainingDateStart()))] . date(') H:i～', strtotime($product->getProductTraining()->getTrainingDateStart())) . date('H:i', strtotime($product->getProductTraining()->getTrainingDateEnd())), 9);
+                $this->lfText(40.4, 86.4, $product->getProductTraining()->getTrainingDateStart()->format('Y年m月d日(') . $this->WeekDay[$product->getProductTraining()->getTrainingDateStart()->format('w')] . $product->getProductTraining()->getTrainingDateStart()->format(') H:i～') . $product->getProductTraining()->getTrainingDateEnd()->format('H:i'), 9);
                 // 場所
                 $this->lfText(40.4, 91.7, $product->getProductTraining()->getPlace(), 9, 'B');
                 // 住所
@@ -139,7 +139,7 @@ class FaxAcceptPdfService extends AbstractFPDIService
             // 受講料
             $this->lfText(34.8, 148.5, number_format($product->getPrice02IncTaxMax()) . '円', 11, 'B');
             // 備考
-            $this->lfText(40.4, 109.2, $product->getDescriptionDetail(), 9, 'B');
+            $this->lfText(40.4, 109.2, str_replace("　", "", $product->getDescriptionDetail()), 9, 'B');
             // 会社情報電話番号
             $this->lfText(30.8, 244.0, $BaseInfo->getTel01() . '-' . $BaseInfo->getTel02() . '-' . $BaseInfo->getTel03(), 11, 'B');
             // 会社情報Fax

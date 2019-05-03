@@ -120,7 +120,14 @@ This file is Customized file
                                 <tr onmouseover="setPointer(this, '#F9F1DA', '#ffffff')" onmouseout="setPointer(this, '#ffffff', '#ffffff')" bgcolor="#ffffff">
                                     <td valign="top" nowrap="" bgcolor="#ffffff" align="center">{{ product.ProductTraining.addr01 }}</td>
                                     <td nowrap="" bgcolor="#ffffff"><a href="{{ url('product_detail', {'id': product.id}) }}">{{ form['Training_Date'][product.id] }}</a></td>
-                                    <td width="100%" bgcolor="#ffffff"><a href="{{ url('product_detail', {'id': product.id}) }}">{{ product.ProductTraining.place }}（{{ product.ProductTraining.addr01 }}{{ product.ProductTraining.addr02 }}）</a></td>
+                                    <td width="100%" bgcolor="#ffffff">
+                                        <a href="{{ url('product_detail', {'id': product.id}) }}">
+                                        {{ product.ProductTraining.place }}
+                                        {% if product.ProductTraining.addr01 %}
+                                        （{{ product.ProductTraining.addr01 }}{{ product.ProductTraining.addr02 }}）
+                                        {% endif %}
+                                        </a>
+                                    </td>
                                     {% if product.ProductClasses.0.stock < 1 %}
                                         <td bgcolor="#ffffff" align="center" class="font10">×</td>
                                     {% elseif product.ProductClasses.0.stock < 50 %}

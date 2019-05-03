@@ -96,7 +96,12 @@ This file is Customized file
                                 <tr onmouseover="setPointer(this, '#F9F1DA', '#ffffff')" onmouseout="setPointer(this, '#ffffff', '#ffffff')" bgcolor="#ffffff">
                                     <td valign="top" nowrap="" bgcolor="#ffffff" align="center">{{ product.ProductTraining.addr01 }}</td>
                                     <td nowrap="" bgcolor="#ffffff">{{ form['Training_Date'][product.id] }}</td>
-                                    <td width="100%" bgcolor="#ffffff">{{ product.ProductTraining.place }}（{{ product.ProductTraining.addr01 }}{{ product.ProductTraining.addr02 }}</td>
+                                    <td width="100%" bgcolor="#ffffff">
+                                    {{ product.ProductTraining.place }}
+                                    {% if product.ProductTraining.addr01 %}
+                                    （{{ product.ProductTraining.addr01 }}{{ product.ProductTraining.addr02 }}）
+                                    {% endif %}
+                                    </td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
