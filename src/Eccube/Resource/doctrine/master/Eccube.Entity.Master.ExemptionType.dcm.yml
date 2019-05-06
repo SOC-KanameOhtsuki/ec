@@ -1,7 +1,7 @@
 Eccube\Entity\Master\ExemptionType:
     type: entity
     table: mtb_exemption_type
-    repositoryClass: Eccube\Repository\Master\DispRepository
+    repositoryClass: Eccube\Repository\Master\ExemptionTypeRepository
     id:
         id:
             type: smallint

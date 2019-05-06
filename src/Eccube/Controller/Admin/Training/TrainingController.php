@@ -2231,7 +2231,6 @@ class TrainingController extends AbstractController
                 log_info('受講履歴更新', array($customerId));
                 $AttendanceHistory->setDelFlg(Constant::ENABLED);
                 $app['orm.em']->persist($AttendanceHistory);
-                $app['orm.em']->flush();
 
                 // Update Customer_Basic_info table
                 $CustomerInfo = $app['eccube.repository.customer_basic_info']->getCustomerBasicInfoByCustomer($Customer);
@@ -2245,7 +2244,7 @@ class TrainingController extends AbstractController
                             $CustomerInfo->setLastPayMembershipYear($AttendanceHistory->getBeforeLastPayMembershipYear());
                             $CustomerInfo->setMembershipExpired($AttendanceHistory->getBeforeMembershipExpired());
                             $CustomerInfo->setRegularMemberPromoted($AttendanceHistory->getBeforeRegularMemberPromoted());
-                            $CustomerInfo->setMembershipExemption($AttendanceHistory->getBeforeMembershipExemption());
+                            $CustomerInfo->setMembershipExemption($app['orm.em']->getRepository('Eccube\Entity\Master\ExemptionType')->find($AttendanceHistory->getBeforeMembershipExemption()));
                             // 正会員昇格年度の年会費免除実績削除
                             $sql = "DELETE FROM dtb_membership_billing_status";
                             $sql .= " WHERE";
@@ -2260,10 +2259,9 @@ class TrainingController extends AbstractController
                         }
                         $CustomerInfo->setUpdateDate(date('Y-m-d H:i:s'));
                         $app['orm.em']->persist($CustomerInfo);
-                        $app['orm.em']->flush();
                     }
                 }
-
+                $app['orm.em']->flush();
                 $canceledIds[] = $customerId;
             }
         }
