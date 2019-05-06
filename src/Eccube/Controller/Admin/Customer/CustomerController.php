@@ -96,8 +96,6 @@ class CustomerController extends AbstractController
             if ($searchForm->isValid()) {
                 if ((!$is_custom_search) || (count($original_searchs) < 1)) {
                     $searchData = $searchForm->getData();
-                    log_info('searchData:' . print_r($searchData, true));
-
                     // paginator
                     $qb = $app['eccube.repository.customer']->getQueryBuilderBySearchData($searchData);
                 } else {

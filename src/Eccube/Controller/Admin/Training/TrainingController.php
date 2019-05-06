@@ -2149,7 +2149,7 @@ class TrainingController extends AbstractController
 
             // Update Customer_Basic_info table
             if ($ProductTraining->getTrainingType()->getRankUp() == 1) {
-                $termInfos = $this->app['eccube.repository.master.term_info']->createQueryBuilder('t')
+                $termInfos = $>app['eccube.repository.master.term_info']->createQueryBuilder('t')
                         ->andWhere("t.term_end >= '" . date('Y-m-d') . "'")
                         ->andWhere('t.del_flg = 0')
                         ->addOrderBy('t.term_year', 'desc')
