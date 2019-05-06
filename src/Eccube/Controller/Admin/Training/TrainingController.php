@@ -2184,7 +2184,7 @@ class TrainingController extends AbstractController
                 // 正会員昇格年度の年会費は免除
                 $MembershipBillingStatus = new \Eccube\Entity\MembershipBillingStatus();
                 $MembershipBillingStatus->setCustomer($Customer)
-                                        ->setProductMembership($ProductMembership)
+                                        ->setProductMembership($app['eccube.repository.product_membership']->getProductMembershipByMembershipYear($paymentYear))
                                         ->setStatus($app['eccube.repository.master.billing_status']->find(2));
 
                 $app['orm.em']->persist($MembershipBillingStatus);
