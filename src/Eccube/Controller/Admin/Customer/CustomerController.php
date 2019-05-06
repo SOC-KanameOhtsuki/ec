@@ -567,11 +567,11 @@ class CustomerController extends AbstractController
         $Customer = $app['eccube.repository.customer']->find($request->get('id'));
         $billingStatuses = $app['eccube.repository.membership_billing_status']->getBillingStatus($Customer);
 
-        if ($Customer->getCustomerBasicInfo()->getRegularMemberPromoted() == "" || $Customer->getCustomerBasicInfo()->getRegularMemberPromoted() == null) {
+        if (is_null($Customer->getCustomerBasicInfo()->getRegularMemberPromoted())) {
             return $app->redirect($app->url('admin_customer'));
         }
 
-        $oldestMembershipPayment = (int) date('Y', strtotime($Customer->getCustomerBasicInfo()->getRegularMemberPromoted()));
+        $oldestMembershipPayment = (int) $Customer->getCustomerBasicInfo()->getRegularMemberPromoted()->format('Y');
         $currentYear = (int) date('Y');
         $termInfos = $app['eccube.repository.master.term_info']->createQueryBuilder('t')
                 ->andWhere("t.term_end >= '" . date('Y-m-d') . "'")
