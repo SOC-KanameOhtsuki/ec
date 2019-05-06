@@ -339,7 +339,7 @@ class CustomerBasicInfo extends \Eccube\Entity\AbstractEntity
      */
     public function getMembershipExpired()
     {
-        return (is_null($this->membership_expired)?'':$this->membership_expired->format('Y/m/d'));
+        return $this->membership_expired;
     }
 
     /**
