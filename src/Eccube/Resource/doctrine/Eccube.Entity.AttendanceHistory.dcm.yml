@@ -12,6 +12,54 @@ Eccube\Entity\AttendanceHistory:
             generator:
                 strategy: AUTO
     fields:
+        before_qualification:
+            type: integer
+            nullable: true
+            unsigned: false
+            options:
+                default: null
+        before_status:
+            type: smallint
+            nullable: true
+            unsigned: false
+            options:
+                default: null
+        before_customer_number:
+            type: text
+            nullable: true
+            unsigned: false
+            options:
+                default: null
+        before_customer_pin_code:
+            type: integer
+            nullable: true
+            unsigned: false
+            options:
+                default: null
+        before_last_pay_membership_year:
+            type: integer
+            nullable: true
+            unsigned: false
+            options:
+                default: null
+        before_membership_expired:
+            type: date
+            nullable: true
+            unsigned: false
+            options:
+                default: null
+        before_regular_member_promoted:
+            type: datetime
+            nullable: true
+            unsigned: false
+            options:
+                default: null
+        before_membership_exemption:
+            type: smallint
+            nullable: true
+            unsigned: false
+            options:
+                default: null
         del_flg:
             type: smallint
             nullable: false

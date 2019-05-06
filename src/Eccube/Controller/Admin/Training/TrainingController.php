@@ -616,6 +616,7 @@ class TrainingController extends AbstractController
             'page_status' => $page_status,
             'page_count' => $page_count,
             'Product' => $Product,
+            'ProductTraining' => $ProductTraining,
             'ProductTrainingStart' => explode(' ',$ProductTraining->getTrainingDateStart()->format('Y/m/d H:i')),
             'ProductTrainingAddr' => $match[1].$match[2],
             'ProductClassStock' => $Product->getStockMax(),
@@ -2106,8 +2107,11 @@ class TrainingController extends AbstractController
         foreach ($customerIds as $customerId) {
             log_info('認定開始', array($customerId));
             $Customer = $app['eccube.repository.customer']->find($customerId);
-
             if ($Customer == null) {
+                continue;
+            }
+            $CustomerInfo = $app['eccube.repository.customer_basic_info']->getCustomerBasicInfoByCustomer($Customer);
+            if ($CustomerInfo == null) {
                 continue;
             }
 
@@ -2125,16 +2129,43 @@ class TrainingController extends AbstractController
             $AttendanceHistory->setCustomer($Customer);
             $AttendanceHistory->setProductTraining($ProductTraining);
             $AttendanceHistory->setAttendanceStatus($AttendanceStatus);
+            if ($ProductTraining->getTrainingType()->getRankUp() == 1) {
+                $AttendanceHistory->setBeforeStatus($CustomerInfo->getStatus());
+                $AttendanceHistory->setBeforeCustomerNumber($CustomerInfo->getCustomerNumber());
+                $AttendanceHistory->setBeforeCustomerPinCode($CustomerInfo->getCustomerPinCode());
+                $AttendanceHistory->setBeforeLastPayMembershipYear($CustomerInfo->getLastPayMembershipYear());
+                $AttendanceHistory->setBeforeMembershipExpired($CustomerInfo->getMembershipExpired());
+                $AttendanceHistory->setBeforeRegularMemberPromoted($CustomerInfo->getRegularMemberPromoted());
+                $AttendanceHistory->setBeforeMembershipExemption($CustomerInfo->getMembershipExemption());
+            }
+            if ($ProductTraining->getTrainingType()->getQualificationType()->getId() == 2) {
+                $AttendanceHistory->setBeforeQualification($CustomerInfo->getSupporterType()->getId());
+            } else if ($ProductTraining->getTrainingType()->getQualificationType()->getId() == 3) {
+                $AttendanceHistory->setBeforeQualification($CustomerInfo->getInstructorType()->getId());
+            }
             $AttendanceHistory->setCreateDate(Date("Y-m-d H:i:s"));
 
             $app['orm.em']->persist($AttendanceHistory);
 
             // Update Customer_Basic_info table
-            $CustomerInfo = $app['eccube.repository.customer_basic_info']->getCustomerBasicInfoByCustomer($Customer);
-            if ($CustomerInfo == null) {
-                continue;
-            }
             if ($ProductTraining->getTrainingType()->getRankUp() == 1) {
+                $termInfos = $this->app['eccube.repository.master.term_info']->createQueryBuilder('t')
+                        ->andWhere("t.term_end >= '" . date('Y-m-d') . "'")
+                        ->andWhere('t.del_flg = 0')
+                        ->addOrderBy('t.term_year', 'desc')
+                        ->getQuery()
+                        ->getResult();
+                if ((!is_null($termInfos)) && (0 < count($termInfos))) {
+                    $paymentYear = $termInfos[0]->getTermYear();
+                    $termEnd = $termInfos[0]->getTermEnd()->format('Y-m-d');
+                } else if (date('m') < 4) {
+                    $paymentYear = date('Y') - 1;
+                    $termEnd = date("Y-03-31");
+                } else {
+                    $paymentYear = date('Y');
+                    $termEnd = sprintf("%d-03-31", (date('Y') + 1));
+                }
+
                 $InfoStatus = $app['eccube.repository.customer_basic_info_status']->find(1);
                 $code = sprintf('%07d', $Customer->getId());
                 if ($Customer->getPref() == null) {
@@ -2148,10 +2179,19 @@ class TrainingController extends AbstractController
                 $CustomerInfo->setLastPayMembershipYear($ProductTraining->getTrainingDateStart()->format('Y'));
                 $CustomerInfo->setMembershipExpired(new \DateTime(Date('Y-m-d', strtotime(sprintf("%d/03/31", ((int)($ProductTraining->getTrainingDateStart()->format('Y')) + 1))))));
                 $CustomerInfo->setRegularMemberPromoted(new \DateTime($ProductTraining->getTrainingDateStart()->format('Y-m-d')));
+                $CustomerInfo->setMembershipExemption($app['eccube.repository.master.exemption_type']->find(2));
+
+                // 正会員昇格年度の年会費は免除
+                $MembershipBillingStatus = new \Eccube\Entity\MembershipBillingStatus();
+                $MembershipBillingStatus->setCustomer($Customer)
+                                        ->setProductMembership($ProductMembership)
+                                        ->setStatus($app['eccube.repository.master.billing_status']->find(2));
+
+                $app['orm.em']->persist($MembershipBillingStatus);
             }
-            if ($ProductTraining->getTrainingType()->getQualificationType() == 2) {
+            if ($ProductTraining->getTrainingType()->getQualificationType()->getId() == 2) {
                 $CustomerInfo->setSupporterType($app['eccube.repository.master.supporter_type']->find($ProductTraining->getTrainingType()->getQualification()));
-            } else if ($ProductTraining->getTrainingType()->getQualificationType() == 3) {
+            } else if ($ProductTraining->getTrainingType()->getQualificationType()->getId() == 3) {
                 $CustomerInfo->setInstructorType($app['eccube.repository.master.instructor_type']->find($ProductTraining->getTrainingType()->getQualification()));
             }
             $CustomerInfo->setUpdateDate(date('Y-m-d H:i:s'));
@@ -2198,12 +2238,26 @@ class TrainingController extends AbstractController
                 if ($CustomerInfo != null) {
                     log_info('会員基本情報更新', array($customerId));
                     $InfoStatus = $app['eccube.repository.customer_basic_info_status']->find(4);
-                    $CustomerInfo->setStatus($InfoStatus);
-                    $CustomerInfo->setCustomerNumber(null);
-                    $CustomerInfo->setCustomerPinCode(null);
-                    $CustomerInfo->setLastPayMembershipYear(null);
-                    $CustomerInfo->setMembershipExpired(null);
-                    $CustomerInfo->setRegularMemberPromoted(null);
+                    if ($ProductTraining->getTrainingType()->getRankUp() == 1) {
+                        $CustomerInfo->setStatus($AttendanceHistory->getBeforeStatus());
+                        $CustomerInfo->setCustomerNumber($AttendanceHistory->getBeforeCustomerNumber());
+                        $CustomerInfo->setCustomerPinCode($AttendanceHistory->getBeforeCustomerPinCode());
+                        $CustomerInfo->setLastPayMembershipYear($AttendanceHistory->getBeforeLastPayMembershipYear());
+                        $CustomerInfo->setMembershipExpired($AttendanceHistory->getBeforeMembershipExpired());
+                        $CustomerInfo->setRegularMemberPromoted($AttendanceHistory->getBeforeRegularMemberPromoted());
+                        $CustomerInfo->setMembershipExemption($AttendanceHistory->getBeforeMembershipExemption());
+                        // 正会員昇格年度の年会費免除実績削除
+                        $sql = "DELETE FROM dtb_membership_billing_status";
+                        $sql .= " WHERE";
+                        $sql .= " product_membership = " . $ProductTraining->getId();
+                        $sql .= " AND customer = " . $customerId . ";";
+                        $result = $app['orm.em']->getConnection()->executeQuery($sql);
+                    }
+                    if ($ProductTraining->getTrainingType()->getQualificationType()->getId() == 2) {
+                        $CustomerInfo->setSupporterType($app['eccube.repository.master.supporter_type']->find($AttendanceHistory->getBeforeQualification()));
+                    } else if ($ProductTraining->getTrainingType()->getQualificationType()->getId() == 3) {
+                        $CustomerInfo->setInstructorType($app['eccube.repository.master.instructor_type']->find($AttendanceHistory->getBeforeQualification()));
+                    }
                     $CustomerInfo->setUpdateDate(date('Y-m-d H:i:s'));
                     $app['orm.em']->persist($CustomerInfo);
                 }

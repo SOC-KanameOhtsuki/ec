@@ -116,9 +116,9 @@ class MailLabelPdfService extends AbstractFPDIService
             // PDFにページを追加する
             $this->addPdfPage();
             // 郵便番号
-            $this->lfText(29.2, 25.9, $customerData->getZip01() . $customerData->getZip02(), 11, 'B');
+            $this->lfText(29.2, 25.9, (is_null($customerData->getZip01())?"":$customerData->getZip01()) . (is_null($customerData->getZip02())?"":$customerData->getZip02()), 11, 'B');
             // 住所
-            $this->lfText(25.7, 31.8, $customerData->getPref()->getName() . $customerData->getAddr01() . $customerData->getAddr02(), 9, 'B');
+            $this->lfText(25.7, 31.8, (is_null($customerData->getPref())?"":$customerData->getPref()->getName()) . (is_null($customerData->getAddr01())?"":$customerData->getAddr01()) . (is_null($customerData->getAddr02())?"":$customerData->getAddr02()), 9, 'B');
             // 会員名
             $this->lfText(25.7, 38.4, $customerData->getName01() . " " . $customerData->getName02() . ' 様', 14, 'B');
             // 会員番号

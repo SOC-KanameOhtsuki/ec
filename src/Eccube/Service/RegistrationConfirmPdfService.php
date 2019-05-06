@@ -122,9 +122,9 @@ class RegistrationConfirmPdfService extends AbstractFPDIService
             // 所属先名(勤務先名称)
             $this->lfMultiText(39.1, 110.2, 58.0, 21.0, $customerData->getCompanyName(), 13, 'B');
             // 郵便番号
-            $this->lfText(39.1, 132.9, $customerData->getZip01() . $customerData->getZip02(), 23, 'B');
+            $this->lfText(39.1, 132.9, (is_null($customerData->getZip01())?"":$customerData->getZip01()) . (is_null($customerData->getZip02())?"":$customerData->getZip02()), 23, 'B');
             // 住所
-            $this->lfMultiText(39.1, 145.8, 58.0, 41.9, $customerData->getPref()->getName() . $customerData->getAddr01() . $customerData->getAddr02(), 13, 'B');
+            $this->lfMultiText(39.1, 145.8, 58.0, 41.9, (is_null($customerData->getPref())?"":$customerData->getPref()->getName()) . (is_null($customerData->getAddr01())?"":$customerData->getAddr01()) . (is_null($customerData->getAddr02())?"":$customerData->getAddr02()), 13, 'B');
             // 電話番号
             if (!is_null($customerData->getTel01()) && !is_null($customerData->getTel02()) && !is_null($customerData->getTel03())) {
                 $this->lfText(39.1, 192.8, $customerData->getTel01() . "-" . $customerData->getTel02() . "-" . $customerData->getTel03(), 20, 'B');
@@ -134,7 +134,7 @@ class RegistrationConfirmPdfService extends AbstractFPDIService
                 $this->lfText(39.1, 213.0, $customerData->getFax01() . "-" . $customerData->getFax02() . "-" . $customerData->getFax03(), 20, 'B');
             }
             // メールアドレス
-            $this->lfMultiText(39.1, 227.6, 62.0, 21.0, $customerData->getEmail(), 13);
+            $this->lfMultiText(39.1, 227.6, 62.0, 21.0, (is_null($customerData->getEmail())?"":(preg_match("/" . $this->app['config']['dummy_email_pattern'] . "/", $customerData->getEmail())?"":$customerData->getEmail())), 13);
             // 生年月日
             if (!is_null($customerData->getBirth())) {
                 $this->lfText(39.1, 254.7, $customerData->getBirth()->format('Y/m/d'), 22);

@@ -221,4 +221,229 @@ class AttendanceHistory extends \Eccube\Entity\AbstractEntity
     {
         return $this->del_flg;
     }
+    /**
+     * @var integer
+     */
+    private $before_qualification;
+
+
+    /**
+     * Set before_qualification
+     *
+     * @param integer $beforeQualification
+     * @return AttendanceHistory
+     */
+    public function setBeforeQualification($beforeQualification)
+    {
+        $this->before_qualification = $beforeQualification;
+
+        return $this;
+    }
+
+    /**
+     * Get before_qualification
+     *
+     * @return integer 
+     */
+    public function getBeforeQualification()
+    {
+        return $this->before_qualification;
+    }
+
+    /**
+     * @var integer
+     */
+    private $before_status;
+
+    /**
+     * @var string
+     */
+    private $before_customer_number;
+
+    /**
+     * @var integer
+     */
+    private $before_customer_pin_code;
+
+    /**
+     * @var integer
+     */
+    private $before_last_pay_membership_year;
+
+    /**
+     * @var \DateTime
+     */
+    private $before_membership_expired;
+
+    /**
+     * @var \DateTime
+     */
+    private $before_regular_member_promoted;
+
+
+    /**
+     * Set before_status
+     *
+     * @param integer $beforeStatus
+     * @return AttendanceHistory
+     */
+    public function setBeforeStatus($beforeStatus)
+    {
+        $this->before_status = $beforeStatus;
+
+        return $this;
+    }
+
+    /**
+     * Get before_status
+     *
+     * @return integer 
+     */
+    public function getBeforeStatus()
+    {
+        return $this->before_status;
+    }
+
+    /**
+     * Set before_customer_number
+     *
+     * @param string $beforeCustomerNumber
+     * @return AttendanceHistory
+     */
+    public function setBeforeCustomerNumber($beforeCustomerNumber)
+    {
+        $this->before_customer_number = $beforeCustomerNumber;
+
+        return $this;
+    }
+
+    /**
+     * Get before_customer_number
+     *
+     * @return string 
+     */
+    public function getBeforeCustomerNumber()
+    {
+        return $this->before_customer_number;
+    }
+
+    /**
+     * Set before_customer_pin_code
+     *
+     * @param integer $beforeCustomerPinCode
+     * @return AttendanceHistory
+     */
+    public function setBeforeCustomerPinCode($beforeCustomerPinCode)
+    {
+        $this->before_customer_pin_code = $beforeCustomerPinCode;
+
+        return $this;
+    }
+
+    /**
+     * Get before_customer_pin_code
+     *
+     * @return integer 
+     */
+    public function getBeforeCustomerPinCode()
+    {
+        return $this->before_customer_pin_code;
+    }
+
+    /**
+     * Set before_last_pay_membership_year
+     *
+     * @param integer $beforeLastPayMembershipYear
+     * @return AttendanceHistory
+     */
+    public function setBeforeLastPayMembershipYear($beforeLastPayMembershipYear)
+    {
+        $this->before_last_pay_membership_year = $beforeLastPayMembershipYear;
+
+        return $this;
+    }
+
+    /**
+     * Get before_last_pay_membership_year
+     *
+     * @return integer 
+     */
+    public function getBeforeLastPayMembershipYear()
+    {
+        return $this->before_last_pay_membership_year;
+    }
+
+    /**
+     * Set before_membership_expired
+     *
+     * @param \DateTime $beforeMembershipExpired
+     * @return AttendanceHistory
+     */
+    public function setBeforeMembershipExpired($beforeMembershipExpired)
+    {
+        $this->before_membership_expired = $beforeMembershipExpired;
+
+        return $this;
+    }
+
+    /**
+     * Get before_membership_expired
+     *
+     * @return \DateTime 
+     */
+    public function getBeforeMembershipExpired()
+    {
+        return $this->before_membership_expired;
+    }
+
+    /**
+     * Set before_regular_member_promoted
+     *
+     * @param \DateTime $beforeRegularMemberPromoted
+     * @return AttendanceHistory
+     */
+    public function setBeforeRegularMemberPromoted($beforeRegularMemberPromoted)
+    {
+        $this->before_regular_member_promoted = $beforeRegularMemberPromoted;
+
+        return $this;
+    }
+
+    /**
+     * Get before_regular_member_promoted
+     *
+     * @return \DateTime 
+     */
+    public function getBeforeRegularMemberPromoted()
+    {
+        return $this->before_regular_member_promoted;
+    }
+    /**
+     * @var integer
+     */
+    private $before_membership_exemption;
+
+
+    /**
+     * Set before_membership_exemption
+     *
+     * @param integer $beforeMembershipExemption
+     * @return AttendanceHistory
+     */
+    public function setBeforeMembershipExemption($beforeMembershipExemption)
+    {
+        $this->before_membership_exemption = $beforeMembershipExemption;
+
+        return $this;
+    }
+
+    /**
+     * Get before_membership_exemption
+     *
+     * @return integer 
+     */
+    public function getBeforeMembershipExemption()
+    {
+        return $this->before_membership_exemption;
+    }
 }

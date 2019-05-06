@@ -397,6 +397,13 @@ class ProductRepository extends EntityRepository
             }
         }
 
+        // Training Type
+        if (!empty($searchData['training_type']) && $searchData['training_type']) {
+            $qb
+                ->andWhere('tt.id = :trainingType')
+                ->setParameter('trainingType', $searchData['training_type']);
+        }
+
         // place
         if (!empty($searchData['place']) && $searchData['place']) {
             $keywords = preg_split('/[\s　]+/u', $searchData['place'], -1, PREG_SPLIT_NO_EMPTY);
@@ -568,6 +575,13 @@ class ProductRepository extends EntityRepository
                     ->andWhere('p.name LIKE :name')
                     ->setParameter('name', '%' . $keyword . '%');
             }
+        }
+
+        // Training Type
+        if (!empty($searchData['training_type']) && $searchData['training_type']) {
+            $qb
+                ->andWhere('tt.id = :trainingType')
+                ->setParameter('trainingType', $searchData['training_type']);
         }
 
         // place

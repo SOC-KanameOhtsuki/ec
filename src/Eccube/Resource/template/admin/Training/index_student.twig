@@ -418,14 +418,18 @@ This file is Custom File
               <ul class="dropdown-menu">
                 <li><a id="fax_accept" href="javascript:void(0);">FAX受付票</a></li>
                 <li><a id="payment_confirm" href="javascript:void(0);">入金確認票</a></li>
-                <li><a id="registration_confirm" href="javascript:void(0);">登録内容確認票</a></li>
                 <li><a id="name_tag" href="javascript:void(0);">名札</a></li>
-                <li><a id="certification" href="javascript:void(0);">認定証</a></li>
                 <li><a id="mail_label" href="javascript:void(0);">郵送用ラベル</a></li>
-                <li><a id="certification_sendding_note" href="javascript:void(0);">資格認定証送付状</a></li>
-                <li><a id="bulk_certified" href="javascript:void(0);">個別認定</a></li>
-                <li><a id="bulk_deny" href="javascript:void(0);">否認登録</a></li>
-                <li><a id="bulk_cancel" href="javascript:void(0);">認定・否認キャンセル</a></li>
+                {% if ProductTraining.TrainingType.QualificationType.id == 2 %}
+                    <li><a id="certification_sendding_note" href="javascript:void(0);">資格認定証送付状</a></li>
+                {% endif %}
+                {% if not ProductTraining.TrainingType.qualification is null %}
+                    <li><a id="registration_confirm" href="javascript:void(0);">登録内容確認票</a></li>
+                    <li><a id="certification" href="javascript:void(0);">認定証</a></li>
+                    <li><a id="bulk_certified" href="javascript:void(0);">個別認定</a></li>
+                    <li><a id="bulk_deny" href="javascript:void(0);">否認登録</a></li>
+                    <li><a id="bulk_cancel" href="javascript:void(0);">認定・否認キャンセル</a></li>
+                {% endif %}
               </ul>
               </li>
               <!--一括実行プルダウン-->
@@ -435,13 +439,16 @@ This file is Custom File
                 <li><a href="{{ url('admin_training_printing_member_list', {'id' : Product.id}) }}" data-method="post">受講者名簿(CSV)</a></li>
                 <li><a id="all_fax_accept" href="javascript:void(0);">FAX受付票</a></li>
                 <li><a id="all_payment_confirm" href="javascript:void(0);">入金確認票</a></li>
-                <li><a id="all_registration_confirm" href="javascript:void(0);">登録内容確認票</a></li>
                 <li><a id="all_name_tag" href="javascript:void(0);">名札</a></li>
-                <li><a id="all_certification" href="javascript:void(0);">認定証</a></li>
                 <li><a id="all_mail_label" href="javascript:void(0);">郵送用ラベル</a></li>
-                <li><a id="all_certification_sendding_note" href="javascript:void(0);">資格認定証送付状</a></li>
-               <!-- <li><a id="all_bulk_deny">否認登録</a></li>
-                <li><a id="all_bulk_certified" href="javascript:void(0);">一括認定</a></li> -->
+                {% if ProductTraining.TrainingType.QualificationType.id == 2 %}
+                    <li><a id="all_certification_sendding_note" href="javascript:void(0);">資格認定証送付状</a></li>
+                {% endif %}
+                {% if not ProductTraining.TrainingType.qualification is null %}
+                    <li><a id="all_registration_confirm" href="javascript:void(0);">登録内容確認票</a></li>
+                    <li><a id="all_certification" href="javascript:void(0);">認定証</a></li>
+                    <li><a id="all_bulk_certified" href="javascript:void(0);">一括認定</a></li> -->
+                {% endif %}
               </ul>
               </li>
             </ul>
@@ -466,8 +473,10 @@ This file is Custom File
                             <th id="result_list_main__header_pay_sum">請求金額</th>
                             <th id="result_list_main__header_pay">入金額</th>
                             <th id="result_list_main__header_ryosyu">領収日</th>
-                            <th id="result_list_main__header_denial">資格認定/否認</th>
-                            <th id="result_list_main__header_denial_reason">否認理由</th>
+                            {% if not ProductTraining.TrainingType.qualification is null %}
+                                <th id="result_list_main__header_denial">資格認定/否認</th>
+                                <th id="result_list_main__header_denial_reason">否認理由</th>
+                            {% endif %}
                         </tr>
                         </thead>
                         <tbody>
@@ -522,61 +531,63 @@ This file is Custom File
                                 {% endfor %}
                             {% endfor %}
                             <td id="result_list_main__ryosyu--{{ Customer.id }}" class="member_ryosyu">{{ payment_date }}</td>
-                            <!--資格認定結果-->
-                            {% set attendanceStatuIds = 0 %}
-                            <td class="col-md-1 col-sm-1 text-center" id="approveStatus-{{Customer.id}}">
-                                {% set attendanceStatus = null %}
-                                {% set attendanceReason = '' %}
-                                {% set certified = false %}
-                                {% if Customer.AttendanceHistories %}
-                                    {% for AttendanceHistory in Customer.AttendanceHistories %}
-                                        {% if AttendanceHistory.DelFlg == 0 %}
-                                            {% if AttendanceHistory.ProductTraining.id == Product.ProductTraining.id %}
-                                                {% if AttendanceHistory.AttendanceDenialReason %}
-                                                    {% set attendanceReason = AttendanceHistory.AttendanceDenialReason.id %}
-                                                {% endif %}
-                                                {% set attendanceStatuIds = AttendanceHistory.AttendanceStatus.id %}
-                                                {% set attendanceStatus = AttendanceHistory.AttendanceStatus.name %}
-                                                {% if AttendanceHistory.AttendanceStatus.id == 1 %}
-                                                    {% set certified = true %}
+                            {% if not ProductTraining.TrainingType.qualification is null %}
+                                <!--資格認定結果-->
+                                {% set attendanceStatuIds = 0 %}
+                                <td class="col-md-1 col-sm-1 text-center" id="approveStatus-{{Customer.id}}">
+                                    {% set attendanceStatus = null %}
+                                    {% set attendanceReason = '' %}
+                                    {% set certified = false %}
+                                    {% if Customer.AttendanceHistories %}
+                                        {% for AttendanceHistory in Customer.AttendanceHistories %}
+                                            {% if AttendanceHistory.DelFlg == 0 %}
+                                                {% if AttendanceHistory.ProductTraining.id == Product.ProductTraining.id %}
+                                                    {% if AttendanceHistory.AttendanceDenialReason %}
+                                                        {% set attendanceReason = AttendanceHistory.AttendanceDenialReason.id %}
+                                                    {% endif %}
+                                                    {% set attendanceStatuIds = AttendanceHistory.AttendanceStatus.id %}
+                                                    {% set attendanceStatus = AttendanceHistory.AttendanceStatus.name %}
+                                                    {% if AttendanceHistory.AttendanceStatus.id == 1 %}
+                                                        {% set certified = true %}
+                                                    {% endif %}
                                                 {% endif %}
                                             {% endif %}
-                                        {% endif %}
-                                    {% endfor %}
-                                {% endif %}
-                                {% if attendanceStatus == '' %}
-                                    <input type="hidden" id="attendance_set_{{ Customer.id }}" name="attendance_set_{{ Customer.id }}" value="0">
-                                    <span class="badge progress-bar-secondary">未定</span>
-                                {% else %}
-                                    <input type="hidden" id="attendance_set_{{ Customer.id }}" name="attendance_set_{{ Customer.id }}" value="1">
-                                    {% if certified %}
-                                        <span class="badge progress-bar-success">{{ attendanceStatus }}</span>
-                                    {% else %}
-                                        <span class="badge progress-bar-danger">{{ attendanceStatus }}</span>
-                                    {% endif %}
-                                {% endif %}
-                            </td>
-                            <!--否認理由-->
-                            <td class="col-md-2 col-sm-2">
-                                {% if attendanceStatuIds == 2 %}
-                                    <select class="form-control" id="approveOrDenial-{{Customer.id}}" data-id="{{Customer.id}}" name="approveOrDenials">
-                                {% else %}
-                                    <select class="form-control" id="approveOrDenial-{{Customer.id}}" style="display: none;" data-id="{{Customer.id}}" name="approveOrDenials">
-                                {% endif %}
-                                        <option value="0">-- アイテムを選択 --</option>
-                                        {% for denial in attendanceDenialReasons %}
-                                        {% if Customer.AttendanceHistory == null %}
-                                            <option value="{{denial.id}}">{{denial.name}}</option>
-                                        {% else %}
-                                            {% if attendanceReason and attendanceReason == denial.id %}
-                                                <option value="{{denial.id}}" selected>{{denial.name}}</option>
-                                            {% else %}
-                                                <option value="{{denial.id}}">{{denial.name}}</option>
-                                            {% endif %}
-                                        {% endif %}
                                         {% endfor %}
-                                    </select>
-                            </td>
+                                    {% endif %}
+                                    {% if attendanceStatus == '' %}
+                                        <input type="hidden" id="attendance_set_{{ Customer.id }}" name="attendance_set_{{ Customer.id }}" value="0">
+                                        <span class="badge progress-bar-secondary">未定</span>
+                                    {% else %}
+                                        <input type="hidden" id="attendance_set_{{ Customer.id }}" name="attendance_set_{{ Customer.id }}" value="1">
+                                        {% if certified %}
+                                            <span class="badge progress-bar-success">{{ attendanceStatus }}</span>
+                                        {% else %}
+                                            <span class="badge progress-bar-danger">{{ attendanceStatus }}</span>
+                                        {% endif %}
+                                    {% endif %}
+                                </td>
+                                <!--否認理由-->
+                                <td class="col-md-2 col-sm-2">
+                                    {% if attendanceStatuIds == 2 %}
+                                        <select class="form-control" id="approveOrDenial-{{Customer.id}}" data-id="{{Customer.id}}" name="approveOrDenials">
+                                    {% else %}
+                                        <select class="form-control" id="approveOrDenial-{{Customer.id}}" style="display: none;" data-id="{{Customer.id}}" name="approveOrDenials">
+                                    {% endif %}
+                                            <option value="0">-- アイテムを選択 --</option>
+                                            {% for denial in attendanceDenialReasons %}
+                                            {% if Customer.AttendanceHistory == null %}
+                                                <option value="{{denial.id}}">{{denial.name}}</option>
+                                            {% else %}
+                                                {% if attendanceReason and attendanceReason == denial.id %}
+                                                    <option value="{{denial.id}}" selected>{{denial.name}}</option>
+                                                {% else %}
+                                                    <option value="{{denial.id}}">{{denial.name}}</option>
+                                                {% endif %}
+                                            {% endif %}
+                                            {% endfor %}
+                                        </select>
+                                </td>
+                            {% endif %}
                         </tr>
                         {% endfor %}
                         </tbody>
