@@ -52,23 +52,23 @@ class CustomerBasicInfoType extends AbstractType
                     new Assert\Regex(array('pattern' => '/^[0-9]*$/')),
                 ),
             ))
-            ->add('membership_expired', 'text', array(
+            ->add('membership_expired_str', 'text', array(
                 'label' => '正会員資格満了日',
                 'required' => false,
                 'read_only' =>'true',
                 'constraints' => array(
                     new Assert\Regex(array('pattern' => '/^[0-9]{4}\/([0][1-9]|[1][0-2])\/([0][1-9]|[1-2][0-9]|[3][0-1])$/')),
                 ),
-                'mapped' => true,
+                'mapped' => false,
             ))
-            ->add('regular_member_promoted', 'text', array(
+            ->add('regular_member_promoted_str', 'text', array(
                 'label' => '正会員資格取得日',
                 'required' => false,
                 'read_only' =>'true',
                 'constraints' => array(
                     new Assert\Regex(array('pattern' => '/^[0-9]{4}\/([0][1-9]|[1][0-2])\/([0][1-9]|[1-2][0-9]|[3][0-1])$/')),
                 ),
-                'mapped' => true,
+                'mapped' => false,
             ))
             ->add('qualification', 'text', array(
                 'label' => '資格',

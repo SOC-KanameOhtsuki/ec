@@ -144,6 +144,13 @@ class CustomerEditController extends AbstractController
 
         $form = $builder->getForm();
         $form['basic_info']->setData($Customer->getCustomerBasicInfo());
+        if (!is_null($Customer->getCustomerBasicInfo()->getMembershipExpired())) {
+            $form['basic_info']['membership_expired_str']->setData($Customer->getCustomerBasicInfo()->getMembershipExpired()->format('Y/m/d'));
+        }
+        if (!is_null($Customer->getCustomerBasicInfo()->getRegularMemberPromoted())) {
+            $form['basic_info']['regular_member_promoted_str']->setData($Customer->getCustomerBasicInfo()->getRegularMemberPromoted()->format('Y/m/d'));
+        }
+
         // 自宅住所
         $form['home_address']->setData($HomeCustomerAddress);
         // 勤務先住所
@@ -297,6 +304,8 @@ class CustomerEditController extends AbstractController
                     }
                 }
                 $CustomerBasicInfo->setCustomer($Customer);
+                $CustomerBasicInfo->setMembershipExpired(new \DateTime(date('Y-m-d', strtotime($request->get('admin_customer')['basic_info']['membership_expired_str']))));
+                $CustomerBasicInfo->setRegularMemberPromoted(new \DateTime(date('Y-m-d H:i:s', strtotime($request->get('admin_customer')['basic_info']['regular_member_promoted_str']))));
                 $app['orm.em']->persist($CustomerBasicInfo);
                 if ($isQrCodeRegisted) {
                     log_info('(旧)QRコード削除', array($Customer->getId()));
