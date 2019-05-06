@@ -362,7 +362,7 @@ class CustomerBasicInfo extends \Eccube\Entity\AbstractEntity
      */
     public function getRegularMemberPromoted()
     {
-        return $this->regular_member_promoted);
+        return $this->regular_member_promoted;
     }
 
     /**
