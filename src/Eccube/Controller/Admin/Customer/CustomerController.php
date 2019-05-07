@@ -496,6 +496,8 @@ class CustomerController extends AbstractController
 
                 $ExportCsvRow = new \Eccube\Entity\ExportCsvRow();
 
+                $RegularMemberPromoted = '';
+                $MembershipExpired = '';
                 // CSV出力項目と合致するデータを取得.
                 foreach ($Csvs as $Csv) {
                     // 会員データを検索.
@@ -516,6 +518,16 @@ class CustomerController extends AbstractController
                             $ExportCsvRow->setData($Customer->getCustomerBasicInfo()->getMembershipExemption()->getName());
                         } else if ($Csv->getReferenceFieldName() == 'Status') {
                             $ExportCsvRow->setData($Customer->getCustomerBasicInfo()->getStatus()->getName());
+                        } else if ($Csv->getReferenceFieldName() == 'RegularMemberPromoted') {
+                            if (!is_null($Customer->getCustomerBasicInfo()->getRegularMemberPromoted())) {
+                                $RegularMemberPromoted = $Customer->getCustomerBasicInfo()->getRegularMemberPromoted()->format("Y/m/d");
+                            }
+                            $ExportCsvRow->setData($RegularMemberPromoted);
+                        } else if ($Csv->getReferenceFieldName() == 'MembershipExpired') {
+                            if (!is_null($Customer->getCustomerBasicInfo()->getMembershipExpired())) {
+                                $MembershipExpired = $Customer->getCustomerBasicInfo()->getMembershipExpired()->format("Y/m/d");
+                            }
+                            $ExportCsvRow->setData($MembershipExpired);
                         } else {
                             $ExportCsvRow->setData($csvService->getData($Csv, $Customer));
                         }
