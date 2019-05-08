@@ -84,5 +84,61 @@ class MembershipBillingCheckCommand extends \Knp\Command\Command
             file_put_contents($logfile_path, date('Y-m-d H:i:s: ') . "年会費支払済み滞納者 " . $targetCount . "件 検出\n", FILE_APPEND);
             $result = $MembershipBillingStatusRep->updatePaymentMember($termInfo->getTermYear(), array(6), 1);
         }
+        $sql = "SELECT";
+        $sql .= " count(*)";
+        $sql .= " FROM (";
+        $sql .= " SELECT";
+        $sql .= " dtb_customer_basic_info.customer_basic_info_id AS customer_basic_info_id,";
+        $sql .= " dtb_customer_basic_info.customer_id AS customer_id,";
+        $sql .= " dtb_customer_basic_info.last_pay_membership_year AS last_pay_membership_year,";
+        $sql .= " MAX(dtb_product_membership.membership_year) AS last_pay_membership_year_real";
+        $sql .= " FROM";
+        $sql .= " dtb_customer_basic_info";
+        $sql .= " LEFT JOIN dtb_membership_billing_status ON dtb_membership_billing_status.customer = dtb_customer_basic_info.customer_id";
+        $sql .= " INNER JOIN dtb_product_membership ON dtb_product_membership.product_membership_id = dtb_membership_billing_status.product_membership";
+        $sql .= " GROUP BY";
+        $sql .= " dtb_customer_basic_info.customer_id) AS TEMP";
+        $sql .= " WHERE";
+        $sql .= " (last_pay_membership_year IS NULL AND last_pay_membership_year_real IS NOT NULL)";
+        $sql .= " OR (last_pay_membership_year IS NOT NULL AND last_pay_membership_year_real IS NULL)";
+        $sql .= " OR (last_pay_membership_year IS NOT NULL AND last_pay_membership_year_real IS NOT NULL AND last_pay_membership_year <> last_pay_membership_year_real);";
+        $targetCount = $this->app['orm.em']->getConnection()->fetchColumn($sql);
+        if (0 < $targetCount) {
+            file_put_contents($logfile_path, date('Y-m-d H:i:s: ') . "支払実績・最終支払年度不一致 " . $targetCount . "件 検出\n", FILE_APPEND);
+            $sql = "UPDATE dtb_customer_basic_info";
+            $sql .= " INNER JOIN (";
+            $sql .= " SELECT";
+            $sql .= " dtb_customer_basic_info.customer_basic_info_id AS customer_basic_info_id,";
+            $sql .= " dtb_customer_basic_info.customer_id AS customer_id,";
+            $sql .= " dtb_customer_basic_info.last_pay_membership_year AS last_pay_membership_year,";
+            $sql .= " MAX(dtb_product_membership.membership_year) AS last_pay_membership_year_real";
+            $sql .= " FROM";
+            $sql .= " dtb_customer_basic_info";
+            $sql .= " LEFT JOIN dtb_membership_billing_status ON dtb_membership_billing_status.customer = dtb_customer_basic_info.customer_id";
+            $sql .= " INNER JOIN dtb_product_membership ON dtb_product_membership.product_membership_id = dtb_membership_billing_status.product_membership";
+            $sql .= " GROUP BY";
+            $sql .= " dtb_customer_basic_info.customer_id) AS TEMP ON TEMP.customer_basic_info_id = dtb_customer_basic_info.customer_basic_info_id";
+            $sql .= " SET dtb_customer_basic_info.last_pay_membership_year = TEMP.last_pay_membership_year_real";
+            $sql .= " WHERE";
+            $sql .= " (TEMP.last_pay_membership_year IS NULL AND TEMP.last_pay_membership_year_real IS NOT NULL)";
+            $sql .= " OR (TEMP.last_pay_membership_year IS NOT NULL AND TEMP.last_pay_membership_year_real IS NULL)";
+            $sql .= " OR (TEMP.last_pay_membership_year IS NOT NULL AND TEMP.last_pay_membership_year_real IS NOT NULL AND TEMP.last_pay_membership_year <> TEMP.last_pay_membership_year_real);";
+            $result = $this->app['orm.em']->getConnection()->executeQuery($sql);
+        }
+        $sql = "SELECT";
+        $sql .= " count(*)";
+        $sql .= " FROM";
+        $sql .= " dtb_customer_basic_info";
+        $sql .= " WHERE";
+        $sql .= " dtb_customer_basic_info.membership_expired <> CONCAT((dtb_customer_basic_info.last_pay_membership_year+1), '-03-31');";
+        $targetCount = $this->app['orm.em']->getConnection()->fetchColumn($sql);
+        if (0 < $targetCount) {
+            file_put_contents($logfile_path, date('Y-m-d H:i:s: ') . "最終支払年度・正会員有効期限不一致 " . $targetCount . "件 検出\n", FILE_APPEND);
+            $sql = "UPDATE dtb_customer_basic_info";
+            $sql .= " SET dtb_customer_basic_info.membership_expired = CONCAT((dtb_customer_basic_info.last_pay_membership_year+1), '-03-31')";
+            $sql .= " WHERE";
+            $sql .= " dtb_customer_basic_info.membership_expired <> CONCAT((dtb_customer_basic_info.last_pay_membership_year+1), '-03-31');";
+            $result = $this->app['orm.em']->getConnection()->executeQuery($sql);
+        }
     }
 }
