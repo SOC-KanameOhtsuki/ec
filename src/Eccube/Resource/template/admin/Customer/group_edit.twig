@@ -270,7 +270,9 @@ function deleteCustomer(idx) {
                                                 {{ groupCustomeForm.vars.value.id }}
                                             </td>
                                             <td id="customer_info_list__name--{{ groupCustomeForm.vars.value.id }}" class="text-left">
+                                                <a href="{{ url('admin_customer_edit', {'id': groupCustomeForm.vars.value.id}) }}">
                                                 {{ groupCustomeForm.vars.value.name01 }}{{ groupCustomeForm.vars.value.name02 }}({{ groupCustomeForm.vars.value.kana01 }}{{ groupCustomeForm.vars.value.kana02 }})
+                                                </a>
                                             </td>
                                             <td id="customer_info_list__tel--{{ groupCustomeForm.vars.value.id }}" class="text-left">
                                                 {% if groupCustomeForm.vars.value.tel01 and groupCustomeForm.vars.value.tel02 and groupCustomeForm.vars.value.tel03 %}
