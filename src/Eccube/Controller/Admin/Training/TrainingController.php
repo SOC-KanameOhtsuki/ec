@@ -16,6 +16,7 @@ use Eccube\Event\EventArgs;
 use Eccube\Service\CsvExportService;
 use Eccube\Util\FormUtil;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -841,12 +842,26 @@ class TrainingController extends AbstractController
         }
         $form['images']->setData($images);
 
+        $ExistStudents = false;
+        if ($Product->getId() !== null) {
+            $qb = $app['eccube.repository.customer']->getQueryBuilderBySearchTrainingProductIds($Product->getId());
+            if (0 < count($qb->getQuery()->getResult())) {
+                $ExistStudents = true;
+            }
+        }
+
         if ('POST' === $request->getMethod()) {
             // 入力制限回避
             $request_data = $request->request->all();
             $request_data['admin_training']['class']['product_type'] = $app['config']['product_type_normal'];
             $request->request->add($request_data);
+            $beforeName = $Product->getName();
             $form->handleRequest($request);
+            if ($ExistStudents) {
+                if ($beforeName != $request_data['admin_training']['name']) {
+                    $form['name']->addError(new FormError("この講習/研修/講演会情報にはすでに受講申込みが存在しますので更新できません。"));
+                }
+            }
             if ($form->isValid()) {
                 log_info('講習会登録開始', array($id));
                 // 講習会情報の登録
@@ -1002,13 +1017,6 @@ class TrainingController extends AbstractController
             $searchForm->handleRequest($request);
         }
 
-        $ExistStudents = false;
-        if ($Product->getId() !== null) {
-            $qb = $app['eccube.repository.customer']->getQueryBuilderBySearchTrainingProductIds($Product->getId());
-            if (0 < count($qb->getQuery()->getResult())) {
-                $ExistStudents = true;
-            }
-        }
 
         return $app->render('Training/edit_product.twig', array(
             'Product' => $Product,
