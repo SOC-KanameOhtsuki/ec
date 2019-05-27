@@ -304,8 +304,18 @@ class CustomerEditController extends AbstractController
                     }
                 }
                 $CustomerBasicInfo->setCustomer($Customer);
-                $CustomerBasicInfo->setMembershipExpired(new \DateTime(date('Y-m-d', strtotime($request->get('admin_customer')['basic_info']['membership_expired_str']))));
-                $CustomerBasicInfo->setRegularMemberPromoted(new \DateTime(date('Y-m-d H:i:s', strtotime($request->get('admin_customer')['basic_info']['regular_member_promoted_str']))));
+                if ((0 < strlen($request->get('admin_customer')['basic_info']['membership_expired_str']))
+                    && (isset($request->get('admin_customer')['basic_info']['membership_expired_str']))) {
+                    $CustomerBasicInfo->setMembershipExpired(new \DateTime(date('Y-m-d', strtotime($request->get('admin_customer')['basic_info']['membership_expired_str']))));
+                } else {
+                    $CustomerBasicInfo->setMembershipExpired(null);
+                }
+                if ((0 < strlen($request->get('admin_customer')['basic_info']['regular_member_promoted_str']))
+                    && (isset($request->get('admin_customer')['basic_info']['regular_member_promoted_str']))) {
+                    $CustomerBasicInfo->setRegularMemberPromoted(new \DateTime(date('Y-m-d H:i:s', strtotime($request->get('admin_customer')['basic_info']['regular_member_promoted_str']))));
+                } else {
+                    $CustomerBasicInfo->setMembershipExpired(null);
+                }
                 $app['orm.em']->persist($CustomerBasicInfo);
                 if ($isQrCodeRegisted) {
                     log_info('(旧)QRコード削除', array($Customer->getId()));

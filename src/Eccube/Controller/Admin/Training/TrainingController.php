@@ -2138,13 +2138,13 @@ class TrainingController extends AbstractController
             $AttendanceHistory->setProductTraining($ProductTraining);
             $AttendanceHistory->setAttendanceStatus($AttendanceStatus);
             if ($ProductTraining->getTrainingType()->getRankUp() == 1) {
-                $AttendanceHistory->setBeforeStatus($CustomerInfo->getStatus());
+                $AttendanceHistory->setBeforeStatus($CustomerInfo->getStatus()->getId());
                 $AttendanceHistory->setBeforeCustomerNumber($CustomerInfo->getCustomerNumber());
                 $AttendanceHistory->setBeforeCustomerPinCode($CustomerInfo->getCustomerPinCode());
                 $AttendanceHistory->setBeforeLastPayMembershipYear($CustomerInfo->getLastPayMembershipYear());
                 $AttendanceHistory->setBeforeMembershipExpired($CustomerInfo->getMembershipExpired());
                 $AttendanceHistory->setBeforeRegularMemberPromoted($CustomerInfo->getRegularMemberPromoted());
-                $AttendanceHistory->setBeforeMembershipExemption($CustomerInfo->getMembershipExemption());
+                $AttendanceHistory->setBeforeMembershipExemption($CustomerInfo->getMembershipExemption()->getId());
             }
             if ($ProductTraining->getTrainingType()->getQualificationType()->getId() == 2) {
                 $AttendanceHistory->setBeforeQualification($CustomerInfo->getSupporterType()->getId());
