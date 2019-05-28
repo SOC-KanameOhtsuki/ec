@@ -461,7 +461,7 @@ $(function() {
                                             {% endfor %}
                                             <div id="result_list__count--{{ Product.id }}" class="item_detail td">
                                                 <a href="{{ url('admin_student', {'id' : Product.id}) }}">
-                                                    {{ stock }} / {{ ClassStock }}
+                                                    {{ ClassStock - stock }} / {{ ClassStock }}
                                                 </a><br>
                                             </div>
                                             <!--受講者名簿（CSV）-->

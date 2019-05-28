@@ -46,6 +46,16 @@ class CustomerType extends AbstractType
         $config = $this->config;
 
         $builder
+            // 郵送先
+            ->add('mail_to', 'choice', array(
+                'label' => '郵送先',
+                'required' => false,
+                'choices' => array(1 => '自宅', 2 => '勤務先'),
+                'expanded' => true,
+                'multiple' => false,
+                'mapped' => false,
+                'empty_value' => false,
+            ))
             // 自宅住所
             ->add('home_address', 'admin_customer_address', array(
                 'mapped' => false,
