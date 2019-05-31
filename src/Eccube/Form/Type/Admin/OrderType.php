@@ -81,22 +81,13 @@ class OrderType extends AbstractType
             ))
             ->add('zip', 'zip', array(
                 'required' => false,
-                'options' => array(
-                    'constraints' => array(
-                        new Assert\NotBlank(),
-                    ),
-                ),
+                'options' => array(),
             ))
             ->add('address', 'address', array(
                 'required' => false,
-                'pref_options' => array(
-                    'constraints' => array(
-                        new Assert\NotBlank(),
-                    ),
-                ),
+                'pref_options' => array(),
                 'addr01_options' => array(
                     'constraints' => array(
-                        new Assert\NotBlank(),
                         new Assert\Length(array(
                             'max' => $config['mtext_len'],
                         )),
@@ -105,7 +96,6 @@ class OrderType extends AbstractType
                 'addr02_options' => array(
                     'required' => false,
                     'constraints' => array(
-                        new Assert\NotBlank(),
                         new Assert\Length(array(
                             'max' => $config['mtext_len'],
                         )),
@@ -116,16 +106,13 @@ class OrderType extends AbstractType
                 'required' => false,
                 'label' => 'メールアドレス',
                 'constraints' => array(
-                    new Assert\NotBlank(),
                     new Assert\Email(array('strict' => true)),
                 ),
             ))
             ->add('tel', 'tel', array(
                 'required' => false,
                 'options' => array(
-                    'constraints' => array(
-                        new Assert\NotBlank(),
-                    ),
+                    'constraints' => array(),
                 ),
             ))
             ->add('fax', 'tel', array(

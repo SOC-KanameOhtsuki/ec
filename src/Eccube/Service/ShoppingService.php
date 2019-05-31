@@ -685,7 +685,7 @@ class ShoppingService
             $productDeliveryFeeTotal += $this->getProductDeliveryFee($Shipping);
         }
 
-        $Shipping->setShippingDeliveryFee($deliveryFee->getFee() + $productDeliveryFeeTotal);
+        $Shipping->setShippingDeliveryFee((is_null($deliveryFee)?0:$deliveryFee->getFee()) + $productDeliveryFeeTotal);
         $Shipping->setShippingDeliveryName($Delivery->getName());
     }
 

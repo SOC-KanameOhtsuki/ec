@@ -149,6 +149,7 @@ class ShoppingController extends AbstractController
 
         // 複数配送の場合、エラーメッセージを一度だけ表示
         if (!$app['session']->has($this->sessionMultipleKey)) {
+            log_info('Shippings:' . print_r($Order->getShippings(), true));
             if (count($Order->getShippings()) > 1) {
 
                 $BaseInfo = $app['eccube.repository.base_info']->get();
