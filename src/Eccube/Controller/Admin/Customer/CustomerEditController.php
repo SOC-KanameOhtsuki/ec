@@ -158,7 +158,6 @@ class CustomerEditController extends AbstractController
 
         // 郵送先
         $form['mail_to']->setData($MailTo);
-
         // 自宅住所
         $form['home_address']->setData($HomeCustomerAddress);
         // 勤務先住所

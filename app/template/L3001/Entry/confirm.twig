@@ -53,6 +53,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
                                 {{ form_widget(form.home_address.company_name) }}
                             </dd>
                         </dl>
+                        <dl id="confirm_box__mail_to">
+                            <dt>{{ form_label(form.mail_to) }}</dt>
+                            <dd>
+                                <div class="form-group form-inline">
+                                    {{ form_widget(form.mail_to) }}
+                                </div>
+                            </dd>
+                        </dl>
                         <dl id="confirm_box__address_detail">
                             <dt>{{ form_label(form.home_address.address) }}</dt>
                             <dd>

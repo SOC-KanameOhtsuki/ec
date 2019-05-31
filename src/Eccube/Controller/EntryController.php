@@ -28,6 +28,7 @@ use Eccube\Application;
 use Eccube\Entity\Master\CustomerStatus;
 use Eccube\Event\EccubeEvents;
 use Eccube\Event\EventArgs;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception as HttpException;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
@@ -70,6 +71,11 @@ class EntryController extends AbstractController
 
         /* @var $form \Symfony\Component\Form\FormInterface */
         $form = $builder->getForm();
+        $form['nobulletin']->setData($app['eccube.repository.master.nobulletin_type']->find(1));
+        $form['anonymous']->setData($app['eccube.repository.master.anonymous_type']->find(1));
+        $form['anonymous_company']->setData($app['eccube.repository.master.anonymous_company_type']->find(1));
+        // 郵送先
+        $form['mail_to']->setData(1);
         // 自宅住所
         $form['home_address']->setData($HomeCustomerAddress);
         // 勤務先住所
@@ -79,6 +85,21 @@ class EntryController extends AbstractController
         $form->get('office_address')->remove('mobilephone');
         $form->get('office_address')->remove('email');
         $form->handleRequest($request);
+        if ((strlen($OfficeAddress->getCompanyName()) < 1) &&
+            (strlen($OfficeAddress->getZip01()) < 1) &&
+            (strlen($OfficeAddress->getZip02()) < 1) &&
+            (strlen($OfficeAddress->getPref()) < 1) &&
+            (strlen($OfficeAddress->getAddr01()) < 1) &&
+            (strlen($OfficeAddress->getAddr02()) < 1) &&
+            (strlen($OfficeAddress->getTel01()) < 1) &&
+            (strlen($OfficeAddress->getTel02()) < 1) &&
+            (strlen($OfficeAddress->getTel03()) < 1) &&
+            (strlen($OfficeAddress->getFax01()) < 1) &&
+            (strlen($OfficeAddress->getFax02()) < 1) &&
+            (strlen($OfficeAddress->getFax03()) < 1) && 
+            ($form['mail_to']->getData() == 2)) {
+            $form['mail_to']->addError(new FormError("郵送先を勤務先にする場合は勤務先を入力してください"));
+        }
 
         if ($form->isSubmitted() && $form->isValid()) {
             switch ($request->get('mode')) {
@@ -119,13 +140,16 @@ class EntryController extends AbstractController
                     $CustomerBasicInfo = new \Eccube\Entity\CustomerBasicInfo();
                     $CustomerBasicInfo->setCustomer($Customer)
                                         ->setStatus($app['eccube.repository.customer_basic_info_status']->find($app['config']['initialize_customer_basicinfo_status']))
-                                        ->setNobulletin($form->get('nobulletin')->getData())
-                                        ->setAnonymous($form->get('anonymous')->getData())
-                                        ->setAnonymousCompany($form->get('anonymous_company')->getData())
+                                        ->setNobulletin(is_null($form->get('nobulletin')->getData())?$app['eccube.repository.master.nobulletin_type']->find(1):$form->get('nobulletin')->getData())
+                                        ->setAnonymous(is_null($form->get('anonymous')->getData())?$app['eccube.repository.master.anonymous_type']->find(1):$form->get('anonymous')->getData())
+                                        ->setAnonymousCompany(is_null($form->get('anonymous_company')->getData())?$app['eccube.repository.master.anonymous_company_type']->find(1):$form->get('anonymous_company')->getData())
                                         ->setMembershipExemption($app['eccube.repository.master.exemption_type']->find($app['config']['initialize_exemption_type']))
                                         ->setInstructorType($app['eccube.repository.master.instructor_type']->find($app['config']['initialize_instructor_type']))
                                         ->setSupporterType($app['eccube.repository.master.supporter_type']->find($app['config']['initialize_supporter_type']))
-                                        ->setCustomerPinCode($request->request->get('entry')['customer_pin_code']['first']);
+                                        ->setCustomerPinCode($request->request->get('entry')['customer_pin_code']['first'])
+                                        ->setBulkSendGroup(0)
+                                        ->setBulkBillingGroup(0)
+                                        ->setEnvelopeUnneeded(0);
                     $Customer->setSalt(
                             $app['eccube.repository.customer']->createSalt(5)
                         )
@@ -139,6 +163,11 @@ class EntryController extends AbstractController
                     $HomeCustomerAddress->setCustomer($Customer)
                             ->setAddressType($app['orm.em']->getRepository('Eccube\Entity\Master\CustomerAddressType')->find(1))
                             ->setZipcode($HomeCustomerAddress->getZip01() . $HomeCustomerAddress->getZip02());
+                    if ($form['mail_to']->getData() == 1) {
+                        $HomeCustomerAddress->setMailTo($app['orm.em']->getRepository('Eccube\Entity\Master\MailTo')->find(2));
+                    } else {
+                        $HomeCustomerAddress->setMailTo($app['orm.em']->getRepository('Eccube\Entity\Master\MailTo')->find(1));
+                    }
                     $app['orm.em']->persist($HomeCustomerAddress);
                     if ((1 < strlen($OfficeAddress->getCompanyName())) ||
                         (1 < strlen($OfficeAddress->getZip01())) ||
@@ -155,6 +184,11 @@ class EntryController extends AbstractController
                         $OfficeAddress->setCustomer($Customer)
                             ->setAddressType($app['orm.em']->getRepository('Eccube\Entity\Master\CustomerAddressType')->find(2))
                             ->setZipcode($OfficeAddress->getZip01() . $OfficeAddress->getZip02());
+                        if ($form['mail_to']->getData() == 2) {
+                            $OfficeAddress->setMailTo($app['orm.em']->getRepository('Eccube\Entity\Master\MailTo')->find(2));
+                        } else {
+                            $OfficeAddress->setMailTo($app['orm.em']->getRepository('Eccube\Entity\Master\MailTo')->find(1));
+                        }
                         $app['orm.em']->persist($OfficeAddress);
                     } else if ($OfficeAddress->getId() !== null) {
                         $app['orm.em']->remove($OfficeAddress);

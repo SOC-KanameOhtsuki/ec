@@ -395,6 +395,15 @@ class EccubeServiceProvider implements ServiceProviderInterface
         $app['eccube.repository.master.training_type'] = $app->share(function () use ($app) {
             return $app['orm.em']->getRepository('Eccube\Entity\Master\TrainingType');
         });
+        $app['eccube.repository.master.nobulletin_type'] = $app->share(function () use ($app) {
+            return $app['orm.em']->getRepository('Eccube\Entity\Master\NobulletinType');
+        });
+        $app['eccube.repository.master.anonymous_type'] = $app->share(function () use ($app) {
+            return $app['orm.em']->getRepository('Eccube\Entity\Master\AnonymousType');
+        });
+        $app['eccube.repository.master.anonymous_company_type'] = $app->share(function () use ($app) {
+            return $app['orm.em']->getRepository('Eccube\Entity\Master\AnonymousCompanyType');
+        });
         $app['eccube.repository.mail_template'] = $app->share(function () use ($app) {
             return $app['orm.em']->getRepository('Eccube\Entity\MailTemplate');
         });
