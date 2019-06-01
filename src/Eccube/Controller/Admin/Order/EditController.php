@@ -698,6 +698,8 @@ class EditController extends AbstractController
                     break;
 
                 default:
+                    $form = $builder->getForm();
+                    $form->setData($TargetOrder);
                     break;
             }
         }
