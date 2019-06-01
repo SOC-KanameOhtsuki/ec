@@ -115,14 +115,35 @@ class MailLabelPdfService extends AbstractFPDIService
         foreach ($customersData as $customerData) {
             // PDFにページを追加する
             $this->addPdfPage();
-            // 郵便番号
-            $this->lfText(29.2, 25.9, (is_null($customerData->getZip01())?"":$customerData->getZip01()) . (is_null($customerData->getZip02())?"":$customerData->getZip02()), 11, 'B');
-            // 住所
-            $this->lfText(25.7, 31.8, (is_null($customerData->getPref())?"":$customerData->getPref()->getName()) . (is_null($customerData->getAddr01())?"":$customerData->getAddr01()) . (is_null($customerData->getAddr02())?"":$customerData->getAddr02()), 9, 'B');
-            // 会員名
-            $this->lfText(25.7, 38.4, $customerData->getName01() . " " . $customerData->getName02() . ' 様', 14, 'B');
-            // 会員番号
-            $this->lfText(89.4, 51.7, $customerData->getId(), 9, 'B');
+            $Out = false;
+            foreach ($customerData->getCustomerAddresses() as $AddresInfo) {
+                if ($AddresInfo->getAddressType()->getId() == 2) {
+                    // 郵便番号
+                    $this->lfText(29.2, 25.9, (is_null($AddresInfo->getZip01())?"":$AddresInfo->getZip01()) . (is_null($AddresInfo->getZip02())?"":$AddresInfo->getZip02()), 11, 'B');
+                    // 住所
+                    $this->lfText(25.7, 31.8, (is_null($AddresInfo->getPref())?"":$AddresInfo->getPref()->getName()) . (is_null($AddresInfo->getAddr01())?"":$AddresInfo->getAddr01()) . (is_null($AddresInfo->getAddr02())?"":$AddresInfo->getAddr02()), 9, 'B');
+                    // 会員名
+                    if (strlen((is_null($AddresInfo->getName01())?"":$AddresInfo->getName01())) > 0 && strlen((is_null($AddresInfo->getName01())?"":$AddresInfo->getName01())) > 0 ) {
+                        $this->lfText(25.7, 38.4, $AddresInfo->getName01() . " " . $AddresInfo->getName02() . ' 様', 14, 'B');
+                    } else {
+                        $this->lfText(25.7, 38.4, $AddresInfo->getCompanyName() . ' 様', 14, 'B');
+                    }
+                    // 会員番号
+                    $this->lfText(89.4, 51.7, $customerData->getId(), 9, 'B');
+                    $Out = true;
+                    break;
+                }
+            }
+            if (!$Out) {
+                // 郵便番号
+                $this->lfText(29.2, 25.9, (is_null($customerData->getZip01())?"":$customerData->getZip01()) . (is_null($customerData->getZip02())?"":$customerData->getZip02()), 11, 'B');
+                // 住所
+                $this->lfText(25.7, 31.8, (is_null($customerData->getPref())?"":$customerData->getPref()->getName()) . (is_null($customerData->getAddr01())?"":$customerData->getAddr01()) . (is_null($customerData->getAddr02())?"":$customerData->getAddr02()), 9, 'B');
+                // 会員名
+                $this->lfText(25.7, 38.4, $customerData->getName01() . " " . $customerData->getName02() . ' 様', 14, 'B');
+                // 会員番号
+                $this->lfText(89.4, 51.7, $customerData->getId(), 9, 'B');
+            }
       }
 
         return true;
