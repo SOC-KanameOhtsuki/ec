@@ -2184,16 +2184,15 @@ class TrainingController extends AbstractController
                 $CustomerInfo->setStatus($InfoStatus);
                 $CustomerInfo->setCustomerNumber($code);
                 $CustomerInfo->setCustomerPinCode(rand(10000000, 99999999));
-                $CustomerInfo->setLastPayMembershipYear($ProductTraining->getTrainingDateStart()->format('Y'));
-                $CustomerInfo->setMembershipExpired(new \DateTime(date('Y-m-d', strtotime(sprintf("%d/03/31", ((int)($ProductTraining->getTrainingDateStart()->format('Y')) + 1))))));
-                $CustomerInfo->setRegularMemberPromoted(new \DateTime($ProductTraining->getTrainingDateStart()->format('Y-m-d')));
-                $CustomerInfo->setMembershipExemption($app['eccube.repository.master.exemption_type']->find(2));
+                $CustomerInfo->setLastPayMembershipYear($paymentYear);
+                $CustomerInfo->setMembershipExpired(new \DateTime($termEnd));
+                $CustomerInfo->setRegularMemberPromoted(new \DateTime(date('Y-m-d')));
 
-                // 正会員昇格年度の年会費は免除
+                // 正会員昇格年度の年会費は同時購入済み
                 $MembershipBillingStatus = new \Eccube\Entity\MembershipBillingStatus();
                 $MembershipBillingStatus->setCustomer($Customer)
                                         ->setProductMembership($app['eccube.repository.product_membership']->getProductMembershipByMembershipYear($paymentYear))
-                                        ->setStatus($app['eccube.repository.master.billing_status']->find(2));
+                                        ->setStatus($app['eccube.repository.master.billing_status']->find(1));
 
                 $app['orm.em']->persist($MembershipBillingStatus);
             }

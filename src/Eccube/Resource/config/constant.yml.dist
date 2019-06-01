@@ -193,6 +193,8 @@ plugin_upload_realdir: /PATH/TO/WEB_ROOT/data/downloads/plugin/
 point_rule: 2
 point_value: 1
 price_len: 8
+product_type_regist_cost: 7
+product_type_movie: 6
 product_type_membership: 5
 product_type_training: 4
 product_type_charge: 3

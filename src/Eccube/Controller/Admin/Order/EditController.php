@@ -311,6 +311,8 @@ class EditController extends AbstractController
                     break;
 
                 default:
+                    $form = $builder->getForm();
+                    $form->setData($TargetOrder);
                     break;
             }
         }
@@ -1113,7 +1115,6 @@ class EditController extends AbstractController
                 'bill_to_fax02' => $CustomerGroup->getBillToFax02(),
                 'bill_to_fax03' => $CustomerGroup->getBillToFax03(),
             );
-            log_info('searchCustomerGroupByGroupId', array(print_r($data, true)));
             return $app->json($data);
         }
     }
@@ -1345,15 +1346,43 @@ class EditController extends AbstractController
      * @param $app
      * @param $Order
      */
-    protected function calculate($app, \Eccube\Entity\Order $Order)
+    protected function calculate($app, \Eccube\Entity\Order &$Order)
     {
         $taxtotal = 0;
         $subtotal = 0;
 
+        $existsRunkupTraining = false;
+        $existsRunkupNeedProduct = false;
+        $RunkupNeedProduct = [];
+        $RunkupNeedProductId = [];
+        if ($Order->getId() < 1 || is_null($Order->getId())) {
+            $RunkupNeedProduct = $app['eccube.repository.product']
+                            ->createQueryBuilder('p')
+                            ->leftJoin('p.ProductClasses', 'pc')
+                            ->leftJoin('pc.ProductType', 'pt')
+                            ->andWhere("pt.id = " . $app['config']['product_type_regist_cost'])
+                            ->andWhere('p.del_flg = 0')
+                            ->addOrderBy('p.id', 'asc')
+                            ->getQuery()
+                            ->getResult();
+            if (!empty($RunkupNeedProduct)) {
+                foreach ($RunkupNeedProduct as $product) {
+                    $RunkupNeedProductId[] = $product->getId();
+                }
+            }
+        }
         // 受注明細データの税・小計を再計算
         /** @var $OrderDetails \Eccube\Entity\OrderDetail[] */
         $OrderDetails = $Order->getOrderDetails();
         foreach ($OrderDetails as $OrderDetail) {
+            if (in_array($OrderDetail->getProduct()->getId(), $RunkupNeedProductId)) {
+                $existsRunkupNeedProduct = true;
+            }
+            if ($OrderDetail->getProduct()->hasProductTraining()) {
+                if ($OrderDetail->getProduct()->getProductTraining()->getTrainingType()->getRankUp() == 1) {
+                    $existsRunkupTraining = true;
+                }
+            }
             // 税
             $tax = $app['eccube.service.tax_rule']
                 ->calcTax($OrderDetail->getPrice(), $OrderDetail->getTaxRate(), $OrderDetail->getTaxRule());
@@ -1363,6 +1392,36 @@ class EditController extends AbstractController
 
             // 小計
             $subtotal += $OrderDetail->getTotalPrice();
+        }
+        if ($existsRunkupTraining && !$existsRunkupNeedProduct) {
+            foreach ($RunkupNeedProduct as $product) {
+                $productClass = null;
+                foreach ($product->getProductClasses() as $RunkupNeedProductClass) {
+                    if ($RunkupNeedProductClass->getDelFlg() == Constant::DISABLED) {
+                        $productClass = $RunkupNeedProductClass;
+                        break;
+                    }
+                }
+                $RunkupNeedOrderDetail = new \Eccube\Entity\OrderDetail();
+                $RunkupNeedOrderDetail->setProductName($product->getName());
+                $RunkupNeedOrderDetail->setProductCode(is_null($productClass)?null:$productClass->getCode());
+                $RunkupNeedOrderDetail->setClassCategoryName1(is_null($productClass)?null:is_null($productClass->getClassCategory1())?null:$productClass->getClassCategory1()->getName());
+                $RunkupNeedOrderDetail->setClassCategoryName2(is_null($productClass)?null:is_null($productClass->getClassCategory2())?null:$productClass->getClassCategory2()->getName());
+                $RunkupNeedOrderDetail->setPrice(is_null($productClass)?0:$productClass->getPrice02());
+                $RunkupNeedOrderDetail->setQuantity(1);
+                $RunkupNeedOrderDetail->setTaxRate(0);
+                $RunkupNeedOrderDetail->setTaxRule(is_null($productClass)?1:$productClass->getTaxRate());
+                $RunkupNeedOrderDetail->setProduct($product);
+                $RunkupNeedOrderDetail->setProductClass($productClass);
+                $RunkupNeedOrderDetail->setClassName1(null);
+                $RunkupNeedOrderDetail->setClassName2(null);
+                $Order->addOrderDetail($RunkupNeedOrderDetail);
+                $tax = $app['eccube.service.tax_rule']
+                    ->calcTax($RunkupNeedOrderDetail->getPrice(), $RunkupNeedOrderDetail->getTaxRate(), $RunkupNeedOrderDetail->getTaxRule());
+                $RunkupNeedOrderDetail->setPriceIncTax($RunkupNeedOrderDetail->getPrice() + $tax);
+                $taxtotal += $tax * $RunkupNeedOrderDetail->getQuantity();
+                $subtotal += $RunkupNeedOrderDetail->getTotalPrice();
+            }
         }
 
         $shippings = $Order->getShippings();
