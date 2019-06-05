@@ -237,6 +237,8 @@ class AdminControllerProvider implements ControllerProviderInterface
         $c->match('/form_printing/regular_member_list_select_download_without_anonymous', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::regularMemberListSelectExportWithoutAnonymous')->bind('admin_regular_member_select_export_without_anonymous');
         $c->match('/form_printing/regular_member_list_all_download', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::regularMemberListAllExport')->bind('admin_regular_member_all_export');
         $c->match('/form_printing/regular_member_list_select_download', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::regularMemberListSelectExport')->bind('admin_regular_member_select_export');
+        $c->match('/form_printing/regular_member_list_csv_all_download', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::regularMemberListCsvAllExport')->bind('admin_regular_member_csv_all_export');
+        $c->match('/form_printing/regular_member_list_csv_select_download', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::regularMemberListCsvSelectExport')->bind('admin_regular_member_csv_select_export');
 
         // content
         // deprecated /content/ 3.1 delete. use /content/news

@@ -1482,6 +1482,103 @@ class FormPrintingController extends AbstractController
         return $response;
     }
 
+    public function regularMemberListCsvAllExport(Application $app, Request $request = null)
+    {
+        // タイムアウトを無効にする.
+        set_time_limit(0);
+
+        // sql loggerを無効にする.
+        $em = $app['orm.em'];
+        $em->getConfiguration()->setSQLLogger(null);
+
+        $session = $request->getSession();
+        $viewData = $session->get('eccube.admin.customer.search');
+        if (is_null($viewData)) {
+            $app->addError('admin.regular_member_list_pdf.parameter.notfound', 'admin');
+            log_info('The Customer cannot found!');
+            return $app->redirect($app->url('admin_form_printing_regular_member_list'));
+        }
+
+        // sessionに保持されている検索条件を復元.
+        $builder = $app['form.factory']
+            ->createBuilder('admin_search_regular_member');
+        $searchForm = $builder->getForm();
+        $searchData = \Eccube\Util\FormUtil::submitAndGetData($searchForm, $viewData);
+
+        // 顧客情報取得
+        $customers = $app['eccube.repository.customer']->getQueryBuilderBySearchRegularMemberData($searchData)
+                ->getQuery()
+                ->getResult();
+
+        $response = new StreamedResponse();
+        $response->setCallback(function () use ($app, $request, $customers) {
+
+            log_info('customers:' . count($customers));
+
+            // サービスの取得
+            /* @var RegularMemberListCsvExportService $service */
+
+            $service = $app['eccube.service.csv.regular_member_list.export'];
+
+            // 顧客情報から正会員CSVを作成する
+            $service->makeCsv($customers);
+        });
+
+        $now = new \DateTime();
+        $filename = 'payment_' . $now->format('YmdHis') . '.csv';
+        $response->headers->set('Content-Type', 'application/octet-stream');
+        $response->headers->set('Content-Disposition', 'attachment; filename=' . $filename);
+        $response->send();
+
+        log_info("CSVファイル名", array($filename));
+        return $response;
+    }
+
+    public function regularMemberListCsvSelectExport(Application $app, Request $request = null)
+    {
+        // タイムアウトを無効にする.
+        set_time_limit(0);
+
+        // sql loggerを無効にする.
+        $em = $app['orm.em'];
+        $em->getConfiguration()->setSQLLogger(null);
+
+        // requestから対象顧客IDの一覧を取得する.
+        $ids = $this->getIds($request);
+        if (count($ids) == 0) {
+            $app->addError('admin.regular_member_list_pdf.parameter.notfound', 'admin');
+            log_info('The Customer cannot found!');
+            return $app->redirect($app->url('admin_form_printing_regular_member_list'));
+        }
+
+        // 顧客情報取得
+        $customers = $app['eccube.repository.customer']->getQueryBuilderBySearchRegularMemberIds($ids)
+                ->getQuery()
+                ->getResult();
+
+        $response = new StreamedResponse();
+        $response->setCallback(function () use ($app, $request, $customers) {
+
+            log_info('customers:' . count($customers));
+
+            // サービスの取得
+            /* @var RegularMemberListCsvExportService $service */
+            $service = $app['eccube.service.csv.regular_member_list.export'];
+
+            // 顧客情報から正会員CSVを作成する
+            $service->makeCsv($customers);
+        });
+
+        $now = new \DateTime();
+        $filename = 'payment_' . $now->format('YmdHis') . '.csv';
+        $response->headers->set('Content-Type', 'application/octet-stream');
+        $response->headers->set('Content-Disposition', 'attachment; filename=' . $filename);
+        $response->send();
+
+        log_info("CSVファイル名", array($filename));
+        return $response;
+    }
+
     /**
      * requestからID一覧を取得する.
      *

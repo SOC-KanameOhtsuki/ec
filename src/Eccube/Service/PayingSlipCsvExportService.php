@@ -3,7 +3,6 @@
  * This file is Customized file
  */
 
-
 namespace Eccube\Service;
 
 use Eccube\Common\Constant;

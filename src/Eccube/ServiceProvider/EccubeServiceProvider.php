@@ -124,6 +124,19 @@ class EccubeServiceProvider implements ServiceProviderInterface
             $csvService->setProductRepository($app['eccube.repository.product']);
             return $csvService;
         });
+        $app['eccube.service.csv.regular_member_list.export'] = $app->share(function () use ($app) {
+            $config = $app['config'];
+            $config['csv_export_separator'] = "\t";
+            $csvService = new \Eccube\Service\RegularMemberListCsvExportService();
+            $csvService->setEntityManager($app['orm.em']);
+            $csvService->setConfig($config);
+            $csvService->setCsvRepository($app['eccube.repository.csv']);
+            $csvService->setCsvTypeRepository($app['eccube.repository.master.csv_type']);
+            $csvService->setOrderRepository($app['eccube.repository.order']);
+            $csvService->setCustomerRepository($app['eccube.repository.customer']);
+            $csvService->setProductRepository($app['eccube.repository.product']);
+            return $csvService;
+        });
         $app['eccube.service.shopping'] = $app->share(function () use ($app) {
             return new \Eccube\Service\ShoppingService($app, $app['eccube.service.cart'], $app['eccube.service.order']);
         });

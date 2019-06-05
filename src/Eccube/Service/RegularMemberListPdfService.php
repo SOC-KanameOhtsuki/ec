@@ -32,8 +32,6 @@ class RegularMemberListPdfService extends AbstractFPDIService
     const FONT_GOTHIC = 'kozgopromedium';
     /** FONT 明朝 */
     const FONT_SJIS = 'kozminproregular';
-    /** 1ページ最大行数 */
-    const MAX_ROR_PER_PAGE = 39;
 
     // ====================================
     // 変数宣言
@@ -61,9 +59,6 @@ class RegularMemberListPdfService extends AbstractFPDIService
     /** 発行日 @var string */
     private $issueDate = '';
 
-    /** 最大ページ @var string */
-    private $pageMax = '';
-
     /**
      * コンストラクタ.
      *
@@ -78,12 +73,13 @@ class RegularMemberListPdfService extends AbstractFPDIService
          $this->SetFont(self::FONT_SJIS);
 
         // PDFの余白(上左右)を設定
-        $this->SetMargins(15, 20);
+        $this->SetMargins(5, 22);
+        $this->SetAutoPageBreak(false, 5);
 
-        // ヘッダーの出力を無効化
-        $this->setPrintHeader(false);
+        $this->setHeaderMargin(10);
+        $this->setHeaderFont(array(self::FONT_SJIS, '', 8));
+        $this->setPrintHeader(true);
 
-        // フッターの出力を無効化
         $this->setPrintFooter(true);
         $this->setFooterMargin();
         $this->setFooterFont(array(self::FONT_SJIS, '', 8));
@@ -104,42 +100,90 @@ class RegularMemberListPdfService extends AbstractFPDIService
         }
         // 発行日の設定
         $this->issueDate = '作成日: ' . date('Y年m月d日');
-        // ページ計算
-        $this->pageMax = ((int) (count($customersData) / self::MAX_ROR_PER_PAGE)) + (((count($customersData) % self::MAX_ROR_PER_PAGE) == 0)?0:1);
-        // ダウンロードファイル名の初期化
+       // ダウンロードファイル名の初期化
         $this->downloadFileName = null;
 
-        // テンプレートファイルを読み込む
-        $pdfFile = $this->app['config']['pdf_template_regular_member_list'];
-        $templateFilePath = __DIR__.'/../Resource/pdf/'.$pdfFile;
-        $this->setSourceFile($templateFilePath);
-
-        $row = 1;
+        // PDFにページを追加する
+        $this->AddPage('LANDSCAPE', 'A4');
         foreach ($customersData as $customerData) {
-            if ($row == 1) {
-                // PDFにページを追加する
-                $this->addPdfPage();
-            }
             // 会員番号
-            $this->lfText(7.1, 31.5 + (6.41 * ($row - 1)), $customerData->getId(), 8);
-            // 会員名
-            $this->lfText(27.9, 31.5 + (6.41 * ($row - 1)), $customerData->getName01() . " " . $customerData->getName02(), 8);
-            // 役職
-            $this->lfText(50.5, 31.5 + (6.41 * ($row - 1)), ($customerData->getCustomerBasicInfo()->getSupporterType() == '非サポータ'?'':'サポータ'), 8);
+            $oldCustomerId = '';
+            if (!is_null($customerData->getCustomerBasicInfo()->getCustomerNumberOld()) ){
+                if (strlen($customerData->getCustomerBasicInfo()->getCustomerNumberOld()) < 6) {
+                    $oldCustomerId = intval($customerData->getCustomerBasicInfo()->getCustomerNumberOld());
+                } else {
+                    $oldCustomerId = intval(substr($customerData->getCustomerBasicInfo()->getCustomerNumberOld(),
+                                            strlen($customerData->getCustomerBasicInfo()->getCustomerNumberOld()) - 5));
+                }
+            }
+            // サポータ資格
+            $supporter_type = ($customerData->getCustomerBasicInfo()->getSupporterType() == '非サポータ'?'':'サポータ');
             // インストラクタ資格
-            $this->lfText(71.6, 31.5 + (6.41 * ($row - 1)), ($customerData->getCustomerBasicInfo()->getInstructorType() == '非インストラクタ'?'':$customerData->getCustomerBasicInfo()->getInstructorType()), 8);
-            // 地区
-            $this->lfText(102.4, 31.5 + (6.41 * ($row - 1)), $customerData->getPref() . $customerData->getAddr01(), 8);
-            // 所属団体・施設
+            $instructor_type = ($customerData->getCustomerBasicInfo()->getInstructorType() == '非インストラクタ'?'':$customerData->getCustomerBasicInfo()->getInstructorType());
+            $Out = false;
+            foreach ($customerData->getCustomerAddresses() as $AddresInfo) {
+                if ($AddresInfo->getAddressType()->getId() == 2) {
+                    // 都道府県
+                    $pref = (is_null($AddresInfo->getAddr01())?"":$AddresInfo->getPref());
+                    // 市町村
+                    $addr = (is_null($AddresInfo->getAddr01())?"":$AddresInfo->getAddr01());
+                    $Out = true;
+                    break;
+                }
+            }
+            if (!$Out) {
+                // 都道府県
+                $pref = (is_null($customerData->getAddr01())?"":$customerData->getPref());
+                // 市町村
+                $addr = (is_null($customerData->getAddr01())?"":$customerData->getAddr01());
+            }
+            // 勤務先
             if ($customerData->getCustomerBasicInfo()->getAnonymousCompany()->getId() == 2 || !$anonymousEnabled) {
-                $this->lfText(153.2, 31.5 + (6.41 * ($row - 1)), $customerData->getCompanyName(), 8);
+                $company = (is_null($customerData->getCompanyName())?"":$customerData->getCompanyName());
+            } else {
+                $company = '';
             }
 
-            if ($row < self::MAX_ROR_PER_PAGE) {
-                ++$row;
-            } else {
-                $row = 1;
+            $height = $this->getStringHeight(20, $customerData->getName01()) + 0.3;
+            if ($height < $this->getStringHeight(20, $customerData->getName02()) + 0.3) {
+                $height = $this->getStringHeight(20, $customerData->getName02()) + 0.3;
             }
+            if ($height < $this->getStringHeight(25, $customerData->getKana01()) + 0.3) {
+                $height = $this->getStringHeight(25, $customerData->getKana01()) + 0.3;
+            }
+            if ($height < $this->getStringHeight(25, $customerData->getKana02()) + 0.3) {
+                $height = $this->getStringHeight(25, $customerData->getKana02()) + 0.3;
+            }
+            if ($height < $this->getStringHeight(35, $addr) + 0.3) {
+                $height = $this->getStringHeight(35, $addr) + 0.3;
+            }
+            if ($height < $this->getStringHeight(40, $company) + 0.3) {
+                $height = $this->getStringHeight(40, $company) + 0.3;
+            }
+
+            // 会員番号
+            $this->Cell(25.0, $height, $oldCustomerId, 1, 0, "C", false, "", 0, false, "T", "M");
+            // 会員名(姓)
+            $this->MultiCell(20.0, $height, $customerData->getName01(), 1, "L", false, 0, "", "", true, 0, false, true, $height, "M");
+            // 会員名(名)
+            $this->MultiCell(20.0, $height, $customerData->getName02(), 1, "L", false, 0, "", "", true, 0, false, true, $height, "M");
+            // 会員名(セイ)
+            $this->MultiCell(25.0, $height, $customerData->getKana01(), 1, "L", false, 0, "", "", true, 0, false, true, $height, "M");
+            // 会員名(メイ)
+            $this->MultiCell(25.0, $height, $customerData->getKana02(), 1, "L", false, 0, "", "", true, 0, false, true, $height, "M");
+            // サポータ資格
+            $this->Cell(25.0, $height, $supporter_type, 1, 0, "C", false, "", 0, false, "T", "M");
+            // インストラクタ資格
+            $this->Cell(25.0, $height, $instructor_type, 1, 0, "C", false, "", 0, false, "T", "M");
+            // 都道府県
+            $this->Cell(20.0, $height, $pref, 1, 0, "C", false, "", 0, false, "T", "M");
+            // 市町村
+            $this->MultiCell(35.0, $height, $addr, 1, "L", false, 0, "", "", true, 0, false, true, $height, "M");
+            // 勤務先
+            $this->MultiCell(40.0, $height, $company, 1, "L", false, 0, "", "", true, 0, false, true, $height, "M");
+            // PINコード
+            $this->Cell(25.0, $height, (is_null($customerData->getCustomerBasicInfo()->getCustomerPinCode())?"":$customerData->getCustomerBasicInfo()->getCustomerPinCode()), 1, 0, "C", false, "", 0, false, "T", "M");
+            $this->Ln();
         }
 
         return true;
@@ -170,30 +214,44 @@ class RegularMemberListPdfService extends AbstractFPDIService
         return $this->downloadFileName;
     }
 
+    public function Header()
+    {
+        $this->backupFont();
+        $this->SetFont('', '', 10);
+        // 会員番号
+        $this->Cell(25.0, 12, "会員番号", 1, 0, "C", false, "", 0, false, "T", "M");
+        // 会員名(姓)
+        $this->Cell(20.0, 12, "姓", 1, 0, "C", false, "", 0, false, "T", "M");
+        // 会員名(名)
+        $this->Cell(20.0, 12, "名", 1, 0, "C", false, "", 0, false, "T", "M");
+        // 会員名(セイ)
+        $this->Cell(25.0, 12, "セイ", 1, 0, "C", false, "", 0, false, "T", "M");
+        // 会員名(メイ)
+        $this->Cell(25.0, 12, "メイ", 1, 0, "C", false, "", 0, false, "T", "M");
+        // サポータ資格
+        $this->MultiCell(25.0, 12, "サポータ資格", 1, "C", false, 0, "", "", true, 0, false, true, 12, "M");
+        // インストラクタ資格
+        $this->MultiCell(25.0, 12, "インストラクタ資格", 1, "L", false, 0, "", "", true, 0, false, true, 12, "M");
+        // 都道府県
+        $this->Cell(20.0, 12, "都道府県", 1, 0, "C", false, "", 0, false, "T", "M");
+        // 市町村
+        $this->Cell(35.0, 12, "市町村", 1, 0, "C", false, "", 0, false, "T", "M");
+        // 勤務先
+        $this->Cell(40.0, 12, "勤務先", 1, 0, "C", false, "", 0, false, "T", "M");
+        // PINコード
+        $this->Cell(25.0, 12, "PINコード", 1, 0, "C", false, "", 0, false, "T", "M");
+        $this->Ln();
+        // ページ情報
+        $this->lfText(285.0, 7.6, $this->PageNo() . ' Page', 8);
+        $this->restoreFont();
+    }
+
     /**
      * フッターに発行日を出力する.
      */
     public function Footer()
     {
         $this->Cell(0, 0, $this->issueDate, 0, 0, 'R');
-    }
-
-    /**
-     * 作成するPDFのテンプレートファイルを指定する.
-     */
-    protected function addPdfPage()
-    {
-        // ページを追加
-        $this->AddPage();
-
-        // テンプレートに使うテンプレートファイルのページ番号を取得
-        $tplIdx = $this->importPage(1);
-
-        // テンプレートに使うテンプレートファイルのページ番号を指定
-        $this->useTemplate($tplIdx, null, null, null, null, true);
-
-        // ページ情報
-        $this->lfText(194.3, 7.6, '(' . $this->PageNo() . '/' . $this->pageMax . ')', 8);
     }
 
     /**
