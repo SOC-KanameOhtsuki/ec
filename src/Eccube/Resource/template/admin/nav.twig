@@ -55,6 +55,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
                                 <a data-toggle="modal" data-target="#exemptionConfirmModal">
                                 {{ level2.name }}
                                 </a>
+                            {% elseif level2.id == 'customer_out_regular_member_list' %}
+                                <a data-toggle="modal" data-target="#outRegularMemberListConfirmModal">
+                                {{ level2.name }}
+                                </a>
                             {% else %}
                             <a href="{{ url(level2.url) }}">
                                 {{ level2.name }}

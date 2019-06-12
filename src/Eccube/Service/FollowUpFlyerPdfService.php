@@ -15,18 +15,19 @@ use Eccube\Entity\BaseInfo;
 use Eccube\Entity\Help;
 use Eccube\Entity\Order;
 use Eccube\Entity\OrderDetail;
+use Japanese\Holiday\Repository as HolidayRepository;
 
 /**
- * Class RegistrationConfirmPdfService.
+ * Class FollowUpFlyerPdfService.
  * Do export pdf function.
  */
-class RegistrationConfirmPdfService extends AbstractFPDIService
+class FollowUpFlyerPdfService extends AbstractFPDIService
 {
     // ====================================
     // 定数宣言
     // ====================================
     /** ダウンロードするPDFファイル名 */
-    const OUT_PDF_FILE_NAME = 'registration_confirm';
+    const OUT_PDF_FILE_NAME = 'follow_up_flyer';
 
     /** FONT ゴシック */
     const FONT_GOTHIC = 'kozgopromedium';
@@ -64,6 +65,9 @@ class RegistrationConfirmPdfService extends AbstractFPDIService
     /** 最大ページ @var string */
     private $pageMax = '';
 
+    /** 曜日 @var array */
+    private $WeekDay = ['0' => '日', '1' => '月', '2' => '火', '3' => '水', '4' => '木', '5' => '金', '6' => '土'];
+
     /**
      * コンストラクタ.
      *
@@ -75,7 +79,7 @@ class RegistrationConfirmPdfService extends AbstractFPDIService
         parent::__construct();
 
         // Fontの設定しておかないと文字化けを起こす
-         $this->SetFont(self::FONT_SJIS);
+        $this->SetFont(self::FONT_SJIS);
 
         // PDFの余白(上左右)を設定
         $this->SetMargins(15, 20);
@@ -96,54 +100,85 @@ class RegistrationConfirmPdfService extends AbstractFPDIService
      *
      * @return bool
      */
-    public function makePdf(array $customersData, $anonymousCompanyEnabled = false)
+    public function makePdf($flyer_data)
     {
         // データが空であれば終了
-        if (count($customersData) < 1) {
+        if (is_null($flyer_data)) {
             return false;
         }
         // 発行日の設定
         $this->issueDate = '作成日: ' . date('Y年m月d日');
         // ダウンロードファイル名の初期化
         $this->downloadFileName = null;
+        $BaseInfo = $this->app['eccube.repository.base_info']->get();
 
         // テンプレートファイルを読み込む
-        $pdfFile = $this->app['config']['pdf_template_registration_confirm'];
+        $pdfFile = $this->app['config']['pdf_template_follow_up_flyer'];
         $templateFilePath = __DIR__.'/../Resource/pdf/'.$pdfFile;
         $this->setSourceFile($templateFilePath);
+        // PDFにページを追加する
+        $this->addPdfPage();
 
-        foreach ($customersData as $customerData) {
-            // PDFにページを追加する
-            $this->addPdfPage();
-            // 会員名(フリガナ)
-            $this->lfText(39.1, 78.4, $customerData->getKana01() . " " . $customerData->getKana02(), 13, 'B');
-            // 会員名
-            $this->lfText(39.1, 96.2, $customerData->getName01() . " " . $customerData->getName02(), 13, 'B');
-            // 所属先名(勤務先名称)
-            if ($anonymousCompanyEnabled) {
-                $this->lfMultiText(39.1, 110.2, 58.0, 21.0, $customerData->getCompanyName(), 13, 'B');
-            } else {
-                $this->lfMultiText(39.1, 110.2, 58.0, 21.0, "", 13, 'B');
-            }
-            // 郵便番号
-            $this->lfText(39.1, 132.9, (is_null($customerData->getZip01())?"":$customerData->getZip01()) . (is_null($customerData->getZip02())?"":$customerData->getZip02()), 23, 'B');
-            // 住所
-            $this->lfMultiText(39.1, 145.8, 58.0, 41.9, (is_null($customerData->getPref())?"":$customerData->getPref()->getName()) . (is_null($customerData->getAddr01())?"":$customerData->getAddr01()) . (is_null($customerData->getAddr02())?"":$customerData->getAddr02()), 13, 'B');
-            // 電話番号
-            if (!is_null($customerData->getTel01()) && !is_null($customerData->getTel02()) && !is_null($customerData->getTel03())) {
-                $this->lfText(39.1, 192.8, $customerData->getTel01() . "-" . $customerData->getTel02() . "-" . $customerData->getTel03(), 20, 'B');
-            }
-            // Fax番号
-            if (!is_null($customerData->getFax01()) && !is_null($customerData->getFax02()) && !is_null($customerData->getFax03())) {
-                $this->lfText(39.1, 213.0, $customerData->getFax01() . "-" . $customerData->getFax02() . "-" . $customerData->getFax03(), 20, 'B');
-            }
-            // メールアドレス
-            $this->lfMultiText(39.1, 227.6, 62.0, 21.0, (is_null($customerData->getEmail())?"":(preg_match("/" . $this->app['config']['dummy_email_pattern'] . "/", $customerData->getEmail())?"":$customerData->getEmail())), 13);
-            // 生年月日
-            if (!is_null($customerData->getBirth())) {
-                $this->lfText(39.1, 254.7, $customerData->getBirth()->format('Y/m/d'), 22);
-            }
+        $this->SetFont(self::FONT_GOTHIC);
+        $this->SetTextColor(255, 255, 255);
+        $bakFontStyle = $this->FontStyle;
+        $bakFontSize = $this->FontSizePt;
+        $fontSize = 22;
+        $this->SetFont('', 'B', $fontSize);
+        while (14.7 < $this->getStringHeight(23.6, $flyer_data->getProductTraining()->getAddr01())) {
+            --$fontSize;
+            $this->SetFont('', 'B', $fontSize);
         }
+        $this->Rotate(-10.0, 151.5, 15.0);
+        $this->lfText(151.5, 15.0, "in", 20, 'B');
+        $this->Rotate(10.0, 151.5, 15.0);
+        $this->Rotate(-10.0, 157.9, 12.6);
+        $this->SetXY(157.9, 12.6);
+        $this->MultiCell(29.0, 14.7, $flyer_data->getProductTraining()->getAddr01(), 0, "C", false, 0, "", "", true, 0, false, true, 14.7, "M");
+        $this->Rotate(10.0, 157.9, 12.6);
+        $this->SetFont('', $bakFontStyle, $bakFontSize);
+        $this->SetTextColor(0, 0, 0);
+
+        // 講習会日
+        $this->lfText(55.6, 70.5, $flyer_data->getProductTraining()->getTrainingDateStart()->format('Y年n月j日(') . $this->WeekDay[$flyer_data->getProductTraining()->getTrainingDateStart()->format('w')] . ')', 28, 'B');
+        $this->lfText(140.0, 73.5, $flyer_data->getProductTraining()->getTrainingDateStart()->format('H:i～') . $flyer_data->getProductTraining()->getTrainingDateEnd()->format('H:i'), 20, 'B');
+        // 場所
+        $this->lfText(55.6, 84.2, $flyer_data->getProductTraining()->getPlace(), 28, 'B');
+        // 住所
+        $this->lfText(55.6, 94.4, "(" . $flyer_data->getProductTraining()->getAddr01() . $flyer_data->getProductTraining()->getAddr02() . ")", 17, 'B');
+        // 内容
+        $this->lfMultiText(49.0, 135.3, 145.0, 20.0, str_replace("　", "", $flyer_data->getProductTraining()->getProduct()->getDescriptionDetail()), 17, 'B');
+        // 受講料
+        $this->lfText(49.0, 132.2, ((0 < $flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax())?number_format($flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax()) . '円':"無料"), 17, 'B');
+        // 持ち物
+        $this->lfMultiText(49.0, 135.8, 145.0, 11.3, $flyer_data->getProductTraining()->getItem(), 17, 'B');
+        // 定員
+        $ProductClasses = $flyer_data->getProductTraining()->getProduct()->getProductClasses();
+        $ProductClass = $ProductClasses[0];
+        if ($ProductClass->getStockUnlimited()) {
+            $this->lfText(49.0, 155.1, $ProductClass->getStock() . '名', 17, 'B');
+        }
+        // 期限
+        if (is_null($flyer_data->getProductTraining()->getAcceptLimitDate())) {
+            $limit = date('Y/m/d', strtotime($flyer_data->getProductTraining()->getTrainingDateStart()->format('Y/m/d') . " -24 day"));
+            $holidayRepository = new HolidayRepository();
+            while($holidayRepository->isHoliday($limit)) {
+                $limit = date('Y/m/d', strtotime($limit . " -1 day"));
+            }
+        } else {
+            $limit = $flyer_data->getProductTraining()->getAcceptLimitDate()->format('Y/m/d');
+        }
+        // 主催
+        $this->lfText(49.0, 189.2, "認定 NPO法人ふまねっと", 17, 'B');
+        // 共催
+        // 定員
+        $bakFontStyle = $this->FontStyle;
+        $bakFontSize = $this->FontSizePt;
+        $this->SetFont('', "B", 13);
+        $this->SetXY(49.0, 160.4);
+        $line_height = $this->getStringHeight(28.0, "あ");
+        $this->MultiCell(28.0, $line_height, date('n月j日(', strtotime($limit)) . $this->WeekDay[date('w', strtotime($limit))] . ")", 0, 'C', false, 0,  "", "", true, 0, false, true, $line_height, "M");
+        $this->SetFont('', $bakFontStyle, $bakFontSize);
 
         return true;
     }
@@ -178,7 +213,6 @@ class RegistrationConfirmPdfService extends AbstractFPDIService
      */
     public function Footer()
     {
-        $this->Cell(0, 0, $this->issueDate, 0, 0, 'R');
     }
 
     /**
@@ -236,7 +270,9 @@ class RegistrationConfirmPdfService extends AbstractFPDIService
         $bakFontSize = $this->FontSizePt;
 
         $this->SetFont('', $style, $size);
-        $this->MultiCell($w, $h, $text, 0, 'J',false, 1, $x + $this->baseOffsetX, $y + $this->baseOffsetY);
+        $this->SetXY($x, $y);
+        $line_height = $this->getStringHeight($w, "あ");
+        $this->MultiCell($w, $line_height, $text, 0, 'L', false, 0,  "", "", true, 0, false, true, $h, "M");
 
         // 復元
         $this->SetFont('', $bakFontStyle, $bakFontSize);

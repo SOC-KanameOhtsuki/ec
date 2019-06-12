@@ -917,7 +917,7 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
         $qb = $this->createQueryBuilder('c')
             ->select('c')
             ->leftJoin('c.CustomerBasicInfo', 'bc')
-            ->andWhere('bc.Status = 1')
+            ->andWhere('bc.Status = 1 OR bc.Status = 6')
             ->andWhere('c.Status = 2')
             ->andWhere('c.del_flg = 0');
         if ($anonymousEnabled) {

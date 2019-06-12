@@ -20,7 +20,7 @@ class RegularMemberListCsvExportService extends CsvExportService
      *
      * @return bool
      */
-    public function makeCsv(array $customerDatas)
+    public function makeCsv(array $customerDatas, $anonymousCompanyEnabled = false)
     {
         $this->fopen();
         foreach ($customerDatas as $customerData) {
@@ -49,11 +49,11 @@ class RegularMemberListCsvExportService extends CsvExportService
             // インストラクタ資格
             $row[] = ($customerData->getCustomerBasicInfo()->getInstructorType() == '非インストラクタ'?'':$customerData->getCustomerBasicInfo()->getInstructorType());
             foreach ($customerData->getCustomerAddresses() as $AddresInfo) {
-                if ($AddresInfo->getAddressType()->getId() == 2) {
+                if ($AddresInfo->getMailTo()->getId() == 2) {
                     // 都道府県
                     $row[] = (is_null($AddresInfo->getPref())?"":$AddresInfo->getPref());
                     // 市町村
-                    $row[] = (is_null($AddresInfo->getAddr01())?"":$AddresInfo->getAddr01());
+                    $row[] = ((is_null($AddresInfo->getAddr01())||!$anonymousCompanyEnabled)?"":$AddresInfo->getAddr01());
                     $Out = true;
                     break;
                 }

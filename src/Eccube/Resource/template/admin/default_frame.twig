@@ -93,6 +93,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
     </aside>
     <!-- ▲ #side ▲ -->
     <!-- ▼ #main ▼ -->
+    <div id="spin-area" class="code">
     <div id="main">
         <h1 class="page-header">{{ block('title') }}<span>{{ block('sub_title') }}</span></h1>
 
@@ -135,6 +136,21 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
       </div>
     </div>
 
+    <div class="modal fade" id="outRegularMemberListConfirmModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-body">
+            正会員一覧を出力しますか？<br>
+            ※全正会員を対象に行いますので完了まで時間を要します
+          </div>
+          <div class="modal-footer hidden-print">
+            <button type="button" class="btn btn-default" data-dismiss="modal">いいえ</button>
+            <button id="outRegularMemberListConfirmBtn" type="button" class="btn btn-primary" data-dismiss="modal">はい</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ▲ #modal ▲ -->
 
 </div>
@@ -143,6 +159,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 <script src="{{ app.config.admin_urlpath }}/assets/js/vendor/ie10-viewport-bug-workaround.js?v={{ constant('Eccube\\Common\\Constant::VERSION') }}"></script>
 <script src="{{ app.config.admin_urlpath }}/assets/js/function.js?v={{ constant('Eccube\\Common\\Constant::VERSION') }}"></script>
 <script>
+
 $(function () {
     $.ajax({
         url: '{{ app.config.admin_urlpath }}/assets/img/svg.html',
@@ -159,6 +176,11 @@ $('#exemptionConfirmBtn').click(function() {
 
     });
 });
+
+$('#outRegularMemberListConfirmBtn').click(function() {
+    window.open("{{ url('admin_customer_out_regular_member_list') }}", '_blank');
+});
+
 </script>
 {% block javascript %}{% endblock %}
 </body>

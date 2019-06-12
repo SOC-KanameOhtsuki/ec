@@ -1125,4 +1125,43 @@ class CustomerController extends AbstractController
         $result = $app['eccube.repository.customer_basic_info']->clearMembershipExemption();
         return $app->json(array('message' => 'success', 'result' => $result), 200);
     }
+
+    public function outRegularMemberList(Application $app, Request $request = null)
+    {
+        // タイムアウトを無効にする.
+        set_time_limit(0);
+
+        // sql loggerを無効にする.
+        $em = $app['orm.em'];
+        $em->getConfiguration()->setSQLLogger(null);
+
+        // 顧客情報取得
+        $customers = $app['eccube.repository.customer']->getQueryBuilderBySearchRegularMemberData(array(), $app['config']['regular_member_list_anonymous'])
+                ->getQuery()
+                ->getResult();
+
+        $response = new StreamedResponse();
+        $response->setCallback(function () use ($app, $request, $customers) {
+
+            log_info('customers:' . count($customers));
+
+            // サービスの取得
+            /* @var RegularMemberListCsvExportService $service */
+
+            $service = $app['eccube.service.csv.regular_member_list.export'];
+
+            // 顧客情報から正会員CSVを作成する
+            $service->makeCsv($customers, $app['config']['regular_member_list_anonymous_company']);
+        });
+
+        $now = new \DateTime();
+        $filename = 'payment_' . $now->format('YmdHis') . '.csv';
+        $response->headers->set('Content-Type', 'application/octet-stream');
+        $response->headers->set('Content-Disposition', 'attachment; filename=' . $filename);
+        $response->send();
+
+        log_info("CSVファイル名", array($filename));
+        return $response;
+    }
+
 }

@@ -302,8 +302,12 @@ pdf_template_fax_accept: fax_accept.pdf
 pdf_template_payment_confirm: payment_confirm.pdf
 pdf_template_name_tag: name_tag.pdf
 pdf_template_registration_confirm: registration_confirm.pdf
-pdf_template_flyer1: flyer_1.pdf
-pdf_template_flyer2: flyer_2.pdf
+pdf_template_supporter_flyer1: supporter_flyer_1.pdf
+pdf_template_supporter_flyer2: supporter_flyer_2.pdf
+pdf_template_instructor_flyer1: instructor_flyer_1.pdf
+pdf_template_instructor_flyer2: instructor_flyer_2.pdf
+pdf_template_lecture_flyer: lecture_flyer.pdf
+pdf_template_follow_up_flyer: follow_up_flyer.pdf
 default_membership: 2000
 initialize_customer_basicinfo_status: 4
 initialize_exemption_type: 1
@@ -336,3 +340,9 @@ dummy_email_pattern: "^dmy\-[0-9]*\@1to3\.jp$"
 can_not_change_pincode_status: [1]
 keep_alive_seconds: 30
 membership_billing_target_status: [5, 6]
+training_type_supporter: [1]
+training_type_instructor: [2, 3, 4]
+training_type_lecture: [5]
+training_type_follow_up: [6]
+regular_member_list_anonymous: true
+regular_member_list_anonymous_company: true

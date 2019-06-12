@@ -122,7 +122,7 @@ class RegularMemberListPdfService extends AbstractFPDIService
             $instructor_type = ($customerData->getCustomerBasicInfo()->getInstructorType() == '非インストラクタ'?'':$customerData->getCustomerBasicInfo()->getInstructorType());
             $Out = false;
             foreach ($customerData->getCustomerAddresses() as $AddresInfo) {
-                if ($AddresInfo->getAddressType()->getId() == 2) {
+                if ($AddresInfo->getMailTo()->getId() == 2) {
                     // 都道府県
                     $pref = (is_null($AddresInfo->getAddr01())?"":$AddresInfo->getPref());
                     // 市町村

@@ -36,7 +36,17 @@ class FlyerController
 
         // サービスの取得
         /* @var FaxAcceptPdfService $service */
-        $service = $app['eccube.service.flyer_pdf'];
+        if ($Flyer->getProductTraining()->getTrainingType()->getId() == 1) {
+            $service = $app['eccube.service.supporter_flyer_pdf'];
+        } else if ($Flyer->getProductTraining()->getTrainingType()->getId() == 2 ||
+                    $Flyer->getProductTraining()->getTrainingType()->getId() == 3 ||
+                    $Flyer->getProductTraining()->getTrainingType()->getId() == 4 ) {
+            $service = $app['eccube.service.instructor_flyer_pdf'];
+        } else if ($Flyer->getProductTraining()->getTrainingType()->getId() == 5) {
+            $service = $app['eccube.service.lecture_flyer_pdf'];
+        } else {
+            $service = $app['eccube.service.follow_up_flyer_pdf'];
+        }
         $session = $request->getSession();
 
         // 顧客情報からPDFを作成する

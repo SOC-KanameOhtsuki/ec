@@ -65,7 +65,10 @@
         url: admin_customer_new
       - id: customer_exemption_clear
         name: 年会費免除クリア
-        url: admin_customer_group
+        url: admin_customer_membership_exemption
+      - id: customer_out_regular_member_list
+        name: 正会員一覧出力
+        url: admin_customer_out_regular_member_list
 - id: customer
   name: 会員グループ管理
   has_child: true

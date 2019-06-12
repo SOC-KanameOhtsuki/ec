@@ -95,8 +95,17 @@ class EccubeServiceProvider implements ServiceProviderInterface
         $app['eccube.service.name_tag_pdf'] = $app->share(function () use ($app) {
             return new \Eccube\Service\NameTagPdfService($app);
         });
-        $app['eccube.service.flyer_pdf'] = $app->share(function () use ($app) {
-            return new \Eccube\Service\FlyerPdfService($app);
+        $app['eccube.service.instructor_flyer_pdf'] = $app->share(function () use ($app) {
+            return new \Eccube\Service\InstructorFlyerPdfService($app);
+        });
+        $app['eccube.service.supporter_flyer_pdf'] = $app->share(function () use ($app) {
+            return new \Eccube\Service\SupporterFlyerPdfService($app);
+        });
+        $app['eccube.service.lecture_flyer_pdf'] = $app->share(function () use ($app) {
+            return new \Eccube\Service\LectureFlyerPdfService($app);
+        });
+        $app['eccube.service.follow_up_flyer_pdf'] = $app->share(function () use ($app) {
+            return new \Eccube\Service\FollowUpFlyerPdfService($app);
         });
         $app['eccube.service.regular_member_list_pdf'] = $app->share(function () use ($app) {
             return new \Eccube\Service\RegularMemberListPdfService($app);

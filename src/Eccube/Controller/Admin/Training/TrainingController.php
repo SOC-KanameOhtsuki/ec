@@ -1118,7 +1118,7 @@ class TrainingController extends AbstractController
                 }
             }
 
-            $qb = $app['eccube.repository.product']->getQueryBuilderBySearchOrderedTrainingDataForAdmin($searchData);
+            $qb = $app['eccube.repository.product']->getQueryBuilderBySearchTrainingDataForAdmin($searchData);
             $pagination = $app['paginator']()->paginate(
                 $qb,
                 $page_no,
