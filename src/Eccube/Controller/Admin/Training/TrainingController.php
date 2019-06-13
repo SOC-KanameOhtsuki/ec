@@ -2156,7 +2156,8 @@ class TrainingController extends AbstractController
             $app['orm.em']->persist($AttendanceHistory);
 
             // Update Customer_Basic_info table
-            if ($ProductTraining->getTrainingType()->getRankUp() == 1) {
+            if (($ProductTraining->getTrainingType()->getRankUp() == 1) &&
+                ($CustomerInfo->getStatus()->getId() != 1)) {
                 $termInfos = $app['eccube.repository.master.term_info']->createQueryBuilder('t')
                         ->andWhere("t.term_end >= '" . date('Y-m-d') . "'")
                         ->andWhere('t.del_flg = 0')
