@@ -65,9 +65,7 @@ class OrderType extends AbstractType
             ->add('kana', 'kana', array(
                 'required' => false,
                 'options' => array(
-                    'constraints' => array(
-                        new Assert\NotBlank(),
-                    ),
+                    'constraints' => array(),
                 ),
             ))
             ->add('company_name', 'text', array(
