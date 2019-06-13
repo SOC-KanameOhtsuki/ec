@@ -135,6 +135,7 @@ class LectureFlyerPdfService extends AbstractFPDIService
         $this->MultiCell(130.0, 12.0, $flyer_data->getProductTraining()->getPlace(), 0, "L", false, 0, "", "", true, 0, false, true, 14.7, "T");
         // 住所
         $this->lfText(34.8, 130.3, "(住所：" . $flyer_data->getProductTraining()->getAddr01() . $flyer_data->getProductTraining()->getAddr02() . ")", 22, 'B');
+        $this->SetTextColor(33, 72, 53);
         // 講師
         $this->lfText(34.8, 143.6, $flyer_data->getProductTraining()->getLecturer(), 17, 'B');
         // 内容
@@ -168,6 +169,9 @@ class LectureFlyerPdfService extends AbstractFPDIService
         $this->lfText(165.8, 252.0, date('n月j日(', strtotime($limit)) . $this->WeekDay[date('w', strtotime($limit))] . ")", 13, 'B');
         // 受講料
         $this->SetTextColor(255, 255, 255);
+        $this->Rotate(-5.0, 156.2, 58.2);
+        $this->lfText(156.2, 58.2, "参加料", 28, 'B');
+        $this->Rotate(5.0, 156.2, 58.2);
         $this->Rotate(-5.0, 155.2, 69.2);
         $this->lfText(155.2, 69.2, ((0 <$flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax())?number_format($flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax()) . '円':"無料"), 24, 'B');
         $this->Rotate(5.0, 155.2, 69.2);
