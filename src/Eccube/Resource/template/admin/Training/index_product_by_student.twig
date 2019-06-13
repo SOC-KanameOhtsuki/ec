@@ -448,20 +448,21 @@ $(function() {
                                             <!--申込人数 / 定員-->
                                             {% set ClassStock = '' %}
                                             {% set stock = '' %}
+                                            {% set stock_unlimited = 0 %}
                                             {% for ProductClass in Product.ProductClasses %}
                                                 {% if ClassStock is empty or stock is empty %}
-                                                    {% if ProductClass.stock_unlimited == 1 %}
-                                                        {% set ClassStock = '無制限' %}
-                                                        {% set stock = '無制限' %}
-                                                    {% elseif ProductClass.ProductStock %}
-                                                        {% set ClassStock = ProductClass.stock %}
-                                                        {% set stock = ProductClass.ProductStock.stock %}
-                                                    {% endif %}
+                                                    {% set stock = ProductClass.ProductStock.stock %}
+                                                    {% set stock_unlimited = ProductClass.stock_unlimited %}
+                                                    {% set ClassStock = ProductClass.stock %}
                                                 {% endif %}
                                             {% endfor %}
                                             <div id="result_list__count--{{ Product.id }}" class="item_detail td">
                                                 <a href="{{ url('admin_student', {'id' : Product.id}) }}">
+                                                    {% if stock_unlimited == 1 %}
+                                                    上限なし
+                                                    {% else %}
                                                     {{ ClassStock - stock }} / {{ ClassStock }}
+                                                    {% endif %}
                                                 </a><br>
                                             </div>
                                             <!--受講者名簿（CSV）-->
