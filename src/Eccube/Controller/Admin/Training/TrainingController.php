@@ -1238,56 +1238,40 @@ class TrainingController extends AbstractController
         $em = $app['orm.em'];
         $em->getConfiguration()->setSQLLogger(null);
 
+        // 会員データ検索用のクエリビルダを取得.
+        $customers = $app['eccube.repository.customer']->getQueryBuilderBySearchTrainingProductIds($id)
+                ->orderBy('c.kana01', 'ASC')
+                ->addOrderBy('c.kana02', 'ASC')
+                ->addOrderBy('c.id', 'ASC')
+                ->getQuery()
+                ->getResult();
+        $training = $app['eccube.repository.product_training']
+                ->getProductTrainingByProductId($request->get('id'));
+
+        $order_results = $app['eccube.repository.order']->getQueryBuilderBySearchDataForAdmin(['product_id' => $request->get('id')])
+                                                    ->orderBy('o.id', 'ASC')
+                                                    ->getQuery()
+                                                    ->getResult();
+        $orders = array();
+        foreach($order_results as $order) {
+            $orders[$order->getCustomer()->getId()] = $order;
+        }
+
         $response = new StreamedResponse();
-        $response->setCallback(function () use ($app, $request, $id) {
+        $response->setCallback(function () use ($app, $request, $customers, $training, $orders) {
 
-            // CSV種別を元に初期化.
-            $app['eccube.service.csv.export']->initCsvType(6);
+            log_info('customers:' . count($customers));
 
-            // ヘッダ行の出力.
-            $app['eccube.service.csv.export']->exportHeader();
+            // サービスの取得
+            /* @var TrainingMemberListCsvExportService $service */
+            $service = $app['eccube.service.csv.training_member_list.export'];
 
-            // 会員データ検索用のクエリビルダを取得.
-            $qb = $app['eccube.repository.customer']->getQueryBuilderBySearchTrainingProductIds($id);
-
-            // データ行の出力.
-            $app['eccube.service.csv.export']->setExportQueryBuilder($qb);
-            $app['eccube.service.csv.export']->exportData(function ($entity, $csvService) use ($app, $request) {
-
-                $Csvs = $csvService->getCsvs();
-
-                /** @var $Customer \Eccube\Entity\Customer */
-                $Customer = $entity;
-
-                $ExportCsvRow = new \Eccube\Entity\ExportCsvRow();
-
-                // CSV出力項目と合致するデータを取得.
-                foreach ($Csvs as $Csv) {
-                    // 会員データを検索.
-                    $ExportCsvRow->setData($csvService->getData($Csv, $Customer));
-
-                    $event = new EventArgs(
-                        array(
-                            'csvService' => $csvService,
-                            'Csv' => $Csv,
-                            'Customer' => $Customer,
-                            'ExportCsvRow' => $ExportCsvRow,
-                        ),
-                        $request
-                    );
-                    $app['eccube.event.dispatcher']->dispatch(EccubeEvents::ADMIN_CUSTOMER_CSV_EXPORT, $event);
-
-                    $ExportCsvRow->pushData();
-                }
-
-                //$row[] = number_format(memory_get_usage(true));
-                // 出力.
-                $csvService->fputcsv($ExportCsvRow->getRow());
-            });
+            // 受講者情報から受講者名簿CSVを作成する
+            $service->makeCsv($customers, $orders, $training);
         });
 
         $now = new \DateTime();
-        $filename = 'memberList_' . $now->format('YmdHis') . '.csv';
+        $filename = 'trainingMemberList_' . $now->format('YmdHis') . '.csv';
         $response->headers->set('Content-Type', 'application/octet-stream');
         $response->headers->set('Content-Disposition', 'attachment; filename=' . $filename);
 
@@ -1295,6 +1279,173 @@ class TrainingController extends AbstractController
 
         log_info("CSVファイル名", array($filename));
 
+        return $response;
+    }
+
+    /**
+     * CSVの出力.
+     * @param Application $app
+     * @param Request $request
+     * @return StreamedResponse
+     */
+    public function outCsvMemberListWithoutPersonal(Application $app, Request $request, $id = null)
+    {
+        // タイムアウトを無効にする.
+        set_time_limit(0);
+
+        // sql loggerを無効にする.
+        $em = $app['orm.em'];
+        $em->getConfiguration()->setSQLLogger(null);
+
+        // 会員データ検索用のクエリビルダを取得.
+        $customers = $app['eccube.repository.customer']->getQueryBuilderBySearchTrainingProductIds($id)
+                ->orderBy('c.kana01', 'ASC')
+                ->addOrderBy('c.kana02', 'ASC')
+                ->addOrderBy('c.id', 'ASC')
+                ->getQuery()
+                ->getResult();
+        $training = $app['eccube.repository.product_training']
+                ->getProductTrainingByProductId($request->get('id'));
+
+        $response = new StreamedResponse();
+        $response->setCallback(function () use ($app, $request, $customers, $training) {
+
+            log_info('customers:' . count($customers));
+
+            // サービスの取得
+            /* @var TrainingMemberListWithoutPersonalCsvExportService $service */
+
+            $service = $app['eccube.service.csv.training_member_list_without_personal.export'];
+
+            // 受講者情報から受講者名簿CSVを作成する
+            $service->makeCsv($customers, $training);
+        });
+
+        $now = new \DateTime();
+        $filename = 'trainingMemberList_' . $now->format('YmdHis') . '.csv';
+        $response->headers->set('Content-Type', 'application/octet-stream');
+        $response->headers->set('Content-Disposition', 'attachment; filename=' . $filename);
+
+        $response->send();
+
+        log_info("CSVファイル名", array($filename));
+
+        return $response;
+    }
+
+    /**
+     * CSVの出力.
+     * @param Application $app
+     * @param Request $request
+     * @return StreamedResponse
+     */
+    public function outCsvLectureMemberList(Application $app, Request $request, $id = null)
+    {
+        // タイムアウトを無効にする.
+        set_time_limit(0);
+
+        // sql loggerを無効にする.
+        $em = $app['orm.em'];
+        $em->getConfiguration()->setSQLLogger(null);
+
+        // 会員データ検索用のクエリビルダを取得.
+        $customers = $app['eccube.repository.customer']->getQueryBuilderBySearchTrainingProductIds($id)
+                ->orderBy('c.kana01', 'ASC')
+                ->addOrderBy('c.kana02', 'ASC')
+                ->addOrderBy('c.id', 'ASC')
+                ->getQuery()
+                ->getResult();
+        $training = $app['eccube.repository.product_training']
+                ->getProductTrainingByProductId($request->get('id'));
+
+        $response = new StreamedResponse();
+        $response->setCallback(function () use ($app, $request, $customers, $training) {
+
+            log_info('customers:' . count($customers));
+
+            // サービスの取得
+            /* @var LectureMemberListCsvExportService $service */
+
+            $service = $app['eccube.service.csv.lecture_member_list.export'];
+
+            // 受講者情報から受講者名簿CSVを作成する
+            $service->makeCsv($customers, $training);
+        });
+
+        $now = new \DateTime();
+        $filename = 'trainingMemberList_' . $now->format('YmdHis') . '.csv';
+        $response->headers->set('Content-Type', 'application/octet-stream');
+        $response->headers->set('Content-Disposition', 'attachment; filename=' . $filename);
+
+        $response->send();
+
+        log_info("CSVファイル名", array($filename));
+
+        return $response;
+    }
+
+    public function printMailAccept(Application $app, Request $request, $id = null)
+    {
+        if (is_null($id)){
+            return $app->redirect($app->url('admin_pruduct_by_student', array()));
+        }
+        $modeAll = 1;
+        $queryString = $request->getQueryString();
+        if (!empty($queryString)) {
+            // クエリーをparseする
+            // idsX以外はない想定
+            parse_str($queryString, $ary);
+            foreach ($ary as $key => $val) {
+                // キーが一致
+                if (preg_match('/^modeAll$/', $key)) {
+                    $modeAll = $val;
+                }
+            }
+        }
+        if ($modeAll == 0) {
+            // requestから対象顧客IDの一覧を取得する.
+            $ids = $this->getIds($request);
+            if (count($ids) == 0) {
+                $app->addError('処理対象が選択されていません', 'admin');
+                log_info('The Customer cannot found!');
+                return $app->redirect($app->url('admin_student', array('id' => $id)));
+            }
+            // 顧客情報取得
+            $customers = $app['eccube.repository.customer']->getQueryBuilderBySearchCustomerIds($ids)
+                    ->getQuery()
+                    ->getResult();
+        } else {
+            // 顧客情報取得
+            $customers = $app['eccube.repository.customer']->getQueryBuilderBySearchTrainingProductIds($id)
+                    ->getQuery()
+                    ->getResult();
+        }
+
+        // サービスの取得
+        /* @var FaxAcceptPdfService $service */
+        $service = $app['eccube.service.mail_accept_pdf'];
+        $session = $request->getSession();
+
+        // 顧客情報からPDFを作成する
+        $status = $service->makePdf($customers, $app['eccube.repository.product']->find($id));
+
+        // 異常終了した場合の処理
+        if (!$status) {
+            $app->addError('FAX受付票出力に失敗しました', 'admin');
+            log_info('Unable to create pdf files! Process have problems!');
+            return $app->redirect($app->url('admin_student'), array('id' => $id));
+        }
+
+        // ダウンロードする
+        $response = new Response(
+            $service->outputPdf(),
+            200,
+            array('content-type' => 'application/pdf')
+        );
+
+        // レスポンスヘッダーにContent-Dispositionをセットし、ファイル名を指定
+        $response->headers->set('Content-Disposition', 'attachment; filename="'.$service->getPdfFileName().'"');
+        log_info('FaxAcceptPdfDownload success!', array());
         return $response;
     }
 
@@ -1334,6 +1485,15 @@ class TrainingController extends AbstractController
                     ->getQuery()
                     ->getResult();
         }
+        // 受注情報取得
+        $order_results = $app['eccube.repository.order']->getQueryBuilderBySearchDataForAdmin(['product_id' => $request->get('id')])
+                                                    ->orderBy('o.id', 'ASC')
+                                                    ->getQuery()
+                                                    ->getResult();
+        $orders = array();
+        foreach($order_results as $order) {
+            $orders[$order->getCustomer()->getId()] = $order;
+        }
 
         // サービスの取得
         /* @var FaxAcceptPdfService $service */
@@ -1341,7 +1501,7 @@ class TrainingController extends AbstractController
         $session = $request->getSession();
 
         // 顧客情報からPDFを作成する
-        $status = $service->makePdf($customers, $app['eccube.repository.product']->find($id));
+        $status = $service->makePdf($customers, $orders, $app['eccube.repository.product']->find($id));
 
         // 異常終了した場合の処理
         if (!$status) {
@@ -1493,6 +1653,71 @@ class TrainingController extends AbstractController
         return $response;
     }
 
+    public function printStudentList(Application $app, Request $request, $id = null)
+    {
+        if (is_null($id)){
+            return $app->redirect($app->url('admin_pruduct_by_student', array()));
+        }
+        $modeAll = 1;
+        $queryString = $request->getQueryString();
+        if (!empty($queryString)) {
+            // クエリーをparseする
+            // idsX以外はない想定
+            parse_str($queryString, $ary);
+            foreach ($ary as $key => $val) {
+                // キーが一致
+                if (preg_match('/^modeAll$/', $key)) {
+                    $modeAll = $val;
+                }
+            }
+        }
+        if ($modeAll == 0) {
+            // requestから対象顧客IDの一覧を取得する.
+            $ids = $this->getIds($request);
+            if (count($ids) == 0) {
+                $app->addError('処理対象が選択されていません', 'admin');
+                log_info('The Customer cannot found!');
+                return $app->redirect($app->url('admin_student', array('id' => $id)));
+            }
+            // 顧客情報取得
+            $customers = $app['eccube.repository.customer']->getQueryBuilderBySearchCustomerIds($ids)
+                    ->getQuery()
+                    ->getResult();
+        } else {
+            // 顧客情報取得
+            $customers = $app['eccube.repository.customer']->getQueryBuilderBySearchTrainingProductIds($id)
+                    ->getQuery()
+                    ->getResult();
+        }
+
+        // サービスの取得
+        /* @var NameTagPdfService $service */
+        $service = $app['eccube.service.student_list_pdf'];
+        $session = $request->getSession();
+
+        // 顧客情報からPDFを作成する
+        $status = $service->makePdf($customers, $app['eccube.repository.product']->find($id));
+
+        // 異常終了した場合の処理
+        if (!$status) {
+            $app->addError('名札出力に失敗しました', 'admin');
+            log_info('Unable to create pdf files! Process have problems!');
+            return $app->redirect($app->url('admin_student'), array('id' => $id));
+        }
+
+        // ダウンロードする
+        $response = new Response(
+            $service->outputPdf(),
+            200,
+            array('content-type' => 'application/pdf')
+        );
+
+        // レスポンスヘッダーにContent-Dispositionをセットし、ファイル名を指定
+        $response->headers->set('Content-Disposition', 'attachment; filename="'.$service->getPdfFileName().'"');
+        log_info('NameTagPdfDownload success!', array());
+        return $response;
+    }
+
     public function printNameTag(Application $app, Request $request, $id = null)
     {
         if (is_null($id)){
@@ -1533,6 +1758,71 @@ class TrainingController extends AbstractController
         // サービスの取得
         /* @var NameTagPdfService $service */
         $service = $app['eccube.service.name_tag_pdf'];
+        $session = $request->getSession();
+
+        // 顧客情報からPDFを作成する
+        $status = $service->makePdf($customers, $app['eccube.repository.product']->find($id));
+
+        // 異常終了した場合の処理
+        if (!$status) {
+            $app->addError('名札出力に失敗しました', 'admin');
+            log_info('Unable to create pdf files! Process have problems!');
+            return $app->redirect($app->url('admin_student'), array('id' => $id));
+        }
+
+        // ダウンロードする
+        $response = new Response(
+            $service->outputPdf(),
+            200,
+            array('content-type' => 'application/pdf')
+        );
+
+        // レスポンスヘッダーにContent-Dispositionをセットし、ファイル名を指定
+        $response->headers->set('Content-Disposition', 'attachment; filename="'.$service->getPdfFileName().'"');
+        log_info('NameTagPdfDownload success!', array());
+        return $response;
+    }
+
+    public function printNameTagForTraining(Application $app, Request $request, $id = null)
+    {
+        if (is_null($id)){
+            return $app->redirect($app->url('admin_pruduct_by_student', array()));
+        }
+        $modeAll = 1;
+        $queryString = $request->getQueryString();
+        if (!empty($queryString)) {
+            // クエリーをparseする
+            // idsX以外はない想定
+            parse_str($queryString, $ary);
+            foreach ($ary as $key => $val) {
+                // キーが一致
+                if (preg_match('/^modeAll$/', $key)) {
+                    $modeAll = $val;
+                }
+            }
+        }
+        if ($modeAll == 0) {
+            // requestから対象顧客IDの一覧を取得する.
+            $ids = $this->getIds($request);
+            if (count($ids) == 0) {
+                $app->addError('処理対象が選択されていません', 'admin');
+                log_info('The Customer cannot found!');
+                return $app->redirect($app->url('admin_student', array('id' => $id)));
+            }
+            // 顧客情報取得
+            $customers = $app['eccube.repository.customer']->getQueryBuilderBySearchCustomerIds($ids)
+                    ->getQuery()
+                    ->getResult();
+        } else {
+            // 顧客情報取得
+            $customers = $app['eccube.repository.customer']->getQueryBuilderBySearchTrainingProductIds($id)
+                    ->getQuery()
+                    ->getResult();
+        }
+
+        // サービスの取得
+        /* @var NameTagPdfService $service */
+        $service = $app['eccube.service.name_tag_for_training_pdf'];
         $session = $request->getSession();
 
         // 顧客情報からPDFを作成する

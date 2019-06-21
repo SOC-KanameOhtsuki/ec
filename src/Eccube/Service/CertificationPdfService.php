@@ -75,10 +75,10 @@ class CertificationPdfService extends AbstractFPDIService
         parent::__construct();
 
         // Fontの設定しておかないと文字化けを起こす
-         $this->SetFont(self::FONT_SJIS);
+        $this->SetFont(self::FONT_SJIS);
 
         // PDFの余白(上左右)を設定
-        $this->SetMargins(15, 20);
+        $this->SetMargins(0, 0);
 
         // ヘッダーの出力を無効化
         $this->setPrintHeader(false);
@@ -114,49 +114,106 @@ class CertificationPdfService extends AbstractFPDIService
         $templateFilePath = __DIR__.'/../Resource/pdf/'.$pdfFile;
         $this->setSourceFile($templateFilePath);
 
-        $row = 1;
-        $col = 1;
+        $this->SetFont(self::FONT_GOTHIC);
         foreach ($customersData as $customerData) {
-            if (($row == 1) && ($col == 1)) {
-                // PDFにページを追加する
-                $this->addPdfPage();
-            }
+            // PDFにページを追加する
+            $this->addPdfPage();
             // サポーター
-            if ($customerData->getCustomerBasicInfo()->getSupporterType() != '非サポータ') {
-                $beforeSpacing = $this->getFontSpacing();
-                $this->SetTextColor(255, 255, 255);
-                $this->setFontSpacing(1.0);
-                $this->lfText(10.5 + (102.9 * ($col - 1)), 19.0 + (60.5 * ($row - 1)), 'Supporter', 10);
-                $this->SetTextColor(0);
-                $this->setFontSpacing($beforeSpacing);
+            if ($customerData->getCustomerBasicInfo()->getSupporterType()->getId() == 2) {
+                $imgFile = __DIR__.'/../Resource/pdf/supporter_mark.jpg';
+                if (file_exists($imgFile)) {
+                    $this->Image($imgFile, 10.0, 10.4, 27.5);
+                }
             }
+            // インストラクタ
+            if ($customerData->getCustomerBasicInfo()->getInstructorType()->getId() == 1) {
+                $imgFile = __DIR__.'/../Resource/pdf/instructor_3_mark.jpg';
+                if (file_exists($imgFile)) {
+                    $this->Image($imgFile, 39.1, 10.4, 27.5);
+                }
+            } else if ($customerData->getCustomerBasicInfo()->getInstructorType()->getId() == 2) {
+                $imgFile = __DIR__.'/../Resource/pdf/instructor_2_mark.jpg';
+                if (file_exists($photoFile)) {
+                    $this->Image($imgFile, 39.1, 10.4, 27.5);
+                }
+            }
+            // 年度
+            $termInfos = $this->app['eccube.repository.master.term_info']->createQueryBuilder('t')
+                    ->andWhere("t.term_end >= '" . date('Y-m-d') . "'")
+                    ->andWhere('t.del_flg = 0')
+                    ->addOrderBy('t.term_year', 'desc')
+                    ->getQuery()
+                    ->getResult();
+            if ((!is_null($termInfos)) && (0 < count($termInfos))) {
+                $currentTermYear = $termInfos[0]->getTermYear();
+            } else if (date('m') < 4) {
+                $currentTermYear = date('Y') - 1;
+            } else {
+                $currentTermYear = date('Y');
+            }
+            $bakFontStyle = $this->FontStyle;
+            $bakFontSize = $this->FontSizePt;
+            $this->SetFont('', 'B', 17);
+            $this->SetXY(72.4, 14.8);
+            $this->MultiCell(18.0, 8.0, $currentTermYear, 0, "C", false, 0, "", "", true, 2, false, true, 8.0, "T");
+            $this->SetFont('', $bakFontStyle, $bakFontSize);
             // 会員番号
-            $this->lfText(42.9 + (102.9 * ($col - 1)), 30.2 + (60.5 * ($row - 1)), $customerData->getId(), 12, 'B');
+            $oldCustomerId = '';
+            if (strlen($customerData->getCustomerBasicInfo()->getCustomerNumberOld()) < 6) {
+                $oldCustomerId = intval($customerData->getCustomerBasicInfo()->getCustomerNumberOld());
+            } else {
+                $oldCustomerId = intval(substr($customerData->getCustomerBasicInfo()->getCustomerNumberOld(),
+                                        strlen($customerData->getCustomerBasicInfo()->getCustomerNumberOld()) - 5));
+            }
+            $this->lfText(42.9, 28.0, $oldCustomerId, 12, 'B');
             // プロフィール写真
             if (!is_null($customerData->getCustomerImages())) {
                 if (0 < count($customerData->getCustomerImages())) {
-                    $photoFile = $this->app['config']['image_save_realdir'].'/'.$customerData->getCustomerImages()[0]->getFileName();
+                    $photoFile = $this->app['config']['customer_image_save_realdir'].'/'.$customerData->getCustomerImages()[0]->getFileName();
                     if (file_exists($photoFile)) {
-                        $this->Image($photoFile, 11.0 + (102.9 * ($col - 1)), 24.4 + (60.5 * ($row - 1)), 20.3);
+                        $this->Image($photoFile, 11.0, 23.8, 19.5);
                     }
                 }
             }
-            // 会員名
-            $this->lfText(39.5 + (102.9 * ($col - 1)), 37.0 + (60.5 * ($row - 1)), $customerData->getName01() . " " . $customerData->getName02(), 22, 'B');
-            // PINコード
-            $this->lfText(72.4 + (102.9 * ($col - 1)), 51.4 + (60.5 * ($row - 1)), $customerData->getCustomerBasicInfo()->getCustomerPinCode(), 10);
-
-            if (($row * $col) < self::MAX_ROR_PER_PAGE) {
-                if ($col < 2) {
-                    ++$col;
-                } else {
-                    ++$row;
-                    $col = 1;
+            // QRコード
+            $customerId = $customerData->getCustomerBasicInfo()->getCustomerNumber();
+            $QrCode = null;
+            if ((0 < strlen($customerId)) && (!is_null($customerId))) {
+                $isQrCodeRegisted = false;
+                if (!is_null($customerData->getCustomerQrs())) {
+                    if (count($customerData->getCustomerQrs()) > 0) {
+                        $QrCode = $customerData->getCustomerQrs()[0];
+                    }
                 }
-            } else {
-                $row = 1;
-                $col = 1;
+                if (!is_null($QrCode)) {
+                    if (file_exists($this->app['config']['customer_image_save_realdir'] . "/" . $QrCode->getFileName())) {
+                        $isQrCodeRegisted = true;
+                    }
+                }
+                if (!$isQrCodeRegisted) {
+                    $qrCodeImg = file_get_contents($this->app['config']['qr_code_get_url'] . $customerId);
+                    if ($qrCodeImg !== false) {
+                        $fileName = date('mdHis').uniqid('_') . '.jpg';
+                        if (file_put_contents($this->app['config']['customer_image_save_realdir'] . "/" . $fileName, $qrCodeImg) !== false) {
+                            $QrCode = new \Eccube\Entity\CustomerQr();
+                            $QrCode->setCustomer($customerData);
+                            $QrCode->setFileName($fileName);
+                            $QrCode->setRank(1);
+                            $this->app['orm.em']->persist($QrCode);
+                            $this->app['orm.em']->flush();
+                            $isQrCodeRegisted = true;
+                        };
+                    }
+                }
             }
+            if ($isQrCodeRegisted) {
+                $photoFile = $this->app['config']['customer_image_save_realdir'] . "/" . $QrCode->getFileName();
+                $this->Image($photoFile, 82.3, 23.8, 9.0);
+            }
+            // 会員名
+            $this->lfText(39.5, 37.0, $customerData->getName01() . " " . $customerData->getName02(), 22, 'B');
+            // PINコード
+            $this->lfText(72.4, 49.7, $customerData->getCustomerBasicInfo()->getCustomerPinCode(), 10);
         }
 
         return true;

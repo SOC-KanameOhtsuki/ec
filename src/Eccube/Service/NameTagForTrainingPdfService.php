@@ -17,23 +17,23 @@ use Eccube\Entity\Order;
 use Eccube\Entity\OrderDetail;
 
 /**
- * Class FaxAcceptPdfService.
+ * Class NameTagForTrainingPdfService.
  * Do export pdf function.
  */
-class FaxAcceptPdfService extends AbstractFPDIService
+class NameTagForTrainingPdfService extends AbstractFPDIService
 {
     // ====================================
     // 定数宣言
     // ====================================
     /** ダウンロードするPDFファイル名 */
-    const OUT_PDF_FILE_NAME = 'fax_accept';
+    const OUT_PDF_FILE_NAME = 'name_tag';
 
     /** FONT ゴシック */
     const FONT_GOTHIC = 'kozgopromedium';
     /** FONT 明朝 */
     const FONT_SJIS = 'kozminproregular';
     /** 1ページ最大行数 */
-    const MAX_ROR_PER_PAGE = 8;
+    const MAX_ROR_PER_PAGE = 10;
 
     // ====================================
     // 変数宣言
@@ -64,9 +64,6 @@ class FaxAcceptPdfService extends AbstractFPDIService
     /** 最大ページ @var string */
     private $pageMax = '';
 
-    /** 曜日 @var array */
-    private $WeekDay = ['0' => '日', '1' => '月', '2' => '火', '3' => '水', '4' => '木', '5' => '金', '6' => '土'];
-
     /**
      * コンストラクタ.
      *
@@ -78,10 +75,10 @@ class FaxAcceptPdfService extends AbstractFPDIService
         parent::__construct();
 
         // Fontの設定しておかないと文字化けを起こす
-        $this->SetFont(self::FONT_GOTHIC);
+         $this->SetFont(self::FONT_SJIS);
 
         // PDFの余白(上左右)を設定
-        $this->SetMargins(0, 0);
+        $this->SetMargins(15, 20);
 
         // ヘッダーの出力を無効化
         $this->setPrintHeader(false);
@@ -89,7 +86,7 @@ class FaxAcceptPdfService extends AbstractFPDIService
         // フッターの出力を無効化
         $this->setPrintFooter(true);
         $this->setFooterMargin();
-        $this->setFooterFont(array(self::FONT_GOTHIC, '', 8));
+        $this->setFooterFont(array(self::FONT_SJIS, '', 8));
     }
 
     /**
@@ -99,7 +96,7 @@ class FaxAcceptPdfService extends AbstractFPDIService
      *
      * @return bool
      */
-    public function makePdf(array $customersData, array $orders, $product)
+    public function makePdf(array $customersData, $product = null)
     {
         // データが空であれば終了
         if (count($customersData) < 1) {
@@ -107,66 +104,42 @@ class FaxAcceptPdfService extends AbstractFPDIService
         }
         // 発行日の設定
         $this->issueDate = '作成日: ' . date('Y年m月d日');
+        // ページ計算
+        $this->pageMax = ((int) (count($customersData) / self::MAX_ROR_PER_PAGE)) + (((count($customersData) % self::MAX_ROR_PER_PAGE) == 0)?0:1);
         // ダウンロードファイル名の初期化
         $this->downloadFileName = null;
 
         // テンプレートファイルを読み込む
-        $pdfFile = $this->app['config']['pdf_template_fax_accept'];
-        $templateFilePath = __DIR__.'/../Resource/pdf/'. $pdfFile;
+        $pdfFile = $this->app['config']['pdf_template_name_tag'];
+        $templateFilePath = __DIR__.'/../Resource/pdf/'.$pdfFile;
         $this->setSourceFile($templateFilePath);
-        $BaseInfo = $this->app['eccube.repository.base_info']->get();
 
-        $this->SetFont(self::FONT_GOTHIC);
-        $this->SetTextColor(53, 53, 53);
+        $row = 1;
+        $col = 1;
         foreach ($customersData as $customerData) {
-            // PDFにページを追加する
-            $this->addPdfPage();
-            // Fax番号
-            $this->lfText(36.1, 19.0, $customerData->getFax01() . '-' . $customerData->getFax02() . '-' . $customerData->getFax03(), 15, '');
+            if (($row == 1) && ($col == 1)) {
+                // PDFにページを追加する
+                $this->addPdfPage();
+            }
+            // 会員番号
+            $this->lfText(81.3 + (105.4 * ($col - 1)), 27.4 + (54.5 * ($row - 1)), $customerData->getId(), 12, 'B');
             // 会員名
-            $this->lfText(18.3, 28.1, $customerData->getName01() . $customerData->getName02() . '様', 15, '');
-            $this->lfText(33.8, 76.7, $customerData->getName01() . $customerData->getName02() . '様', 12, '');
-            if ($product->hasProductTraining()) {
-                // 講習会種別
-                $bakFontStyle = $this->FontStyle;
-                $bakFontSize = $this->FontSizePt;
-                $this->SetFont('', '', 12);
-                $this->SetXY(38.6, 45.8);
-                $this->MultiCell(67.8, 7.0, $product->getProductTraining()->getTrainingType()->getName(), 0, "C", false, 0, "", "", true, 0, false, true, 7.0, "T");
-                $this->SetFont('', $bakFontStyle, $bakFontSize);
-                // 受講日
-                $startDate = $product->getProductTraining()->getTrainingDateStart()->format('Y年n月j日(') . $this->WeekDay[$product->getProductTraining()->getTrainingDateStart()->format('w')] . ')';
-                $endDate = $product->getProductTraining()->getTrainingDateEnd()->format('Y年n月j日(') . $this->WeekDay[$product->getProductTraining()->getTrainingDateEnd()->format('w')] . ')';
-                $this->lfText(33.8, 82.2, $startDate . $product->getProductTraining()->getTrainingDateStart()->format(' G:i～') . (($startDate==$endDate)?'':$endDate . ' ') . $product->getProductTraining()->getTrainingDateEnd()->format('G:i'), 12, '');
-                // 受付開始時間
-                $this->lfText(143.3, 82.2, date('G:i', strtotime($product->getProductTraining()->getTrainingDateStart()->format('Y-m-d H:i:s') . " -30 minute")), 12, '');
-                // 場所
-                $this->lfText(33.8, 87.7, $product->getProductTraining()->getPlace(), 12, '');
-                // 住所
-                $this->lfText(33.8, 93.2, $product->getProductTraining()->getPref()->getName() . $product->getProductTraining()->getAddr01() . $product->getProductTraining()->getAddr02(), 12, '');
-                // 持ち物
-                $this->lfText(33.8, 98.7, $product->getProductTraining()->getItem(), 12, '');
-            }
-            // 備考
-            $bakFontStyle = $this->FontStyle;
-            $bakFontSize = $this->FontSizePt;
-            $this->SetFont('', '', 12);
-            $this->SetXY(33.8, 100.2);
-            $this->MultiCell(88.4, 5.5, str_replace("　", "", $product->getDescriptionDetail()), 0, "L", false, 0, "", "", true, 0, false, true, 17.0, "T");
-            $this->SetFont('', $bakFontStyle, $bakFontSize);
-            // 受講料
-            $price = 0;
-            if (isset($orders[$customerData->getId()])) {
-                $price = $orders[$customerData->getId()]->getPaymentTotal();
+            $beforeSpacing = $this->getFontSpacing();
+            $this->setFontSpacing(1.0);
+            $this->lfText(32.5 + (105.4 * ($col - 1)), 36.5 + (54.5 * ($row - 1)), $customerData->getName01() . " " . $customerData->getName02(), 22, 'B');
+            $this->setFontSpacing($beforeSpacing);
+
+            if (($row * $col) < self::MAX_ROR_PER_PAGE) {
+                if ($col < 2) {
+                    ++$col;
+                } else {
+                    ++$row;
+                    $col = 1;
+                }
             } else {
-                $price = $product->getPrice02IncTaxMax();
+                $row = 1;
+                $col = 1;
             }
-            $bakFontStyle = $this->FontStyle;
-            $bakFontSize = $this->FontSizePt;
-            $this->SetFont('', '', 12);
-            $this->SetXY(32.5, 157.0);
-            $this->MultiCell(24.4, 7.0, number_format($price), 0, "R", false, 0, "", "", true, 0, false, true, 7.0, "T");
-            $this->SetFont('', $bakFontStyle, $bakFontSize);
         }
 
         return true;
@@ -218,6 +191,9 @@ class FaxAcceptPdfService extends AbstractFPDIService
 
         // テンプレートに使うテンプレートファイルのページ番号を指定
         $this->useTemplate($tplIdx, null, null, null, null, true);
+
+        // ページ情報
+        $this->lfText(194.3, 7.6, '(' . $this->PageNo() . '/' . $this->pageMax . ')', 8);
     }
 
     /**

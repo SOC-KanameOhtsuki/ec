@@ -298,6 +298,7 @@ pdf_template_certification: certification.pdf
 pdf_template_regular_member_list: regular_member_list.pdf
 pdf_template_mail_label: mail_label.pdf
 pdf_template_certification_sennding_note: certification_sennding_note.pdf
+pdf_template_mail_accept: mail_accept.pdf
 pdf_template_fax_accept: fax_accept.pdf
 pdf_template_payment_confirm: payment_confirm.pdf
 pdf_template_name_tag: name_tag.pdf

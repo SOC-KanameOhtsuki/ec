@@ -88,6 +88,14 @@ class AdminControllerProvider implements ControllerProviderInterface
         $c->match('/customer', '\Eccube\Controller\Admin\Customer\CustomerController::index')->bind('admin_customer');
         $c->match('/customer/page/{page_no}', '\Eccube\Controller\Admin\Customer\CustomerController::index')->assert('page_no', '\d+')->bind('admin_customer_page');
         $c->match('/customer/export', '\Eccube\Controller\Admin\Customer\CustomerController::export')->bind('admin_customer_export');
+
+        $c->match('/customer/export_select_with_id', '\Eccube\Controller\Admin\Customer\CustomerController::exportMailLabelSelectWithId')->bind('admin_customer_export_mail_label_select_exists_id');
+        $c->match('/customer/export_select', '\Eccube\Controller\Admin\Customer\CustomerController::exportMailLabelSelect')->bind('admin_customer_export_mail_label_select_not_exists_id');
+        $c->match('/customer/export_home_with_id', '\Eccube\Controller\Admin\Customer\CustomerController::exportMailLabelHomeWithId')->bind('admin_customer_export_mail_label_homet_exists_id');
+        $c->match('/customer/export_home', '\Eccube\Controller\Admin\Customer\CustomerController::exportMailLabelHome')->bind('admin_customer_export_mail_label_home_not_exists_id');
+        $c->match('/customer/export_company_with_id', '\Eccube\Controller\Admin\Customer\CustomerController::exportMailLabelCompanyWithId')->bind('admin_customer_export_mail_label_company_exists_id');
+        $c->match('/customer/export_company', '\Eccube\Controller\Admin\Customer\CustomerController::exportMailLabelCompany')->bind('admin_customer_export_mail_label_company_not_exists_id');
+
         $c->match('/customer/search/get', '\Eccube\Controller\Admin\Customer\CustomerController::getSearch')->bind('admin_customer_search_get');
         $c->match('/customer/search/save', '\Eccube\Controller\Admin\Customer\CustomerController::saveSearch')->bind('admin_customer_search_save');
         $c->match('/customer/search/select', '\Eccube\Controller\Admin\Customer\CustomerController::selectSearch')->bind('admin_customer_search_select');
@@ -189,10 +197,15 @@ class AdminControllerProvider implements ControllerProviderInterface
         $c->match('/training/student/{id}', '\Eccube\Controller\Admin\Training\TrainingController::indexStudent')->assert('id', '\d+')->bind('admin_student');
         $c->match('/training/student/{id}/page/{page_no}', '\Eccube\Controller\Admin\Training\TrainingController::indexStudent')->assert('id', '\d+')->assert('page_no', '\d+')->bind('admin_student_page');
         $c->match('/training/csv/member_list/{id}', '\Eccube\Controller\Admin\Training\TrainingController::outCsvMemberList')->assert('id', '\d+')->bind('admin_training_printing_member_list');
+        $c->match('/training/csv/member_list_without_personal/{id}', '\Eccube\Controller\Admin\Training\TrainingController::outCsvMemberListWithoutPersonal')->assert('id', '\d+')->bind('admin_training_printing_member_list_without_personal');
+        $c->match('/training/csv/lecture_member_list/{id}', '\Eccube\Controller\Admin\Training\TrainingController::outCsvLectureMemberList')->assert('id', '\d+')->bind('admin_training_printing_lecture_member_list');
+        $c->match('/training/printing/mail_accept/{id}', '\Eccube\Controller\Admin\Training\TrainingController::printMailAccept')->assert('id', '\d+')->bind('admin_training_printing_mail_accept');
         $c->match('/training/printing/fax_accept/{id}', '\Eccube\Controller\Admin\Training\TrainingController::printFaxAccept')->assert('id', '\d+')->bind('admin_training_printing_fax_accept');
         $c->match('/training/printing/payment_confirm/{id}', '\Eccube\Controller\Admin\Training\TrainingController::printPaymentConfirm')->assert('id', '\d+')->bind('admin_training_printing_payment_confirm');
         $c->match('/training/printing/registration_confirm/{id}', '\Eccube\Controller\Admin\Training\TrainingController::printRegistrationConfirm')->assert('id', '\d+')->bind('admin_training_printing_registration_confirm');
+        $c->match('/training/printing/student_list/{id}', '\Eccube\Controller\Admin\Training\TrainingController::printStudentList')->assert('id', '\d+')->bind('admin_training_printing_student_list');
         $c->match('/training/printing/name_tag/{id}', '\Eccube\Controller\Admin\Training\TrainingController::printNameTag')->assert('id', '\d+')->bind('admin_training_printing_name_tag');
+        $c->match('/training/printing/name_tag_for_training/{id}', '\Eccube\Controller\Admin\Training\TrainingController::printNameTagForTraining')->assert('id', '\d+')->bind('admin_training_printing_name_tag_for_training');
         $c->match('/training/printing/certification/{id}', '\Eccube\Controller\Admin\Training\TrainingController::printCertification')->assert('id', '\d+')->bind('admin_training_printing_certification');
         $c->match('/training/printing/mail_label/{id}', '\Eccube\Controller\Admin\Training\TrainingController::printMailLabel')->assert('id', '\d+')->bind('admin_training_printing_mail_label');
         $c->match('/training/printing/certification_sendding_note/{id}', '\Eccube\Controller\Admin\Training\TrainingController::printCertificationSenddingNote')->assert('id', '\d+')->bind('admin_training_printing_certification_sendding_note');

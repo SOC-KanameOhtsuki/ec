@@ -286,6 +286,23 @@ class OrderRepository extends EntityRepository
                 ->setParameter('order_id_end', $searchData['order_id_end']);
         }
 
+        // customer_id
+        if (isset($searchData['customer_id']) && Str::isNotBlank($searchData['customer_id'])) {
+            $qb
+                ->leftJoin('o.Customer', 'cc')
+                ->andWhere('cc.id = :customer_id')
+                ->setParameter('customer_id', $searchData['customer_id']);
+        }
+
+        // product_id
+        if (isset($searchData['product_id']) && Str::isNotBlank($searchData['product_id'])) {
+            $qb
+                ->leftJoin('o.OrderDetails', 'od')
+                ->leftJoin('od.Product', 'odp')
+                ->andWhere('odp.id = :product_id')
+                ->setParameter('product_id', $searchData['product_id']);
+        }
+
         // status
         $filterStatus = false;
         if (!empty($searchData['status']) && $searchData['status']) {

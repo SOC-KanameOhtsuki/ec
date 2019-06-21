@@ -65,6 +65,9 @@ class EccubeServiceProvider implements ServiceProviderInterface
         $app['eccube.service.fax_accept_pdf'] = $app->share(function () use ($app) {
             return new \Eccube\Service\FaxAcceptPdfService($app);
         });
+        $app['eccube.service.mail_accept_pdf'] = $app->share(function () use ($app) {
+            return new \Eccube\Service\MailAcceptPdfService($app);
+        });
         $app['eccube.service.registration_confirm_pdf'] = $app->share(function () use ($app) {
             return new \Eccube\Service\RegistrationConfirmPdfService($app);
         });
@@ -94,6 +97,9 @@ class EccubeServiceProvider implements ServiceProviderInterface
         });
         $app['eccube.service.name_tag_pdf'] = $app->share(function () use ($app) {
             return new \Eccube\Service\NameTagPdfService($app);
+        });
+        $app['eccube.service.name_tag_for_training_pdf'] = $app->share(function () use ($app) {
+            return new \Eccube\Service\NameTagForTrainingPdfService($app);
         });
         $app['eccube.service.instructor_flyer_pdf'] = $app->share(function () use ($app) {
             return new \Eccube\Service\InstructorFlyerPdfService($app);
@@ -144,6 +150,21 @@ class EccubeServiceProvider implements ServiceProviderInterface
             $csvService->setOrderRepository($app['eccube.repository.order']);
             $csvService->setCustomerRepository($app['eccube.repository.customer']);
             $csvService->setProductRepository($app['eccube.repository.product']);
+            return $csvService;
+        });
+        $app['eccube.service.csv.training_member_list.export'] = $app->share(function () use ($app) {
+            $csvService = new \Eccube\Service\TrainingMemberListCsvExportService();
+            $csvService->setConfig($app['config']);
+            return $csvService;
+        });
+        $app['eccube.service.csv.training_member_list_without_personal.export'] = $app->share(function () use ($app) {
+            $csvService = new \Eccube\Service\TrainingMemberListWithoutPersonalCsvExportService();
+            $csvService->setConfig($app['config']);
+            return $csvService;
+        });
+        $app['eccube.service.csv.lecture_member_list.export'] = $app->share(function () use ($app) {
+            $csvService = new \Eccube\Service\LectureMemberListCsvExportService();
+            $csvService->setConfig($app['config']);
             return $csvService;
         });
         $app['eccube.service.shopping'] = $app->share(function () use ($app) {
