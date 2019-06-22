@@ -75,10 +75,10 @@ class NameTagForTrainingPdfService extends AbstractFPDIService
         parent::__construct();
 
         // Fontの設定しておかないと文字化けを起こす
-         $this->SetFont(self::FONT_SJIS);
+        $this->SetFont(self::FONT_SJIS);
 
         // PDFの余白(上左右)を設定
-        $this->SetMargins(15, 20);
+        $this->SetMargins(0, 0);
 
         // ヘッダーの出力を無効化
         $this->setPrintHeader(false);
@@ -110,36 +110,43 @@ class NameTagForTrainingPdfService extends AbstractFPDIService
         $this->downloadFileName = null;
 
         // テンプレートファイルを読み込む
-        $pdfFile = $this->app['config']['pdf_template_name_tag'];
+        $pdfFile = $this->app['config']['pdf_template_name_tag_for_training'];
         $templateFilePath = __DIR__.'/../Resource/pdf/'.$pdfFile;
         $this->setSourceFile($templateFilePath);
+        $this->SetFont(self::FONT_GOTHIC);
 
-        $row = 1;
-        $col = 1;
         foreach ($customersData as $customerData) {
-            if (($row == 1) && ($col == 1)) {
-                // PDFにページを追加する
-                $this->addPdfPage();
-            }
+            // PDFにページを追加する
+            $this->addPdfPage();
             // 会員番号
-            $this->lfText(81.3 + (105.4 * ($col - 1)), 27.4 + (54.5 * ($row - 1)), $customerData->getId(), 12, 'B');
+            $this->lfText(81.3, 24.2, $customerData->getId(), 12);
             // 会員名
+            $bakFontStyle = $this->FontStyle;
+            $bakFontSize = $this->FontSizePt;
+            $this->SetFont('', 'B', 22);
+            $this->SetXY(23.1, 29.1);
             $beforeSpacing = $this->getFontSpacing();
             $this->setFontSpacing(1.0);
-            $this->lfText(32.5 + (105.4 * ($col - 1)), 36.5 + (54.5 * ($row - 1)), $customerData->getName01() . " " . $customerData->getName02(), 22, 'B');
-            $this->setFontSpacing($beforeSpacing);
-
-            if (($row * $col) < self::MAX_ROR_PER_PAGE) {
-                if ($col < 2) {
-                    ++$col;
-                } else {
-                    ++$row;
-                    $col = 1;
-                }
-            } else {
-                $row = 1;
-                $col = 1;
+            $fontSize = 25;
+            $this->SetFont('', 'B', $fontSize);
+            while (11.2 < $this->getStringHeight(70.4, $customerData->getName01() . " " . $customerData->getName02())) {
+                --$fontSize;
+                $this->SetFont('', 'B', $fontSize);
             }
+            $this->MultiCell(70.4, 11.2, $customerData->getName01() . " " . $customerData->getName02(), 0, "C", false, 0, "", "", true, 0, false, true, 11.2, "M");
+            $this->setFontSpacing($beforeSpacing);
+            if (!is_null($product)) {
+                // 受講日
+                $this->lfText(41.9, 24.2, $product->getProductTraining()->getTrainingDateStart()->format('Y年m月d日'), 11);
+                // 講習会名
+                if ($product->hasProductTraining()) {
+                    $this->SetFont('', '', 11);
+                    $this->SetXY(23.1, 40.4);
+                    $this->MultiCell(70.4, 7.0, $product->getProductTraining()->getTrainingType()->getName(), 0, "C", false, 0, "", "", true, 0, false, true, 7.0, "T");
+                    $this->SetFont('', $bakFontStyle, $bakFontSize);
+                }
+            }
+            $this->SetFont('', $bakFontStyle, $bakFontSize);
         }
 
         return true;

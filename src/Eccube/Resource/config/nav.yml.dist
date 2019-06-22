@@ -138,6 +138,9 @@
       - id: certification
         name: 認定書
         url: admin_form_printing_certification
+      - id: mail_label
+        name: 郵送用ラベル
+        url: admin_form_printing_mail_label
       - id: regular_member_list
         name: 正会員一覧
         url: admin_form_printing_regular_member_list

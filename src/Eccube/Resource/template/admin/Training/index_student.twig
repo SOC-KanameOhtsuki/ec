@@ -36,11 +36,6 @@ This file is Custom File
         $('#dropdown-form input:hidden[name="modeAll"]').val("0")
         $("#dropdown-form").submit();
     });
-    $('#payment_confirm').click(function() {
-        $("#dropdown-form").attr('action', "{{ path('admin_training_printing_payment_confirm', {'id': ProductId}) }}");
-        $('#dropdown-form input:hidden[name="modeAll"]').val("0")
-        $("#dropdown-form").submit();
-    });
     $('#registration_confirm').click(function() {
         $("#dropdown-form").attr('action', "{{ path('admin_training_printing_registration_confirm', {'id': ProductId}) }}");
         $('#dropdown-form input:hidden[name="modeAll"]').val("0")
@@ -350,11 +345,6 @@ This file is Custom File
         $('#dropdown-form input:hidden[name="modeAll"]').val("1")
         $("#dropdown-form").submit();
     });
-    $('#all_payment_confirm').click(function() {
-        $("#dropdown-form").attr('action', "{{ path('admin_training_printing_payment_confirm', {'id': ProductId}) }}");
-        $('#dropdown-form input:hidden[name="modeAll"]').val("1")
-        $("#dropdown-form").submit();
-    });
     $('#all_registration_confirm').click(function() {
         $("#dropdown-form").attr('action', "{{ path('admin_training_printing_registration_confirm', {'id': ProductId}) }}");
         $('#dropdown-form input:hidden[name="modeAll"]').val("1")
@@ -522,9 +512,11 @@ This file is Custom File
               <ul class="dropdown-menu">
                 <li><a id="mail_accept" href="javascript:void(0);">講習申込返信（郵便）</a></li>
                 <li><a id="fax_accept" href="javascript:void(0);">講習申込返信（FAX）</a></li>
-                <li><a id="payment_confirm" href="javascript:void(0);">入金確認票</a></li>
-                <li><a id="name_tag" href="javascript:void(0);">名札</a></li>
-                <li><a id="name_tag_for_tarining" href="javascript:void(0);">講習会名札</a></li>
+                {% if ProductTraining.TrainingType.id == 5 %}
+                    <li><a id="name_tag" href="javascript:void(0);">講演会名札</a></li>
+                {% else %}
+                    <li><a id="name_tag_for_tarining" href="javascript:void(0);">名札</a></li>
+                {% endif %}
                 <li><a id="mail_label_select_with_id" href="javascript:void(0);">郵送用ラベル(希望送付先/IDあり)</a></li>
                 <li><a id="mail_label_select" href="javascript:void(0);">郵送用ラベル(希望送付先/IDなし)</a></li>
                 <li><a id="mail_label_home_with_id" href="javascript:void(0);">郵送ラベル(自宅/IDあり)</a></li>
@@ -552,12 +544,14 @@ This file is Custom File
                 <li><a href="{{ url('admin_training_printing_lecture_member_list', {'id' : Product.id}) }}" data-method="post">講習会名簿</a></li>
                 <li><a id="all_mail_accept" href="javascript:void(0);">講習申込返信（郵便）</a></li>
                 <li><a id="all_fax_accept" href="javascript:void(0);">講習申込返信（FAX）</a></li>
-                <li><a id="all_payment_confirm" href="javascript:void(0);">入金確認票</a></li>
-                <li><a id="all_name_tag" href="javascript:void(0);">名札</a></li>
-                <li><a id="all_name_tag_for_tarining" href="javascript:void(0);">講習会名札</a></li>
+                {% if ProductTraining.TrainingType.id == 5 %}
+                    <li><a id="all_name_tag" href="javascript:void(0);">講演会名札</a></li>
+                {% else %}
+                    <li><a id="all_name_tag_for_tarining" href="javascript:void(0);">名札</a></li>
+                {% endif %}
                 <li><a id="all_mail_label_select_with_id" href="javascript:void(0);">郵送用ラベル(希望送付先/IDあり)</a></li>
                 <li><a id="all_mail_label_select" href="javascript:void(0);">郵送用ラベル(希望送付先/IDなし)</a></li>
-                <li><a id="all_mail_label_home_with_id" href="javascript:void(0);">郵送ラベル(自宅/IDあり)</a></li>
+                <li><a id="all_mail_label_home_with_id" href="javascript:void(0);">郵送用ラベル(自宅/IDあり)</a></li>
                 <li><a id="all_mail_label_home" href="javascript:void(0);">郵送用ラベル(自宅/IDなし)</a></li>
                 <li><a id="all_mail_label_company_with_id" href="javascript:void(0);">郵送用ラベル(勤務先/IDあり)</a></li>
                 <li><a id="all_mail_label_company" href="javascript:void(0);">郵送用ラベル(勤務先/IDなし)</a></li>
@@ -577,6 +571,8 @@ This file is Custom File
         <!--個別/一括プルダウン作成-->
         <form id="dropdown-form">
             <input type="hidden" name="modeAll" value="0">
+            <input type="hidden" name="to" value="0">
+            <input type="hidden" name="existsId" value="0">
             <div id="result_list_main__list" class="table_list">
                 <div class="table-responsive with-border">
                     <table id="customerTable" class="table table-striped">

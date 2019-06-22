@@ -91,7 +91,7 @@ class MailLabelPdfService extends AbstractFPDIService
      *
      * @return bool
      */
-    public function makePdf(array $customersData)
+    public function makePdf(array $customersData, $productDate, $to = 0, $existsId = 0)
     {
         // データが空であれば終了
         if (count($customersData) < 1) {
@@ -107,130 +107,257 @@ class MailLabelPdfService extends AbstractFPDIService
         $row_index = 0;
         $col_index = 0;
         $page = 0;
-        foreach ($customersData as $customerData) {
-            $Out = false;
-            if (($total % 14) == 0) {
-                // PDFにページを追加する
-                $this->addPage('PORTRAIT', 'A4');
-                $page_total = 0;
-                $col_index = 0;
-                $row_index = 0;
-                ++$page;
-            } else if (($page_total % 7) == 0) {
-                ++$col_index;
-                $row_index = 0;
-            } else {
-                ++$row_index;
-            }
-            ++$total;
-            ++$page_total;
-            $row_adjuster = (35.6 * $row_index);
-            $col_adjuster = (85.1 * $col_index);
-            $zip_code = '';
-            $addr = '';
-            $company = '';
-            $name = '';
-            foreach ($customerData->getCustomerAddresses() as $AddresInfo) {
-                if ($AddresInfo->getMailTo()->getId() == 2) {
+        if (($to == 1) || ($to == 2)) {
+            foreach ($customersData as $customerData) {
+                $Out = false;
+                if (($total % 14) == 0) {
+                    // PDFにページを追加する
+                    $this->addPage('PORTRAIT', 'A4');
+                    $page_total = 0;
+                    $col_index = 0;
+                    $row_index = 0;
+                    ++$page;
+                } else if (($page_total % 7) == 0) {
+                    ++$col_index;
+                    $row_index = 0;
+                } else {
+                    ++$row_index;
+                }
+                ++$total;
+                ++$page_total;
+                $row_adjuster = (35.6 * $row_index);
+                $col_adjuster = (85.1 * $col_index);
+                $zip_code = '';
+                $addr = '';
+                $company = '';
+                $name = '';
+                foreach ($customerData->getCustomerAddresses() as $AddresInfo) {
+                    if ($AddresInfo->getAddressType()->getId() == $to) {
+                        // 郵便番号
+                        $zip_code = "〒" . (is_null($AddresInfo->getZip01())?"":$AddresInfo->getZip01()) . (is_null($AddresInfo->getZip02())?"":$AddresInfo->getZip02());
+                        // 住所
+                        if (strlen((is_null($AddresInfo->getPref())?"":$AddresInfo->getPref())) > 0 && strlen((is_null($AddresInfo->getAddr01())?"":$AddresInfo->getAddr01())) > 0  && strlen((is_null($AddresInfo->getAddr02())?"":$AddresInfo->getAddr02())) > 0 ) {
+                            $addr = (is_null($AddresInfo->getPref())?"":$AddresInfo->getPref()->getName()) . (is_null($AddresInfo->getAddr01())?"":$AddresInfo->getAddr01()) . (is_null($AddresInfo->getAddr02())?"":$AddresInfo->getAddr02());
+                        }
+                        // 勤務先
+                        if (strlen((is_null($AddresInfo->getCompanyName())?"":$AddresInfo->getCompanyName())) > 0 ) {
+                            $company = $AddresInfo->getCompanyName();
+                        }
+                        // 会員名
+                        if (strlen((is_null($AddresInfo->getName01())?"":$AddresInfo->getName01())) > 0 && strlen((is_null($AddresInfo->getName02())?"":$AddresInfo->getName02())) > 0 ) {
+                            $name = $AddresInfo->getName01() . " " . $AddresInfo->getName02() . ' 様';
+                        }
+                        $Out = true;
+                        break;
+                    }
+                }
+                if (!$Out) {
                     // 郵便番号
-                    $zip_code = "〒" . (is_null($AddresInfo->getZip01())?"":$AddresInfo->getZip01()) . (is_null($AddresInfo->getZip02())?"":$AddresInfo->getZip02());
+                    $zip_code = "〒" . (is_null($customerData->getZip01())?"":$customerData->getZip01()) . (is_null($customerData->getZip02())?"":$customerData->getZip02());
                     // 住所
-                    if (strlen((is_null($AddresInfo->getPref())?"":$AddresInfo->getPref())) > 0 && strlen((is_null($AddresInfo->getAddr01())?"":$AddresInfo->getAddr01())) > 0  && strlen((is_null($AddresInfo->getAddr02())?"":$AddresInfo->getAddr02())) > 0 ) {
-                        $addr = (is_null($AddresInfo->getPref())?"":$AddresInfo->getPref()->getName()) . (is_null($AddresInfo->getAddr01())?"":$AddresInfo->getAddr01()) . (is_null($AddresInfo->getAddr02())?"":$AddresInfo->getAddr02());
+                    if (strlen((is_null($customerData->getPref())?"":$customerData->getPref())) > 0 && strlen((is_null($customerData->getAddr01())?"":$customerData->getAddr01())) > 0  && strlen((is_null($customerData->getAddr02())?"":$customerData->getAddr02())) > 0 ) {
+                        $addr = (is_null($customerData->getPref())?"":$customerData->getPref()->getName()) . (is_null($customerData->getAddr01())?"":$customerData->getAddr01()) . (is_null($customerData->getAddr02())?"":$customerData->getAddr02());
                     }
                     // 勤務先
-                    if (strlen((is_null($AddresInfo->getCompanyName())?"":$AddresInfo->getCompanyName())) > 0 ) {
-                        $company = $AddresInfo->getCompanyName();
+                    if (strlen((is_null($customerData->getCompanyName())?"":$customerData->getCompanyName())) > 0 ) {
+                        $company = $customerData->getCompanyName();
                     }
                     // 会員名
-                    if (strlen((is_null($AddresInfo->getName01())?"":$AddresInfo->getName01())) > 0 && strlen((is_null($AddresInfo->getName02())?"":$AddresInfo->getName02())) > 0 ) {
-                        $name = $AddresInfo->getName01() . " " . $AddresInfo->getName02() . ' 様';
+                    if (strlen((is_null($customerData->getName01())?"":$customerData->getName01())) > 0 && strlen((is_null($customerData->getName02())?"":$customerData->getName02())) > 0 ) {
+                        $name = $customerData->getName01() . " " . $customerData->getName02() . ' 様';
                     }
-                    $Out = true;
-                    break;
                 }
-            }
-            if (!$Out) {
                 // 郵便番号
-                $zip_code = "〒" . (is_null($customerData->getZip01())?"":$customerData->getZip01()) . (is_null($customerData->getZip02())?"":$customerData->getZip02());
+                $this->lfText(26.2 + $col_adjuster, 26.0 + $row_adjuster, $zip_code, 11, 'B');
+                $current_row = 26.0 + $row_adjuster;
                 // 住所
-                if (strlen((is_null($customerData->getPref())?"":$customerData->getPref())) > 0 && strlen((is_null($customerData->getAddr01())?"":$customerData->getAddr01())) > 0  && strlen((is_null($customerData->getAddr02())?"":$customerData->getAddr02())) > 0 ) {
-                    $addr = (is_null($customerData->getPref())?"":$customerData->getPref()->getName()) . (is_null($customerData->getAddr01())?"":$customerData->getAddr01()) . (is_null($customerData->getAddr02())?"":$customerData->getAddr02());
+                if (strlen($addr) > 0) {
+                    $bakFontStyle = $this->FontStyle;
+                    $bakFontSize = $this->FontSizePt;
+                    $this->SetFont('', 'B', 9);
+                    $min_height = $this->getStringHeight(70.0, "北") + 0.3;
+                    $height = $this->getStringHeight(70.0, $addr) + 0.3;
+                    $this->SetXY(26.2 + $col_adjuster, $current_row);
+                    $this->MultiCell(70.0, $min_height, $addr, 0, "L", false, 0, "", "", true, 0, false, true, $height, "M");
+                    $this->SetFont('', $bakFontStyle, $bakFontSize);
+                    $current_row += $height;
                 }
-                // 勤務先
-                if (strlen((is_null($customerData->getCompanyName())?"":$customerData->getCompanyName())) > 0 ) {
-                    $company = $customerData->getCompanyName();
+                // 会員名&勤務先
+                if ((strlen($name) > 0) && (strlen($company) > 0)) {
+                    $bakFontStyle = $this->FontStyle;
+                    $bakFontSize = $this->FontSizePt;
+                    $this->SetFont('', 'B', 9);
+                    $min_height = $this->getStringHeight(70.0, "会") + 0.3;
+                    $height = $this->getStringHeight(70.0, "会") + 0.3;
+                    $this->SetXY(26.2 + $col_adjuster, $current_row);
+                    $current_row += $height;
+                    $this->MultiCell(70.0, $min_height, $company, 0, "L", false, 0, "", "", true, 0, false, true, $height, "M");
+                    $this->SetFont('', 'B', 14);
+                    $min_height = $this->getStringHeight(70.0, "あ") + 0.3;
+                    $height = $this->getStringHeight(70.0, "あ") + 0.3;
+                    $this->SetXY(26.2 + $col_adjuster, $current_row);
+                    $current_row += $height;
+                    $this->MultiCell(70.0, $min_height, $name, 0, "L", false, 0, "", "", true, 0, false, true, $height, "M");
+                    $this->SetFont('', $bakFontStyle, $bakFontSize);
+                } else if (strlen($company) > 0) {
+                    $bakFontStyle = $this->FontStyle;
+                    $bakFontSize = $this->FontSizePt;
+                    $this->SetFont('', 'B', 14);
+                    $min_height = $this->getStringHeight(70.0, "会") + 0.3;
+                    $height = $this->getStringHeight(70.0, "会") + 0.3;
+                    $this->SetXY(26.2 + $col_adjuster, $current_row);
+                    $current_row += $height;
+                    $this->MultiCell(70.0, $min_height, $company, 0, "L", false, 0, "", "", true, 0, false, true, $height, "M");
+                    $this->SetFont('', $bakFontStyle, $bakFontSize);
+                } else if (strlen($name) > 0) {
+                    $bakFontStyle = $this->FontStyle;
+                    $bakFontSize = $this->FontSizePt;
+                    $this->SetFont('', 'B', 14);
+                    $min_height = $this->getStringHeight(70.0, "あ") + 0.3;
+                    $height = $this->getStringHeight(70.0, "あ") + 0.3;
+                    $this->SetXY(26.2 + $col_adjuster, $current_row);
+                    $current_row += $height;
+                    $this->MultiCell(70.0, $min_height, $name, 0, "L", false, 0, "", "", true, 0, false, true, $height, "M");
+                    $this->SetFont('', $bakFontStyle, $bakFontSize);
                 }
-                // 会員名
-                if (strlen((is_null($customerData->getName01())?"":$customerData->getName01())) > 0 && strlen((is_null($customerData->getName02())?"":$customerData->getName02())) > 0 ) {
-                    $name = $customerData->getName01() . " " . $customerData->getName02() . ' 様';
+                // 会員番号
+                if (!is_null($customerData->getCustomerBasicInfo()->getCustomerNumberOld()) && ($existsId == 1)){
+                    $oldCustomerId = '';
+                    if (strlen($customerData->getCustomerBasicInfo()->getCustomerNumberOld()) < 6) {
+                        $oldCustomerId = intval($customerData->getCustomerBasicInfo()->getCustomerNumberOld());
+                    } else {
+                        $oldCustomerId = intval(substr($customerData->getCustomerBasicInfo()->getCustomerNumberOld(),
+                                                strlen($customerData->getCustomerBasicInfo()->getCustomerNumberOld()) - 5));
+                    }
+                    $this->lfText(89.4 + $col_adjuster, 51.7 + $row_adjuster, "ID " . $oldCustomerId, 9, 'B');
                 }
             }
-            // 郵便番号
-            $this->lfText(26.2 + $col_adjuster, 26.0 + $row_adjuster, $zip_code, 11, 'B');
-            $current_row = 26.0 + $row_adjuster;
-            // 住所
-            if (strlen($addr) > 0) {
-                $bakFontStyle = $this->FontStyle;
-                $bakFontSize = $this->FontSizePt;
-                $this->SetFont('', 'B', 9);
-                $min_height = $this->getStringHeight(70.0, "北") + 0.3;
-                $height = $this->getStringHeight(70.0, $addr) + 0.3;
-                $this->SetXY(26.2 + $col_adjuster, $current_row);
-                $this->MultiCell(70.0, $min_height, $addr, 0, "L", false, 0, "", "", true, 0, false, true, $height, "M");
-                $this->SetFont('', $bakFontStyle, $bakFontSize);
-                $current_row += $height;
-            }
-            // 会員名&勤務先
-            if ((strlen($name) > 0) && (strlen($company) > 0)) {
-                $bakFontStyle = $this->FontStyle;
-                $bakFontSize = $this->FontSizePt;
-                $this->SetFont('', 'B', 9);
-                $min_height = $this->getStringHeight(70.0, "会") + 0.3;
-                $height = $this->getStringHeight(70.0, "会") + 0.3;
-                $this->SetXY(26.2 + $col_adjuster, $current_row);
-                $current_row += $height;
-                $this->MultiCell(70.0, $min_height, $company, 0, "L", false, 0, "", "", true, 0, false, true, $height, "M");
-                $this->SetFont('', 'B', 14);
-                $min_height = $this->getStringHeight(70.0, "あ") + 0.3;
-                $height = $this->getStringHeight(70.0, "あ") + 0.3;
-                $this->SetXY(26.2 + $col_adjuster, $current_row);
-                $current_row += $height;
-                $this->MultiCell(70.0, $min_height, $name, 0, "L", false, 0, "", "", true, 0, false, true, $height, "M");
-                $this->SetFont('', $bakFontStyle, $bakFontSize);
-            } else if (strlen($company) > 0) {
-                $bakFontStyle = $this->FontStyle;
-                $bakFontSize = $this->FontSizePt;
-                $this->SetFont('', 'B', 14);
-                $min_height = $this->getStringHeight(70.0, "会") + 0.3;
-                $height = $this->getStringHeight(70.0, "会") + 0.3;
-                $this->SetXY(26.2 + $col_adjuster, $current_row);
-                $current_row += $height;
-                $this->MultiCell(70.0, $min_height, $company, 0, "L", false, 0, "", "", true, 0, false, true, $height, "M");
-                $this->SetFont('', $bakFontStyle, $bakFontSize);
-            } else if (strlen($name) > 0) {
-                $bakFontStyle = $this->FontStyle;
-                $bakFontSize = $this->FontSizePt;
-                $this->SetFont('', 'B', 14);
-                $min_height = $this->getStringHeight(70.0, "あ") + 0.3;
-                $height = $this->getStringHeight(70.0, "あ") + 0.3;
-                $this->SetXY(26.2 + $col_adjuster, $current_row);
-                $current_row += $height;
-                $this->MultiCell(70.0, $min_height, $name, 0, "L", false, 0, "", "", true, 0, false, true, $height, "M");
-                $this->SetFont('', $bakFontStyle, $bakFontSize);
-            }
-            // 会員番号
-            if (!is_null($customerData->getCustomerBasicInfo()->getCustomerNumberOld()) ){
-                $oldCustomerId = '';
-                if (strlen($customerData->getCustomerBasicInfo()->getCustomerNumberOld()) < 6) {
-                    $oldCustomerId = intval($customerData->getCustomerBasicInfo()->getCustomerNumberOld());
+        } else {
+            foreach ($customersData as $customerData) {
+                $Out = false;
+                if (($total % 14) == 0) {
+                    // PDFにページを追加する
+                    $this->addPage('PORTRAIT', 'A4');
+                    $page_total = 0;
+                    $col_index = 0;
+                    $row_index = 0;
+                    ++$page;
+                } else if (($page_total % 7) == 0) {
+                    ++$col_index;
+                    $row_index = 0;
                 } else {
-                    $oldCustomerId = intval(substr($customerData->getCustomerBasicInfo()->getCustomerNumberOld(),
-                                            strlen($customerData->getCustomerBasicInfo()->getCustomerNumberOld()) - 5));
+                    ++$row_index;
                 }
-                $this->lfText(89.4 + $col_adjuster, 51.7 + $row_adjuster, "ID " . $oldCustomerId, 9, 'B');
+                ++$total;
+                ++$page_total;
+                $row_adjuster = (35.6 * $row_index);
+                $col_adjuster = (85.1 * $col_index);
+                $zip_code = '';
+                $addr = '';
+                $company = '';
+                $name = '';
+                foreach ($customerData->getCustomerAddresses() as $AddresInfo) {
+                    if ($AddresInfo->getMailTo()->getId() == 2) {
+                        // 郵便番号
+                        $zip_code = "〒" . (is_null($AddresInfo->getZip01())?"":$AddresInfo->getZip01()) . (is_null($AddresInfo->getZip02())?"":$AddresInfo->getZip02());
+                        // 住所
+                        if (strlen((is_null($AddresInfo->getPref())?"":$AddresInfo->getPref())) > 0 && strlen((is_null($AddresInfo->getAddr01())?"":$AddresInfo->getAddr01())) > 0  && strlen((is_null($AddresInfo->getAddr02())?"":$AddresInfo->getAddr02())) > 0 ) {
+                            $addr = (is_null($AddresInfo->getPref())?"":$AddresInfo->getPref()->getName()) . (is_null($AddresInfo->getAddr01())?"":$AddresInfo->getAddr01()) . (is_null($AddresInfo->getAddr02())?"":$AddresInfo->getAddr02());
+                        }
+                        // 勤務先
+                        if (strlen((is_null($AddresInfo->getCompanyName())?"":$AddresInfo->getCompanyName())) > 0 ) {
+                            $company = $AddresInfo->getCompanyName();
+                        }
+                        // 会員名
+                        if (strlen((is_null($AddresInfo->getName01())?"":$AddresInfo->getName01())) > 0 && strlen((is_null($AddresInfo->getName02())?"":$AddresInfo->getName02())) > 0 ) {
+                            $name = $AddresInfo->getName01() . " " . $AddresInfo->getName02() . ' 様';
+                        }
+                        $Out = true;
+                        break;
+                    }
+                }
+                if (!$Out) {
+                    // 郵便番号
+                    $zip_code = "〒" . (is_null($customerData->getZip01())?"":$customerData->getZip01()) . (is_null($customerData->getZip02())?"":$customerData->getZip02());
+                    // 住所
+                    if (strlen((is_null($customerData->getPref())?"":$customerData->getPref())) > 0 && strlen((is_null($customerData->getAddr01())?"":$customerData->getAddr01())) > 0  && strlen((is_null($customerData->getAddr02())?"":$customerData->getAddr02())) > 0 ) {
+                        $addr = (is_null($customerData->getPref())?"":$customerData->getPref()->getName()) . (is_null($customerData->getAddr01())?"":$customerData->getAddr01()) . (is_null($customerData->getAddr02())?"":$customerData->getAddr02());
+                    }
+                    // 勤務先
+                    if (strlen((is_null($customerData->getCompanyName())?"":$customerData->getCompanyName())) > 0 ) {
+                        $company = $customerData->getCompanyName();
+                    }
+                    // 会員名
+                    if (strlen((is_null($customerData->getName01())?"":$customerData->getName01())) > 0 && strlen((is_null($customerData->getName02())?"":$customerData->getName02())) > 0 ) {
+                        $name = $customerData->getName01() . " " . $customerData->getName02() . ' 様';
+                    }
+                }
+                // 郵便番号
+                $this->lfText(26.2 + $col_adjuster, 26.0 + $row_adjuster, $zip_code, 11, 'B');
+                $current_row = 26.0 + $row_adjuster;
+                // 住所
+                if (strlen($addr) > 0) {
+                    $bakFontStyle = $this->FontStyle;
+                    $bakFontSize = $this->FontSizePt;
+                    $this->SetFont('', 'B', 9);
+                    $min_height = $this->getStringHeight(70.0, "北") + 0.3;
+                    $height = $this->getStringHeight(70.0, $addr) + 0.3;
+                    $this->SetXY(26.2 + $col_adjuster, $current_row);
+                    $this->MultiCell(70.0, $min_height, $addr, 0, "L", false, 0, "", "", true, 0, false, true, $height, "M");
+                    $this->SetFont('', $bakFontStyle, $bakFontSize);
+                    $current_row += $height;
+                }
+                // 会員名&勤務先
+                if ((strlen($name) > 0) && (strlen($company) > 0)) {
+                    $bakFontStyle = $this->FontStyle;
+                    $bakFontSize = $this->FontSizePt;
+                    $this->SetFont('', 'B', 9);
+                    $min_height = $this->getStringHeight(70.0, "会") + 0.3;
+                    $height = $this->getStringHeight(70.0, "会") + 0.3;
+                    $this->SetXY(26.2 + $col_adjuster, $current_row);
+                    $current_row += $height;
+                    $this->MultiCell(70.0, $min_height, $company, 0, "L", false, 0, "", "", true, 0, false, true, $height, "M");
+                    $this->SetFont('', 'B', 14);
+                    $min_height = $this->getStringHeight(70.0, "あ") + 0.3;
+                    $height = $this->getStringHeight(70.0, "あ") + 0.3;
+                    $this->SetXY(26.2 + $col_adjuster, $current_row);
+                    $current_row += $height;
+                    $this->MultiCell(70.0, $min_height, $name, 0, "L", false, 0, "", "", true, 0, false, true, $height, "M");
+                    $this->SetFont('', $bakFontStyle, $bakFontSize);
+                } else if (strlen($company) > 0) {
+                    $bakFontStyle = $this->FontStyle;
+                    $bakFontSize = $this->FontSizePt;
+                    $this->SetFont('', 'B', 14);
+                    $min_height = $this->getStringHeight(70.0, "会") + 0.3;
+                    $height = $this->getStringHeight(70.0, "会") + 0.3;
+                    $this->SetXY(26.2 + $col_adjuster, $current_row);
+                    $current_row += $height;
+                    $this->MultiCell(70.0, $min_height, $company, 0, "L", false, 0, "", "", true, 0, false, true, $height, "M");
+                    $this->SetFont('', $bakFontStyle, $bakFontSize);
+                } else if (strlen($name) > 0) {
+                    $bakFontStyle = $this->FontStyle;
+                    $bakFontSize = $this->FontSizePt;
+                    $this->SetFont('', 'B', 14);
+                    $min_height = $this->getStringHeight(70.0, "あ") + 0.3;
+                    $height = $this->getStringHeight(70.0, "あ") + 0.3;
+                    $this->SetXY(26.2 + $col_adjuster, $current_row);
+                    $current_row += $height;
+                    $this->MultiCell(70.0, $min_height, $name, 0, "L", false, 0, "", "", true, 0, false, true, $height, "M");
+                    $this->SetFont('', $bakFontStyle, $bakFontSize);
+                }
+                // 会員番号
+                if (!is_null($customerData->getCustomerBasicInfo()->getCustomerNumberOld()) && ($existsId == 1)){
+                    $oldCustomerId = '';
+                    if (strlen($customerData->getCustomerBasicInfo()->getCustomerNumberOld()) < 6) {
+                        $oldCustomerId = intval($customerData->getCustomerBasicInfo()->getCustomerNumberOld());
+                    } else {
+                        $oldCustomerId = intval(substr($customerData->getCustomerBasicInfo()->getCustomerNumberOld(),
+                                                strlen($customerData->getCustomerBasicInfo()->getCustomerNumberOld()) - 5));
+                    }
+                    $this->lfText(89.4 + $col_adjuster, 51.7 + $row_adjuster, "ID " . $oldCustomerId, 9, 'B');
+                }
             }
-      }
+        }
 
         return true;
     }

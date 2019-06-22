@@ -75,10 +75,10 @@ class RegistrationConfirmPdfService extends AbstractFPDIService
         parent::__construct();
 
         // Fontの設定しておかないと文字化けを起こす
-         $this->SetFont(self::FONT_SJIS);
+        $this->SetFont(self::FONT_SJIS);
 
         // PDFの余白(上左右)を設定
-        $this->SetMargins(15, 20);
+        $this->SetMargins(0, 0);
 
         // ヘッダーの出力を無効化
         $this->setPrintHeader(false);
@@ -112,37 +112,114 @@ class RegistrationConfirmPdfService extends AbstractFPDIService
         $templateFilePath = __DIR__.'/../Resource/pdf/'.$pdfFile;
         $this->setSourceFile($templateFilePath);
 
+        $this->SetFont(self::FONT_GOTHIC);
         foreach ($customersData as $customerData) {
             // PDFにページを追加する
             $this->addPdfPage();
-            // 会員名(フリガナ)
-            $this->lfText(39.1, 78.4, $customerData->getKana01() . " " . $customerData->getKana02(), 13, 'B');
+            $birth = (is_null($customerData->getBirth())?'':$customerData->getBirth()->format('Y/n/j'));
+            $home_zip_code = '';
+            $home_addr = '';
+            $home_tel = '';
+            $home_fax = '';
+            $home_mobile_phone = '';
+            $company = '';
+            $company_zip_code = '';
+            $company_addr = '';
+            $company_tel = '';
+            $company_fax = '';
+            $mail_address = '';
+            $select = '自宅';
+            foreach ($customerData->getCustomerAddresses() as $AddresInfo) {
+                if ($AddresInfo->getAddressType()->getId() == 1) {
+                    if (strlen((is_null($AddresInfo->getPref())?"":$AddresInfo->getPref())) > 0 && strlen((is_null($AddresInfo->getAddr01())?"":$AddresInfo->getAddr01())) > 0  && strlen((is_null($AddresInfo->getAddr02())?"":$AddresInfo->getAddr02())) > 0 ) {
+                        $home_addr = (is_null($AddresInfo->getPref())?"":$AddresInfo->getPref()->getName()) . (is_null($AddresInfo->getAddr01())?"":$AddresInfo->getAddr01()) . (is_null($AddresInfo->getAddr02())?"":$AddresInfo->getAddr02());
+                    }
+                    $home_zip_code = (is_null($AddresInfo->getZip01())?"":$AddresInfo->getZip01()) . (is_null($AddresInfo->getZip02())?"":$AddresInfo->getZip02());
+                    if (!is_null($AddresInfo->getTel01()) && !is_null($AddresInfo->getTel02()) && !is_null($AddresInfo->getTel03())) {
+                        $home_tel = $customerData->getTel01() . "-" . $AddresInfo->getTel02() . "-" . $AddresInfo->getTel03();
+                    }
+                    if (!is_null($AddresInfo->getFax01()) && !is_null($AddresInfo->getFax02()) && !is_null($AddresInfo->getFax03())) {
+                        $home_fax = $customerData->getFax01() . "-" . $AddresInfo->getFax02() . "-" . $AddresInfo->getFax03();
+                    }
+                    if (!is_null($AddresInfo->getMobilephone01()) && !is_null($AddresInfo->getMobilephone02()) && !is_null($AddresInfo->getMobilephone03())) {
+                        $home_mobile_phone = $customerData->getMobilephone01() . "-" . $AddresInfo->getMobilephone02() . "-" . $AddresInfo->getMobilephone03();
+                    }
+                    if (!is_null($AddresInfo->getEmail())) {
+                        $mail_address = $AddresInfo->getEmail();
+                    }
+                } else if ($AddresInfo->getAddressType()->getId() == 2) {
+                    if (strlen((is_null($AddresInfo->getPref())?"":$AddresInfo->getPref())) > 0 && strlen((is_null($AddresInfo->getAddr01())?"":$AddresInfo->getAddr01())) > 0  && strlen((is_null($AddresInfo->getAddr02())?"":$AddresInfo->getAddr02())) > 0 ) {
+                        $company_addr = (is_null($AddresInfo->getPref())?"":$AddresInfo->getPref()->getName()) . (is_null($AddresInfo->getAddr01())?"":$AddresInfo->getAddr01()) . (is_null($AddresInfo->getAddr02())?"":$AddresInfo->getAddr02());
+                    }
+                    $company_zip_code = (is_null($AddresInfo->getZip01())?"":$AddresInfo->getZip01()) . (is_null($AddresInfo->getZip02())?"":$AddresInfo->getZip02());
+                    if (!is_null($AddresInfo->getTel01()) && !is_null($AddresInfo->getTel02()) && !is_null($AddresInfo->getTel03())) {
+                        $company_tel = $customerData->getTel01() . "-" . $AddresInfo->getTel02() . "-" . $AddresInfo->getTel03();
+                    }
+                    if (!is_null($AddresInfo->getFax01()) && !is_null($AddresInfo->getFax02()) && !is_null($AddresInfo->getFax03())) {
+                        $company_fax = $customerData->getFax01() . "-" . $AddresInfo->getFax02() . "-" . $AddresInfo->getFax03();
+                    }
+                    if (($anonymousCompanyEnabled) && strlen((is_null($AddresInfo->getName01())?"":$AddresInfo->getName01())) > 0 ) {
+                        $company = $AddresInfo->getName01();
+                    }
+                    if ($AddresInfo->getMailTo()->getId() == 2) {
+                        $select = '勤務先';
+                    }
+                }
+            }
+            if (($anonymousCompanyEnabled) && (strlen($company) < 1)) {
+                $company = $customerData->getCompanyName();
+            }
+            if ((strlen($home_addr) < 1) && strlen((is_null($AddresInfo->getPref())?"":$AddresInfo->getPref())) > 0 && strlen((is_null($AddresInfo->getAddr01())?"":$AddresInfo->getAddr01())) > 0  && strlen((is_null($AddresInfo->getAddr02())?"":$AddresInfo->getAddr02())) > 0 ) {
+                $home_addr = (is_null($AddresInfo->getPref())?"":$AddresInfo->getPref()->getName()) . (is_null($AddresInfo->getAddr01())?"":$AddresInfo->getAddr01()) . (is_null($AddresInfo->getAddr02())?"":$AddresInfo->getAddr02());
+            }
+            if (strlen($home_zip_code) < 1) {
+                $home_zip_code = (is_null($customerData->getZip01())?"":$customerData->getZip01()) . (is_null($customerData->getZip02())?"":$customerData->getZip02());
+            }
+            if ((strlen($home_tel) < 1) && !is_null($AddresInfo->getTel01()) && !is_null($AddresInfo->getTel02()) && !is_null($AddresInfo->getTel03())) {
+                $home_tel = $customerData->getTel01() . "-" . $AddresInfo->getTel02() . "-" . $AddresInfo->getTel03();
+            }
+            if ((strlen($home_fax) < 1) && !is_null($AddresInfo->getFax01()) && !is_null($AddresInfo->getFax02()) && !is_null($AddresInfo->getFax03())) {
+                $home_fax = $customerData->getFax01() . "-" . $AddresInfo->getFax02() . "-" . $AddresInfo->getFax03();
+            }
+            if ((strlen($home_mobile_phone) < 1) && !is_null($AddresInfo->getMobilephone01()) && !is_null($AddresInfo->getMobilephone02()) && !is_null($AddresInfo->getMobilephone03())) {
+                $home_mobile_phone = $customerData->getMobilephone01() . "-" . $AddresInfo->getMobilephone02() . "-" . $AddresInfo->getMobilephone03();
+            }
+            if ((strlen($mail_address) < 1) && (!is_null($customerData->getEmail()))) {
+                $mail_address = $customerData->getEmail();
+            }
+            if (preg_match("/" . $this->app['config']['dummy_email_pattern'] . "/", $mail_address)) {
+                $mail_address = '';
+            }
+            // 会員名(ふりがな)
+            $this->lfMultiText(56.1, 57.1, 48.0, 11.0, mb_convert_kana((is_null($customerData->getKana01())?'':$customerData->getKana01() . (is_null($customerData->getKana02())?'':' ')) . (is_null($customerData->getKana02())?'':$customerData->getKana02()), 'c', 'UTF-8'), 12);
             // 会員名
-            $this->lfText(39.1, 96.2, $customerData->getName01() . " " . $customerData->getName02(), 13, 'B');
-            // 所属先名(勤務先名称)
-            if ($anonymousCompanyEnabled) {
-                $this->lfMultiText(39.1, 110.2, 58.0, 21.0, $customerData->getCompanyName(), 13, 'B');
-            } else {
-                $this->lfMultiText(39.1, 110.2, 58.0, 21.0, "", 13, 'B');
-            }
-            // 郵便番号
-            $this->lfText(39.1, 132.9, (is_null($customerData->getZip01())?"":$customerData->getZip01()) . (is_null($customerData->getZip02())?"":$customerData->getZip02()), 23, 'B');
-            // 住所
-            $this->lfMultiText(39.1, 145.8, 58.0, 41.9, (is_null($customerData->getPref())?"":$customerData->getPref()->getName()) . (is_null($customerData->getAddr01())?"":$customerData->getAddr01()) . (is_null($customerData->getAddr02())?"":$customerData->getAddr02()), 13, 'B');
-            // 電話番号
-            if (!is_null($customerData->getTel01()) && !is_null($customerData->getTel02()) && !is_null($customerData->getTel03())) {
-                $this->lfText(39.1, 192.8, $customerData->getTel01() . "-" . $customerData->getTel02() . "-" . $customerData->getTel03(), 20, 'B');
-            }
-            // Fax番号
-            if (!is_null($customerData->getFax01()) && !is_null($customerData->getFax02()) && !is_null($customerData->getFax03())) {
-                $this->lfText(39.1, 213.0, $customerData->getFax01() . "-" . $customerData->getFax02() . "-" . $customerData->getFax03(), 20, 'B');
-            }
-            // メールアドレス
-            $this->lfMultiText(39.1, 227.6, 62.0, 21.0, (is_null($customerData->getEmail())?"":(preg_match("/" . $this->app['config']['dummy_email_pattern'] . "/", $customerData->getEmail())?"":$customerData->getEmail())), 13);
+            $this->lfMultiText(56.1, 69.1, 48.0, 11.0, $customerData->getName01() . " " . $customerData->getName02(), 12);
             // 生年月日
-            if (!is_null($customerData->getBirth())) {
-                $this->lfText(39.1, 254.7, $customerData->getBirth()->format('Y/m/d'), 22);
-            }
+            $this->lfMultiText(56.1, 81.2, 48.0, 11.0, $birth, 12);
+            // 希望送付先
+            $this->lfMultiText(56.1, 93.4, 48.0, 11.0, $select, 12);
+            // 自宅郵便番号
+            $this->lfMultiText(56.1, 105.5, 48.0, 11.0, $home_zip_code, 12);
+            // 自宅住所
+            $this->lfMultiText(56.1, 117.8, 48.0, 23.3, $home_addr, 12);
+            // 自宅電話番号
+            $this->lfMultiText(56.1, 142.5, 48.0, 11.0, $home_tel, 12);
+            // 自宅Fax番号
+            $this->lfMultiText(56.1, 155.0, 48.0, 11.0, $home_fax, 12);
+            // 自宅携帯番号
+            $this->lfMultiText(56.1, 167.0, 48.0, 11.0, $home_mobile_phone, 12);
+            // 所属先名(勤務先名称)
+            $this->lfMultiText(56.1, 179.1, 48.0, 16.9, $company, 12);
+            // 勤務先郵便番号
+            $this->lfMultiText(56.1, 198.1, 48.0, 11.0, $company_zip_code, 12);
+            // 勤務先住所
+            $this->lfMultiText(56.1, 210.1, 48.0, 23.3, $company_addr, 12);
+            // 勤務先電話番号
+            $this->lfMultiText(56.1, 234.7, 48.0, 11.0, $company_tel, 12);
+            // 勤務先Fax番号
+            $this->lfMultiText(56.1, 246.8, 48.0, 11.0, $company_fax, 12);
+            // メールアドレス
+            $this->lfMultiText(56.1, 259.0, 48.0, 16.9, $mail_address, 12);
         }
 
         return true;
@@ -234,10 +311,9 @@ class RegistrationConfirmPdfService extends AbstractFPDIService
         // 退避
         $bakFontStyle = $this->FontStyle;
         $bakFontSize = $this->FontSizePt;
-
         $this->SetFont('', $style, $size);
-        $this->MultiCell($w, $h, $text, 0, 'J',false, 1, $x + $this->baseOffsetX, $y + $this->baseOffsetY);
-
+        $this->SetXY($x, $y);
+        $this->MultiCell($w, $h, $text, 0, "L", false, 0, "", "", true, 0, false, true, $h, "M");
         // 復元
         $this->SetFont('', $bakFontStyle, $bakFontSize);
     }

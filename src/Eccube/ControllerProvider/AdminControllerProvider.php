@@ -246,6 +246,10 @@ class AdminControllerProvider implements ControllerProviderInterface
         $c->match('/form_printing/certification/page/{page_no}', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::certification')->bind('admin_form_printing_certification_page');
         $c->match('/form_printing/certification_all_download', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::certificationAllExport')->bind('admin_certification_all_export');
         $c->match('/form_printing/certification_select_download', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::certificationSelectExport')->bind('admin_certification_select_export');
+        $c->match('/form_printing/mail_label', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::mailLabel')->bind('admin_form_printing_mail_label');
+        $c->match('/form_printing/mail_label/page/{page_no}', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::mailLabel')->bind('admin_form_printing_mail_label_page');
+        $c->match('/form_printing/mail_label_all_download', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::mailLabelAllExport')->bind('admin_form_printing_mail_label_all_export');
+        $c->match('/form_printing/mail_label_select_download', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::mailLabelSelectExport')->bind('S');
         $c->match('/form_printing/regular_member_list', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::regularMemberList')->bind('admin_form_printing_regular_member_list');
         $c->match('/form_printing/regular_member_list/page/{page_no}', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::regularMemberList')->bind('admin_form_printing_regular_member_list_page');
         $c->match('/form_printing/regular_member_list_all_download_without_anonymous', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::regularMemberListAllExportWithoutAnonymous')->bind('admin_regular_member_all_export_without_anonymous');

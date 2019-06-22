@@ -609,7 +609,14 @@ class TrainingController extends AbstractController
             );
         }
         $ProductTraining = $Product->getProductTraining();
+        $addrMatch = array('', '', '');
         preg_match('/(.*?)(郡|市|町|村)(.*)/u',$ProductTraining->getAddr01(),$match);
+        if (isset($match[1])) {
+            $addrMatch[1] = $match[1];
+        }
+        if (isset($match[2])) {
+            $addrMatch[2] = $match[2];
+        }
         return $app->render('Training/index_student.twig', array(
             'pagination' => $pagination,
             'pageMaxis' => $pageMaxis,
@@ -619,7 +626,7 @@ class TrainingController extends AbstractController
             'Product' => $Product,
             'ProductTraining' => $ProductTraining,
             'ProductTrainingStart' => explode(' ',$ProductTraining->getTrainingDateStart()->format('Y/m/d H:i')),
-            'ProductTrainingAddr' => $match[1].$match[2],
+            'ProductTrainingAddr' => $addrMatch[1].$addrMatch[2],
             'ProductClassStock' => $Product->getStockMax(),
             'ProductId' => $id,
             'attendanceDenialReasons' => $attendanceDenialReasons
@@ -1523,71 +1530,6 @@ class TrainingController extends AbstractController
         return $response;
     }
 
-    public function printPaymentConfirm(Application $app, Request $request, $id = null)
-    {
-        if (is_null($id)){
-            return $app->redirect($app->url('admin_pruduct_by_student', array()));
-        }
-        $modeAll = 1;
-        $queryString = $request->getQueryString();
-        if (!empty($queryString)) {
-            // クエリーをparseする
-            // idsX以外はない想定
-            parse_str($queryString, $ary);
-            foreach ($ary as $key => $val) {
-                // キーが一致
-                if (preg_match('/^modeAll$/', $key)) {
-                    $modeAll = $val;
-                }
-            }
-        }
-        if ($modeAll == 0) {
-            // requestから対象顧客IDの一覧を取得する.
-            $ids = $this->getIds($request);
-            if (count($ids) == 0) {
-                $app->addError('処理対象が選択されていません', 'admin');
-                log_info('The Customer cannot found!');
-                return $app->redirect($app->url('admin_student', array('id' => $id)));
-            }
-            // 顧客情報取得
-            $customers = $app['eccube.repository.customer']->getQueryBuilderBySearchCustomerIds($ids)
-                    ->getQuery()
-                    ->getResult();
-        } else {
-            // 顧客情報取得
-            $customers = $app['eccube.repository.customer']->getQueryBuilderBySearchTrainingProductIds($id)
-                    ->getQuery()
-                    ->getResult();
-        }
-
-        // サービスの取得
-        /* @var PaymentConfirmPdfService $service */
-        $service = $app['eccube.service.payment_confirm_pdf'];
-        $session = $request->getSession();
-
-        // 顧客情報からPDFを作成する
-        $status = $service->makePdf($customers, $app['eccube.repository.product']->find($id));
-
-        // 異常終了した場合の処理
-        if (!$status) {
-            $app->addError('入金確認票出力に失敗しました', 'admin');
-            log_info('Unable to create pdf files! Process have problems!');
-            return $app->redirect($app->url('admin_student'), array('id' => $id));
-        }
-
-        // ダウンロードする
-        $response = new Response(
-            $service->outputPdf(),
-            200,
-            array('content-type' => 'application/pdf')
-        );
-
-        // レスポンスヘッダーにContent-Dispositionをセットし、ファイル名を指定
-        $response->headers->set('Content-Disposition', 'attachment; filename="'.$service->getPdfFileName().'"');
-        log_info('PaymentConfirmPdfDownload success!', array());
-        return $response;
-    }
-
     public function printRegistrationConfirm(Application $app, Request $request, $id = null)
     {
         if (is_null($id)){
@@ -1920,6 +1862,8 @@ class TrainingController extends AbstractController
             return $app->redirect($app->url('admin_pruduct_by_student', array()));
         }
         $modeAll = 1;
+        $to = 0;
+        $existsId = 0;
         $queryString = $request->getQueryString();
         if (!empty($queryString)) {
             // クエリーをparseする
@@ -1929,6 +1873,10 @@ class TrainingController extends AbstractController
                 // キーが一致
                 if (preg_match('/^modeAll$/', $key)) {
                     $modeAll = $val;
+                } else if (preg_match('/^to$/', $key)) {
+                    $to = $val;
+                } else if (preg_match('/^existsId$/', $key)) {
+                    $existsId = $val;
                 }
             }
         }
@@ -1957,7 +1905,7 @@ class TrainingController extends AbstractController
         $session = $request->getSession();
 
         // 顧客情報からPDFを作成する
-        $status = $service->makePdf($customers, $app['eccube.repository.product']->find($id));
+        $status = $service->makePdf($customers, $app['eccube.repository.product']->find($id), $to, $existsId);
 
         // 異常終了した場合の処理
         if (!$status) {

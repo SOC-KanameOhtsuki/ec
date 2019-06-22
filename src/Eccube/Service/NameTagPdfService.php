@@ -78,7 +78,7 @@ class NameTagPdfService extends AbstractFPDIService
          $this->SetFont(self::FONT_SJIS);
 
         // PDFの余白(上左右)を設定
-        $this->SetMargins(15, 20);
+        $this->SetMargins(0, 0);
 
         // ヘッダーの出力を無効化
         $this->setPrintHeader(false);
@@ -113,6 +113,7 @@ class NameTagPdfService extends AbstractFPDIService
         $pdfFile = $this->app['config']['pdf_template_name_tag'];
         $templateFilePath = __DIR__.'/../Resource/pdf/'.$pdfFile;
         $this->setSourceFile($templateFilePath);
+        $this->SetFont(self::FONT_GOTHIC);
 
         $row = 1;
         $col = 1;

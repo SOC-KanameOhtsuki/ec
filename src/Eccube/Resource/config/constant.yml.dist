@@ -302,6 +302,7 @@ pdf_template_mail_accept: mail_accept.pdf
 pdf_template_fax_accept: fax_accept.pdf
 pdf_template_payment_confirm: payment_confirm.pdf
 pdf_template_name_tag: name_tag.pdf
+pdf_template_name_tag_for_training: name_tag_for_training.pdf
 pdf_template_registration_confirm: registration_confirm.pdf
 pdf_template_supporter_flyer1: supporter_flyer_1.pdf
 pdf_template_supporter_flyer2: supporter_flyer_2.pdf

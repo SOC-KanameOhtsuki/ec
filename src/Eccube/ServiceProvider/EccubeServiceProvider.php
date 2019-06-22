@@ -71,9 +71,6 @@ class EccubeServiceProvider implements ServiceProviderInterface
         $app['eccube.service.registration_confirm_pdf'] = $app->share(function () use ($app) {
             return new \Eccube\Service\RegistrationConfirmPdfService($app);
         });
-        $app['eccube.service.payment_confirm_pdf'] = $app->share(function () use ($app) {
-            return new \Eccube\Service\PaymentConfirmPdfService($app);
-        });
         $app['eccube.service.mail_label_pdf'] = $app->share(function () use ($app) {
             return new \Eccube\Service\MailLabelPdfService($app);
         });

@@ -1163,6 +1163,211 @@ class FormPrintingController extends AbstractController
         return $response;
     }
 
+    public function mailLabel(Application $app, Request $request = null, $page_no = null)
+    {
+        $session = $request->getSession();
+        $pagination = array();
+        $builder = $app['form.factory']
+            ->createBuilder('admin_search_customer');
+        $searchForm = $builder->getForm();
+
+        //アコーディオンの制御初期化( デフォルトでは閉じる )
+        $active = false;
+
+        $pageMaxis = $app['eccube.repository.master.page_max']->findAll();
+
+        // 表示件数は順番で取得する、1.SESSION 2.設定ファイル
+        $page_count = $session->get('eccube.admin.customer.search.page_count', $app['config']['default_page_count']);
+
+        $page_count_param = $request->get('page_count');
+        // 表示件数はURLパラメターから取得する
+        if($page_count_param && is_numeric($page_count_param)){
+            foreach($pageMaxis as $pageMax){
+                if($page_count_param == $pageMax->getName()){
+                    $page_count = $pageMax->getName();
+                    // 表示件数入力値正し場合はSESSIONに保存する
+                    $session->set('eccube.admin.customer.search.page_count', $page_count);
+                    break;
+                }
+            }
+        }
+
+        if ('POST' === $request->getMethod()) {
+
+            $searchForm->handleRequest($request);
+
+            if ($searchForm->isValid()) {
+                $searchData = $searchForm->getData();
+
+                // paginator
+                $qb = $app['eccube.repository.customer']->getQueryBuilderBySearchData($searchData);
+                $page_no = 1;
+
+                $pagination = $app['paginator']()->paginate(
+                    $qb,
+                    $page_no,
+                    $page_count
+                );
+
+                // sessionに検索条件を保持.
+                $viewData = \Eccube\Util\FormUtil::getViewData($searchForm);
+                $session->set('eccube.admin.customer.search', $viewData);
+                $session->set('eccube.admin.customer.search.page_no', $page_no);
+            }
+        } else {
+            if (is_null($page_no) && $request->get('resume') != Constant::ENABLED) {
+                // sessionを削除
+                $session->remove('eccube.admin.customer.search');
+                $session->remove('eccube.admin.customer.search.page_no');
+                $session->remove('eccube.admin.customer.search.page_count');
+            } else {
+                // pagingなどの処理
+                if (is_null($page_no)) {
+                    $page_no = intval($session->get('eccube.admin.customer.search.page_no'));
+                } else {
+                    $session->set('eccube.admin.customer.search.page_no', $page_no);
+                }
+                $viewData = $session->get('eccube.admin.customer.search');
+                if (!is_null($viewData)) {
+                    // sessionに保持されている検索条件を復元.
+                    $searchData = \Eccube\Util\FormUtil::submitAndGetData($searchForm, $viewData);
+
+                    // 表示件数
+                    $page_count = $request->get('page_count', $page_count);
+
+                    $qb = $app['eccube.repository.customer']->getQueryBuilderBySearchData($searchData);
+
+                    $event = new EventArgs(
+                        array(
+                            'form' => $searchForm,
+                            'qb' => $qb,
+                        ),
+                        $request
+                    );
+                    $app['eccube.event.dispatcher']->dispatch(EccubeEvents::ADMIN_REGULAR_MEMBER_INDEX_SEARCH, $event);
+
+                    $pagination = $app['paginator']()->paginate(
+                        $qb,
+                        $page_no,
+                        $page_count
+                    );
+                }
+            }
+        }
+        return $app->render('FormPrinting/mail_label.twig', array(
+            'searchForm' => $searchForm->createView(),
+            'pagination' => $pagination,
+            'pageMaxis' => $pageMaxis,
+            'page_no' => $page_no,
+            'page_count' => $page_count,
+            'active' => $active,
+        ));
+    }
+
+    public function mailLabelAllExport(Application $app, Request $request = null)
+    {
+        // タイムアウトを無効にする.
+        set_time_limit(0);
+
+        // sql loggerを無効にする.
+        $em = $app['orm.em'];
+        $em->getConfiguration()->setSQLLogger(null);
+
+        $session = $request->getSession();
+        $viewData = $session->get('eccube.admin.customer.search');
+        if (is_null($viewData)) {
+            $app->addError('admin.regular_member_list_pdf.parameter.notfound', 'admin');
+            log_info('The Customer cannot found!');
+            return $app->redirect($app->url('admin_form_printing_regular_member_list'));
+        }
+
+        // sessionに保持されている検索条件を復元.
+        $builder = $app['form.factory']
+            ->createBuilder('admin_search_regular_member');
+        $searchForm = $builder->getForm();
+        $searchData = \Eccube\Util\FormUtil::submitAndGetData($searchForm, $viewData);
+
+        // サービスの取得
+        /* @var RegularMemberListPdfService $service */
+        $service = $app['eccube.service.regular_member_list_pdf'];
+
+        // 顧客情報取得
+        $customers = $app['eccube.repository.customer']->getQueryBuilderBySearchData($searchData)
+                ->getQuery()
+                ->getResult();
+
+        // 顧客情報からPDFを作成する
+        $status = $service->makePdf($customers);
+
+        // 異常終了した場合の処理
+        if (!$status) {
+            $app->addError('admin.regular_member_list_pdf.download.failure', 'admin');
+            log_info('Unable to create pdf files! Process have problems!');
+            return $app->redirect($app->url('admin_form_printing_regular_member_list'));
+        }
+
+        // ダウンロードする
+        $response = new Response(
+            $service->outputPdf(),
+            200,
+            array('content-type' => 'application/pdf')
+        );
+
+        // レスポンスヘッダーにContent-Dispositionをセットし、ファイル名を指定
+        $response->headers->set('Content-Disposition', 'attachment; filename="'.$service->getPdfFileName().'"');
+        log_info('RegularMemberListPdf download success!', array('Customer:' => count($customers)));
+        return $response;
+    }
+
+    public function mailLabelSelectExport(Application $app, Request $request = null)
+    {
+        // タイムアウトを無効にする.
+        set_time_limit(0);
+
+        // sql loggerを無効にする.
+        $em = $app['orm.em'];
+        $em->getConfiguration()->setSQLLogger(null);
+
+        // requestから対象顧客IDの一覧を取得する.
+        $ids = $this->getIds($request);
+        if (count($ids) == 0) {
+            $app->addError('admin.regular_member_list_pdf.parameter.notfound', 'admin');
+            log_info('The Customer cannot found!');
+            return $app->redirect($app->url('admin_form_printing_regular_member_list'));
+        }
+
+        // サービスの取得
+        /* @var RegularMemberListPdfService $service */
+        $service = $app['eccube.service.regular_member_list_pdf'];
+
+        // 顧客情報取得
+        $customers = $app['eccube.repository.customer']->getQueryBuilderBySearchDataWithIds($ids)
+                ->getQuery()
+                ->getResult();
+
+        // 顧客情報からPDFを作成する
+        $status = $service->makePdf($customers);
+
+        // 異常終了した場合の処理
+        if (!$status) {
+            $app->addError('admin.regular_member_list_pdf.download.failure', 'admin');
+            log_info('Unable to create pdf files! Process have problems!');
+            return $app->redirect($app->url('admin_form_printing_regular_member_list'));
+        }
+
+        // ダウンロードする
+        $response = new Response(
+            $service->outputPdf(),
+            200,
+            array('content-type' => 'application/pdf')
+        );
+
+        // レスポンスヘッダーにContent-Dispositionをセットし、ファイル名を指定
+        $response->headers->set('Content-Disposition', 'attachment; filename="'.$service->getPdfFileName().'"');
+        log_info('MailLabelPdf download success!', array('Customer ID' => implode(',', $this->getIds($request))));
+        return $response;
+    }
+
     public function regularMemberList(Application $app, Request $request = null, $page_no = null)
     {
         $session = $request->getSession();
