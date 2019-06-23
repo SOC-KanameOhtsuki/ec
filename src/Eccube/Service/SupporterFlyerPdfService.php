@@ -119,59 +119,50 @@ class SupporterFlyerPdfService extends AbstractFPDIService
         // PDFにページを追加する
         $this->addPdfPage();
         // 地域
-        $Area = '焼津市';
         $idx = 0;
         $this->SetFont(self::FONT_GOTHIC);
         $this->SetTextColor(255, 255, 255);
-        while(0 < mb_strlen($Area)) {
-            $word = mb_substr($Area, 0, 1, "UTF-8");
-            $Area = mb_substr($Area, 1, mb_strlen($Area) - 1, "UTF-8");
-            $this->lfText(16.8, 87.2 + (10 * $idx), $word, 20, 'B');
-            $idx = $idx + 1;
+        $bakFontStyle = $this->FontStyle;
+        $bakFontSize = $this->FontSizePt;
+        $fontSize = 22;
+        $this->SetFont('', 'B', $fontSize);
+        while (8.7 < $this->getStringHeight(27.0, $flyer_data->getProductTraining()->getPref())) {
+            --$fontSize;
+            $this->SetFont('', 'B', $fontSize);
         }
-        $this->SetFont(self::FONT_SJIS);
-        $this->SetTextColor(0, 0, 0);
+        $this->SetXY(16.0, 94.0);
+        $this->MultiCell(29.0, 8.7, $flyer_data->getProductTraining()->getPref(), 0, "C", false, 0, "", "", true, 0, false, true, 8.7, "M");
+        $fontSize = 22;
+        $this->SetFont('', 'B', $fontSize);
+        while (8.7 < $this->getStringHeight(27.0, $flyer_data->getProductTraining()->getAddr01())) {
+            --$fontSize;
+            $this->SetFont('', 'B', $fontSize);
+        }
+        $this->SetXY(16.0, 102.4);
+        $this->MultiCell(29.0, 8.7, $flyer_data->getProductTraining()->getAddr01(), 0, "C", false, 0, "", "", true, 0, false, true, 8.7, "M");
+        $this->SetFont('', $bakFontStyle, $bakFontSize);
+        $this->SetTextColor(50, 50, 50);
         // 講習会日
-        $this->lfText(48.4, 92.5, $flyer_data->getProductTraining()->getTrainingDateStart()->format('n月j日(') . $this->WeekDay[$flyer_data->getProductTraining()->getTrainingDateStart()->format('w')] . ')', 18, 'B');
-        $this->lfText(48.4, 102.3, $flyer_data->getProductTraining()->getTrainingDateStart()->format('H:i～') . $flyer_data->getProductTraining()->getTrainingDateEnd()->format('H:i'), 12, 'B');
+        $this->lfText(65.0, 96.0, $flyer_data->getProductTraining()->getTrainingDateStart()->format('n月j日(') . $this->WeekDay[$flyer_data->getProductTraining()->getTrainingDateStart()->format('w')] . ')', 18, 'B');
+        $this->lfText(65.0, 104.8, $flyer_data->getProductTraining()->getTrainingDateStart()->format('H:i～') . $flyer_data->getProductTraining()->getTrainingDateEnd()->format('H:i'), 12, 'B');
         // 場所
-        $this->lfText(122.3, 92.5, $flyer_data->getProductTraining()->getPlace(), 18, 'B');
+        $this->lfText(136.0, 96.0, $flyer_data->getProductTraining()->getPlace(), 15, 'B');
         // 住所
-        $this->lfText(122.3, 102.3, $flyer_data->getProductTraining()->getPref()->getName() . $flyer_data->getProductTraining()->getAddr01() . $flyer_data->getProductTraining()->getAddr02(), 12, 'B');
-        // 対象
-        $this->lfMultiText(34.8, 122.3, 88.0, 10.0, $flyer_data->getProductTraining()->getTarget(), 13, 'B');
+        $this->lfText(136.0, 104.8, $flyer_data->getProductTraining()->getPref()->getName() . $flyer_data->getProductTraining()->getAddr01() . $flyer_data->getProductTraining()->getAddr02(), 10, 'B');
         // 内容
-        $this->lfMultiText(34.8, 135.3, 88.0, 10.0, str_replace("　", "", $flyer_data->getProductTraining()->getProduct()->getDescriptionDetail()), 11, 'B');
+        $this->lfMultiText(34.8, 122.3, 88.0, 10.0, str_replace("　", "", $flyer_data->getProductTraining()->getProduct()->getDescriptionDetail()), 11, 'B');
+        // 対象
+        $this->lfMultiText(34.8, 139.3, 88.0, 10.0, $flyer_data->getProductTraining()->getTarget(), 13, 'B');
+        // 講師
+        $this->lfText(34.8, 162.2, $flyer_data->getProductTraining()->getLecturer(), 13, 'B');
         // 受講料
-        $this->lfText(34.8, 148.6, number_format($flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax()) . '円', 13, 'B');
-        // 年会費
-        $this->lfText(41.7, 177.2, date('Y'), 11, 'B');
-        $membership = $this->app['config']['default_membership'];
-        try {
-            $membershipInfo = $this->app['eccube.repository.product']->getQueryBuilderBySearchDataForAdmin(array('membership_year' => date('Y')))->getQuery()->getSingleResult();
-            $membership = $membershipInfo->getPrice02IncTaxMax();
-        } catch (\Exception $e) {
-        }
-        $this->lfText(69.0, 177.1, number_format($membership), 11, 'B');
+        $this->lfText(34.8, 174.6, number_format($flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax()) . '円', 13, 'B');
         // 持ち物
-        $this->lfMultiText(34.8, 188.8, 88.0, 10.0, $flyer_data->getProductTraining()->getItem(), 11, 'B');
-        // 期限
-        if (is_null($flyer_data->getProductTraining()->getAcceptLimitDate())) {
-            $limit = date('Y/n/j', strtotime($flyer_data->getProductTraining()->getTrainingDateStart()->format('Y/m/d') . " -24 day"));
-            $holidayRepository = new HolidayRepository();
-            while($holidayRepository->isHoliday($limit)) {
-                $limit = date('Y/m/d', strtotime($limit . " -1 day"));
-            }
-        } else {
-            $limit = $flyer_data->getProductTraining()->getAcceptLimitDate()->format('Y/m/d');
-        }
-        $this->lfText(81.8, 202.5, date('n月j日', strtotime($limit)), 13, 'B');
+        $this->lfMultiText(34.8, 197.5, 88.0, 10.0, $flyer_data->getProductTraining()->getItem(), 11, 'B');
         // 定員
         $ProductClasses = $flyer_data->getProductTraining()->getProduct()->getProductClasses();
         $ProductClass = $ProductClasses[0];
-        if ($ProductClass->getStockUnlimited()) {
-            $this->lfText(72.6, 213.9, '※定員' . $ProductClass->getStock() . '名(先着順)', 11, 'B');
-        }
+        $this->lfText(34.8, 216.2, $ProductClass->getStock() . '名', 13, 'B');
 
         // テンプレートファイルを読み込む
         $pdfFile = $this->app['config']['pdf_template_supporter_flyer2'];
@@ -179,9 +170,6 @@ class SupporterFlyerPdfService extends AbstractFPDIService
         $this->setSourceFile($templateFilePath);
         // PDFにページを追加する
         $this->addPdfPage();
-        // 年会費
-        $this->lfText(163.0, 36.2, date('Y'), 11, 'B');
-        $this->lfText(190.0, 36.2, number_format($membership), 11, 'B');
         // 記入日
         $this->lfText(152.0, 123.5, date('Y'), 13, 'B');
         $this->lfText(169.5, 123.5, date('n'), 13, 'B');
@@ -190,12 +178,6 @@ class SupporterFlyerPdfService extends AbstractFPDIService
         $this->lfText(50.0, 218.5, date('n月j日(', strtotime($flyer_data->getProductTraining()->getTrainingDateStart()->format('Y/m/d H:i'))) . $this->WeekDay[date('w', strtotime($flyer_data->getProductTraining()->getTrainingDateStart()->format('Y/m/d H:i')))] . ')', 15, 'B');
         // 場所
         $this->lfText(125.3, 218.5, $flyer_data->getProductTraining()->getPlace(), 15, 'B');
-        // 会員数
-        $this->lfText(79.2, 252.1, date('Y'), 11, 'B');
-        $this->lfText(95.9, 252.1, '3', 11, 'B');
-        $this->lfText(106.8, 252.1, '31', 11, 'B');
-        $lastTermCustomers = $this->app['orm.em']->getConnection()->fetchColumn('SELECT COUNT(*) FROM dtb_membership_billing_status WHERE product_membership = (SELECT product_membership_id FROM dtb_product_membership WHERE membership_year = ' . (date('Y') - 1) . ');');
-        $this->lfText(127.2, 252.1, $lastTermCustomers, 11, 'B');
 
         return true;
     }

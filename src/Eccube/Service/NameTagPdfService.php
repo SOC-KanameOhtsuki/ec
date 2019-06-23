@@ -122,13 +122,39 @@ class NameTagPdfService extends AbstractFPDIService
                 // PDFにページを追加する
                 $this->addPdfPage();
             }
-            // 会員番号
-            $this->lfText(81.3 + (105.4 * ($col - 1)), 27.4 + (54.5 * ($row - 1)), $customerData->getId(), 12, 'B');
+
             // 会員名
+            $this->SetTextColor(0, 0, 0);
+            $bakFontStyle = $this->FontStyle;
+            $bakFontSize = $this->FontSizePt;
+            $this->SetXY(23.6 + (90.9 * ($col - 1)), 29.0 + (54.9 * ($row - 1)));
             $beforeSpacing = $this->getFontSpacing();
             $this->setFontSpacing(1.0);
-            $this->lfText(32.5 + (105.4 * ($col - 1)), 36.5 + (54.5 * ($row - 1)), $customerData->getName01() . " " . $customerData->getName02(), 22, 'B');
+            $fontSize = 25;
+            $this->SetFont('', 'B', $fontSize);
+            while (13.2 < $this->getStringHeight(70.4, $customerData->getName01() . " " . $customerData->getName02())) {
+                --$fontSize;
+                $this->SetFont('', 'B', $fontSize);
+            }
+            $this->MultiCell(70.4, 13.2, $customerData->getName01() . " " . $customerData->getName02(), 0, "C", false, 0, "", "", true, 0, false, true, 13.2, "M");
             $this->setFontSpacing($beforeSpacing);
+
+            if (!is_null($product)) {
+                if ($product->hasProductTraining()) {
+                    $this->SetTextColor(50, 50, 50);
+                    // 受講日
+                    $this->SetFont('', '', 10);
+                    $this->SetXY(39.0 + (91.0 * ($col - 1)), 46.2 + (55.0 * ($row - 1)));
+                    $this->MultiCell(10.0, 4.5, $product->getProductTraining()->getTrainingDateStart()->format('Y'), 0, "R", false, 0, "", "", true, 0, false, true, 4.5, "M");
+                    $this->SetXY(51.8 + (91.0 * ($col - 1)), 46.2 + (55.0 * ($row - 1)));
+                    $this->MultiCell(6.0, 4.5, $product->getProductTraining()->getTrainingDateStart()->format('n'), 0, "R", false, 0, "", "", true, 0, false, true, 4.5, "M");
+                    $this->SetXY(60.8 + (91.0 * ($col - 1)), 46.2 + (55.0 * ($row - 1)));
+                    $this->MultiCell(6.0, 4.5, $product->getProductTraining()->getTrainingDateStart()->format('j'), 0, "R", false, 0, "", "", true, 0, false, true, 4.5, "M");
+                }
+            }
+
+            // 復元
+            $this->SetFont('', $bakFontStyle, $bakFontSize);
 
             if (($row * $col) < self::MAX_ROR_PER_PAGE) {
                 if ($col < 2) {

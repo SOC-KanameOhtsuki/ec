@@ -213,10 +213,12 @@ admin.invoice_pdf.parameter.notfound: 出力対象がありません。
 admin.delevery_pdf.parameter.notfound: 出力対象がありません。
 admin.business_card_pdf.parameter.notfound: 出力対象がありません。
 admin.certification_pdf.parameter.notfound: 出力対象がありません。
+admin.mail_label_pdf.parameter.notfound: 出力対象がありません。
 admin.regular_member_list_pdf.parameter.notfound: 出力対象がありません。
 admin.payment_pdf.download.failure: ダウンロード失敗!
 admin.invoice_pdf.download.failure: ダウンロード失敗!
 admin.delevery_pdf.download.failure: ダウンロード失敗!
 admin.business_card_pdf.download.failure: ダウンロード失敗!
 admin.certification_pdf.failure: ダウンロード失敗!
+admin.mail_label.download.failure: ダウンロード失敗!
 admin.regular_member_list_pdf.download.failure: ダウンロード失敗!

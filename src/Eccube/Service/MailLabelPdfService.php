@@ -134,7 +134,7 @@ class MailLabelPdfService extends AbstractFPDIService
                 foreach ($customerData->getCustomerAddresses() as $AddresInfo) {
                     if ($AddresInfo->getAddressType()->getId() == $to) {
                         // 郵便番号
-                        $zip_code = "〒" . (is_null($AddresInfo->getZip01())?"":$AddresInfo->getZip01()) . (is_null($AddresInfo->getZip02())?"":$AddresInfo->getZip02());
+                        $zip_code = "〒" . (is_null($AddresInfo->getZip01())?"":$AddresInfo->getZip01() . (is_null($AddresInfo->getZip02())?'':'-')) . (is_null($AddresInfo->getZip02())?"":$AddresInfo->getZip02());
                         // 住所
                         if (strlen((is_null($AddresInfo->getPref())?"":$AddresInfo->getPref())) > 0 && strlen((is_null($AddresInfo->getAddr01())?"":$AddresInfo->getAddr01())) > 0  && strlen((is_null($AddresInfo->getAddr02())?"":$AddresInfo->getAddr02())) > 0 ) {
                             $addr = (is_null($AddresInfo->getPref())?"":$AddresInfo->getPref()->getName()) . (is_null($AddresInfo->getAddr01())?"":$AddresInfo->getAddr01()) . (is_null($AddresInfo->getAddr02())?"":$AddresInfo->getAddr02());
@@ -153,7 +153,7 @@ class MailLabelPdfService extends AbstractFPDIService
                 }
                 if (!$Out) {
                     // 郵便番号
-                    $zip_code = "〒" . (is_null($customerData->getZip01())?"":$customerData->getZip01()) . (is_null($customerData->getZip02())?"":$customerData->getZip02());
+                    $zip_code = "〒" . (is_null($customerData->getZip01())?"":$customerData->getZip01() . (is_null($customerData->getZip02())?'':'-')) . (is_null($customerData->getZip02())?"":$customerData->getZip02());
                     // 住所
                     if (strlen((is_null($customerData->getPref())?"":$customerData->getPref())) > 0 && strlen((is_null($customerData->getAddr01())?"":$customerData->getAddr01())) > 0  && strlen((is_null($customerData->getAddr02())?"":$customerData->getAddr02())) > 0 ) {
                         $addr = (is_null($customerData->getPref())?"":$customerData->getPref()->getName()) . (is_null($customerData->getAddr01())?"":$customerData->getAddr01()) . (is_null($customerData->getAddr02())?"":$customerData->getAddr02());
@@ -259,7 +259,7 @@ class MailLabelPdfService extends AbstractFPDIService
                 foreach ($customerData->getCustomerAddresses() as $AddresInfo) {
                     if ($AddresInfo->getMailTo()->getId() == 2) {
                         // 郵便番号
-                        $zip_code = "〒" . (is_null($AddresInfo->getZip01())?"":$AddresInfo->getZip01()) . (is_null($AddresInfo->getZip02())?"":$AddresInfo->getZip02());
+                        $zip_code = "〒" . (is_null($AddresInfo->getZip01())?"":$AddresInfo->getZip01() . (is_null($AddresInfo->getZip02())?'':'-')) . (is_null($AddresInfo->getZip02())?"":$AddresInfo->getZip02());
                         // 住所
                         if (strlen((is_null($AddresInfo->getPref())?"":$AddresInfo->getPref())) > 0 && strlen((is_null($AddresInfo->getAddr01())?"":$AddresInfo->getAddr01())) > 0  && strlen((is_null($AddresInfo->getAddr02())?"":$AddresInfo->getAddr02())) > 0 ) {
                             $addr = (is_null($AddresInfo->getPref())?"":$AddresInfo->getPref()->getName()) . (is_null($AddresInfo->getAddr01())?"":$AddresInfo->getAddr01()) . (is_null($AddresInfo->getAddr02())?"":$AddresInfo->getAddr02());
@@ -278,7 +278,7 @@ class MailLabelPdfService extends AbstractFPDIService
                 }
                 if (!$Out) {
                     // 郵便番号
-                    $zip_code = "〒" . (is_null($customerData->getZip01())?"":$customerData->getZip01()) . (is_null($customerData->getZip02())?"":$customerData->getZip02());
+                    $zip_code = "〒" . (is_null($customerData->getZip01())?"":$customerData->getZip01() . (is_null($customerData->getZip02())?'':'-')) . (is_null($customerData->getZip02())?"":$customerData->getZip02());
                     // 住所
                     if (strlen((is_null($customerData->getPref())?"":$customerData->getPref())) > 0 && strlen((is_null($customerData->getAddr01())?"":$customerData->getAddr01())) > 0  && strlen((is_null($customerData->getAddr02())?"":$customerData->getAddr02())) > 0 ) {
                         $addr = (is_null($customerData->getPref())?"":$customerData->getPref()->getName()) . (is_null($customerData->getAddr01())?"":$customerData->getAddr01()) . (is_null($customerData->getAddr02())?"":$customerData->getAddr02());

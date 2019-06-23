@@ -33,6 +33,7 @@ use Eccube\Entity\ShipmentItem;
 use Eccube\Event\EccubeEvents;
 use Eccube\Event\EventArgs;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -564,6 +565,101 @@ class CustomerController extends AbstractController
 
         log_info("会員CSVファイル名", array($filename));
 
+        return $response;
+    }
+
+    /**
+     * 郵送用ラベルの出力.
+     * @param Application $app
+     * @param Request $request
+     * @return StreamedResponse
+     */
+    public function exportMailLabel(Application $app, Request $request)
+    {
+        $to = 0;
+        $existsId = 0;
+        $queryString = $request->getQueryString();
+        if (!empty($queryString)) {
+            // クエリーをparseする
+            parse_str($queryString, $ary);
+            foreach ($ary as $key => $val) {
+                // キーが一致
+                if (preg_match('/^to$/', $key)) {
+                    $to = $val;
+                } else if (preg_match('/^existsId$/', $key)) {
+                    $existsId = $val;
+                }
+            }
+        }
+
+        // タイムアウトを無効にする.
+        set_time_limit(0);
+
+        // sql loggerを無効にする.
+        $em = $app['orm.em'];
+        $em->getConfiguration()->setSQLLogger(null);
+
+        if ('POST' === $request->getMethod()) {
+            $builder = $app['form.factory']
+                ->createBuilder('admin_search_customer');
+            $searchForm = $builder->getForm();
+            $searchForm->handleRequest($request);
+            // 会員データ検索用のクエリビルダを取得.
+            $session = $request->getSession();
+            $custom_search_input = json_decode($session->get('eccube.admin.customer.search.custom_search_input'), true);
+            $original_searchs = array();
+            foreach ($custom_search_input as $searchId => $custom_search) {
+                $OrignalSearch = $app['eccube.repository.orignal_search']->findOneBy(array('id' => $searchId, 'del_flg' => 0));
+                if ($OrignalSearch) {
+                    $custom_searchs[] = array('id' => $searchId, 'name' => $OrignalSearch->getSearchName(), 'type' => $custom_search['join']);
+                    $original_searchs[] = array('entity' => $OrignalSearch, 'join' => $custom_search['join']);
+                }
+            }
+            $is_custom_search = boolval($session->get('eccube.admin.customer.search.is_custom_search'));
+            if ((!$is_custom_search) || (count($original_searchs) < 1)) {
+                $viewData = $session->get('eccube.admin.customer.search');
+                $searchData = array();
+                if (!is_null($viewData)) {
+                    // sessionに保持されている検索条件を復元.
+                    $searchData = \Eccube\Util\FormUtil::getViewData($searchForm, $viewData);
+                }
+                $qb = $app['eccube.repository.customer']->getQueryBuilderBySearchData($searchData);
+            } else {
+                $searchDatas = array();
+                foreach($original_searchs as $original_search) {
+                    $builder = $app['form.factory']
+                        ->createBuilder('admin_search_customer');
+                    $searchFormTemp = $builder->getForm();
+                    $searchDatas[] = array('searchData' => \Eccube\Util\FormUtil::submitAndGetData($searchFormTemp, json_decode($original_search['entity']->getSearchValue(), true)), 'join' => $original_search['join']);
+                }
+                // paginator
+                $qb = $app['eccube.repository.customer']->getQueryBuilderBySearchDatas($searchDatas);
+            }
+        } else {
+            $qb = $app['eccube.repository.customer']->getQueryBuilderBySearchDatas(array());
+        }
+        $customers = $qb->OrderBy('c.id', 'ASC')
+                        ->getQuery()
+                        ->getResult();
+
+        // サービスの取得
+        /* @var MailLabelPdfService $service */
+        $service = $app['eccube.service.mail_label_pdf'];
+        $session = $request->getSession();
+
+        // 顧客情報からPDFを作成する
+        $status = $service->makePdf($customers, null, $to, $existsId);
+
+        // ダウンロードする
+        $response = new Response(
+            $service->outputPdf(),
+            200,
+            array('content-type' => 'application/pdf')
+        );
+
+        // レスポンスヘッダーにContent-Dispositionをセットし、ファイル名を指定
+        $response->headers->set('Content-Disposition', 'attachment; filename="'.$service->getPdfFileName().'"');
+        log_info("郵送用ラベルファイル名", array($service->getPdfFileName()));
         return $response;
     }
 

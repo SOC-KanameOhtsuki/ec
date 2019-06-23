@@ -88,14 +88,7 @@ class AdminControllerProvider implements ControllerProviderInterface
         $c->match('/customer', '\Eccube\Controller\Admin\Customer\CustomerController::index')->bind('admin_customer');
         $c->match('/customer/page/{page_no}', '\Eccube\Controller\Admin\Customer\CustomerController::index')->assert('page_no', '\d+')->bind('admin_customer_page');
         $c->match('/customer/export', '\Eccube\Controller\Admin\Customer\CustomerController::export')->bind('admin_customer_export');
-
-        $c->match('/customer/export_select_with_id', '\Eccube\Controller\Admin\Customer\CustomerController::exportMailLabelSelectWithId')->bind('admin_customer_export_mail_label_select_exists_id');
-        $c->match('/customer/export_select', '\Eccube\Controller\Admin\Customer\CustomerController::exportMailLabelSelect')->bind('admin_customer_export_mail_label_select_not_exists_id');
-        $c->match('/customer/export_home_with_id', '\Eccube\Controller\Admin\Customer\CustomerController::exportMailLabelHomeWithId')->bind('admin_customer_export_mail_label_homet_exists_id');
-        $c->match('/customer/export_home', '\Eccube\Controller\Admin\Customer\CustomerController::exportMailLabelHome')->bind('admin_customer_export_mail_label_home_not_exists_id');
-        $c->match('/customer/export_company_with_id', '\Eccube\Controller\Admin\Customer\CustomerController::exportMailLabelCompanyWithId')->bind('admin_customer_export_mail_label_company_exists_id');
-        $c->match('/customer/export_company', '\Eccube\Controller\Admin\Customer\CustomerController::exportMailLabelCompany')->bind('admin_customer_export_mail_label_company_not_exists_id');
-
+        $c->match('/customer/export_mail_label', '\Eccube\Controller\Admin\Customer\CustomerController::exportMailLabel')->bind('admin_customer_export_mail_label');
         $c->match('/customer/search/get', '\Eccube\Controller\Admin\Customer\CustomerController::getSearch')->bind('admin_customer_search_get');
         $c->match('/customer/search/save', '\Eccube\Controller\Admin\Customer\CustomerController::saveSearch')->bind('admin_customer_search_save');
         $c->match('/customer/search/select', '\Eccube\Controller\Admin\Customer\CustomerController::selectSearch')->bind('admin_customer_search_select');
@@ -249,7 +242,19 @@ class AdminControllerProvider implements ControllerProviderInterface
         $c->match('/form_printing/mail_label', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::mailLabel')->bind('admin_form_printing_mail_label');
         $c->match('/form_printing/mail_label/page/{page_no}', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::mailLabel')->bind('admin_form_printing_mail_label_page');
         $c->match('/form_printing/mail_label_all_download', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::mailLabelAllExport')->bind('admin_form_printing_mail_label_all_export');
-        $c->match('/form_printing/mail_label_select_download', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::mailLabelSelectExport')->bind('S');
+        $c->match('/form_printing/mail_label_select_download', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::mailLabelSelectExport')->bind('admin_form_printing_mail_label_select_export');
+        $c->match('/form_printing/membership_payment_status_list', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::membershipPaymentStatusList')->bind('admin_form_printing_membership_payment_status_list');
+        $c->match('/form_printing/membership_payment_status_list/page/{page_no}', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::membershipPaymentStatusList')->bind('admin_form_printing_membership_payment_status_list_page');
+        $c->match('/form_printing/membership_payment_status_list_all_download', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::membershipPaymentStatusListAllExport')->bind('admin_form_printing_membership_payment_status_list_all_export');
+        $c->match('/form_printing/membership_payment_status_list_select_download', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::membershipPaymentStatusListSelectExport')->bind('admin_form_printing_membership_payment_status_list_select_export');
+        $c->match('/form_printing/donation_list', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::donationList')->bind('admin_form_printing_donation_list');
+        $c->match('/form_printing/donation_list/page/{page_no}', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::donationList')->bind('admin_form_printing_donation_list_page');
+        $c->match('/form_printing/donation_list_all_download', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::donationListAllExport')->bind('admin_form_printing_donation_listl_all_export');
+        $c->match('/form_printing/donation_list_select_download', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::donationListSelectExport')->bind('admin_form_printing_donation_list_select_export');
+        $c->match('/form_printing/donation_certificate', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::donationCertificate')->bind('admin_form_printing_donation_certificate');
+        $c->match('/form_printing/donation_certificate/page/{page_no}', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::donationCertificate')->bind('admin_form_printing_donation_certificate_page');
+        $c->match('/form_printing/donation_certificate_all_download', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::donationCertificateAllExport')->bind('admin_form_printing_donation_certificate_all_export');
+        $c->match('/form_printing/donation_certificate_select_download', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::donationCertificateSelectExport')->bind('admin_form_printing_donation_certificate_select_export');
         $c->match('/form_printing/regular_member_list', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::regularMemberList')->bind('admin_form_printing_regular_member_list');
         $c->match('/form_printing/regular_member_list/page/{page_no}', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::regularMemberList')->bind('admin_form_printing_regular_member_list_page');
         $c->match('/form_printing/regular_member_list_all_download_without_anonymous', '\Eccube\Controller\Admin\FormPrinting\FormPrintingController::regularMemberListAllExportWithoutAnonymous')->bind('admin_regular_member_all_export_without_anonymous');

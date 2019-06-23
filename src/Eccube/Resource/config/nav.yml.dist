@@ -141,9 +141,20 @@
       - id: mail_label
         name: 郵送用ラベル
         url: admin_form_printing_mail_label
+      - id: membership_payment_status_list
+        name: 年会費支払状況名簿
+        url: admin_form_printing_membership_payment_status_list
+      - id: donation_list
+        name: 寄付者名簿
+        url: admin_form_printing_donation_list
+      - id: donation_certificate
+        name: 寄付受領証明書
+        url: admin_form_printing_donation_certificate
       - id: regular_member_list
         name: 正会員一覧
         url: admin_form_printing_regular_member_list
+        
+        
 - id: questionnaire
   name: 総会表決アンケート
   has_child: true

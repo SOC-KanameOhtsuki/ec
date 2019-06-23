@@ -123,7 +123,6 @@ class NameTagForTrainingPdfService extends AbstractFPDIService
             // 会員名
             $bakFontStyle = $this->FontStyle;
             $bakFontSize = $this->FontSizePt;
-            $this->SetFont('', 'B', 22);
             $this->SetXY(23.1, 29.1);
             $beforeSpacing = $this->getFontSpacing();
             $this->setFontSpacing(1.0);
@@ -136,10 +135,10 @@ class NameTagForTrainingPdfService extends AbstractFPDIService
             $this->MultiCell(70.4, 11.2, $customerData->getName01() . " " . $customerData->getName02(), 0, "C", false, 0, "", "", true, 0, false, true, 11.2, "M");
             $this->setFontSpacing($beforeSpacing);
             if (!is_null($product)) {
-                // 受講日
-                $this->lfText(41.9, 24.2, $product->getProductTraining()->getTrainingDateStart()->format('Y年m月d日'), 11);
-                // 講習会名
                 if ($product->hasProductTraining()) {
+                    // 受講日
+                    $this->lfText(41.9, 24.2, $product->getProductTraining()->getTrainingDateStart()->format('Y年m月d日'), 11);
+                    // 講習会名
                     $this->SetFont('', '', 11);
                     $this->SetXY(23.1, 40.4);
                     $this->MultiCell(70.4, 7.0, $product->getProductTraining()->getTrainingType()->getName(), 0, "C", false, 0, "", "", true, 0, false, true, 7.0, "T");

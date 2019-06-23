@@ -1200,7 +1200,8 @@ class FormPrintingController extends AbstractController
                 $searchData = $searchForm->getData();
 
                 // paginator
-                $qb = $app['eccube.repository.customer']->getQueryBuilderBySearchData($searchData);
+                $qb = $app['eccube.repository.customer']->getQueryBuilderBySearchData($searchData)
+                                                        ->OrderBy('c.id', 'ASC');
                 $page_no = 1;
 
                 $pagination = $app['paginator']()->paginate(
@@ -1235,7 +1236,8 @@ class FormPrintingController extends AbstractController
                     // 表示件数
                     $page_count = $request->get('page_count', $page_count);
 
-                    $qb = $app['eccube.repository.customer']->getQueryBuilderBySearchData($searchData);
+                    $qb = $app['eccube.repository.customer']->getQueryBuilderBySearchData($searchData)
+                                                            ->OrderBy('c.id', 'ASC');
 
                     $event = new EventArgs(
                         array(
@@ -1244,7 +1246,6 @@ class FormPrintingController extends AbstractController
                         ),
                         $request
                     );
-                    $app['eccube.event.dispatcher']->dispatch(EccubeEvents::ADMIN_REGULAR_MEMBER_INDEX_SEARCH, $event);
 
                     $pagination = $app['paginator']()->paginate(
                         $qb,
@@ -1266,6 +1267,22 @@ class FormPrintingController extends AbstractController
 
     public function mailLabelAllExport(Application $app, Request $request = null)
     {
+        $to = 0;
+        $existsId = 0;
+        $queryString = $request->getQueryString();
+        if (!empty($queryString)) {
+            // クエリーをparseする
+            parse_str($queryString, $ary);
+            foreach ($ary as $key => $val) {
+                // キーが一致
+                if (preg_match('/^to$/', $key)) {
+                    $to = $val;
+                } else if (preg_match('/^existsId$/', $key)) {
+                    $existsId = $val;
+                }
+            }
+        }
+
         // タイムアウトを無効にする.
         set_time_limit(0);
 
@@ -1276,9 +1293,9 @@ class FormPrintingController extends AbstractController
         $session = $request->getSession();
         $viewData = $session->get('eccube.admin.customer.search');
         if (is_null($viewData)) {
-            $app->addError('admin.regular_member_list_pdf.parameter.notfound', 'admin');
+            $app->addError('admin.mail_label_pdf.parameter.notfound', 'admin');
             log_info('The Customer cannot found!');
-            return $app->redirect($app->url('admin_form_printing_regular_member_list'));
+            return $app->redirect($app->url('admin_form_printing_mail_label'));
         }
 
         // sessionに保持されている検索条件を復元.
@@ -1289,21 +1306,22 @@ class FormPrintingController extends AbstractController
 
         // サービスの取得
         /* @var RegularMemberListPdfService $service */
-        $service = $app['eccube.service.regular_member_list_pdf'];
+        $service = $app['eccube.service.mail_label_pdf'];
 
         // 顧客情報取得
         $customers = $app['eccube.repository.customer']->getQueryBuilderBySearchData($searchData)
+                ->OrderBy('c.id', 'ASC')
                 ->getQuery()
                 ->getResult();
 
         // 顧客情報からPDFを作成する
-        $status = $service->makePdf($customers);
+        $status = $service->makePdf($customers, null, $to, $existsId);
 
         // 異常終了した場合の処理
         if (!$status) {
-            $app->addError('admin.regular_member_list_pdf.download.failure', 'admin');
+            $app->addError('admin.mail_label_pdf.download.failure', 'admin');
             log_info('Unable to create pdf files! Process have problems!');
-            return $app->redirect($app->url('admin_form_printing_regular_member_list'));
+            return $app->redirect($app->url('admin_form_printing_mail_label'));
         }
 
         // ダウンロードする
@@ -1315,12 +1333,28 @@ class FormPrintingController extends AbstractController
 
         // レスポンスヘッダーにContent-Dispositionをセットし、ファイル名を指定
         $response->headers->set('Content-Disposition', 'attachment; filename="'.$service->getPdfFileName().'"');
-        log_info('RegularMemberListPdf download success!', array('Customer:' => count($customers)));
+        log_info('MailLabelPdf download success!', array('Customer:' => count($customers)));
         return $response;
     }
 
     public function mailLabelSelectExport(Application $app, Request $request = null)
     {
+        $to = 0;
+        $existsId = 0;
+        $queryString = $request->getQueryString();
+        if (!empty($queryString)) {
+            // クエリーをparseする
+            parse_str($queryString, $ary);
+            foreach ($ary as $key => $val) {
+                // キーが一致
+                if (preg_match('/^to$/', $key)) {
+                    $to = $val;
+                } else if (preg_match('/^existsId$/', $key)) {
+                    $existsId = $val;
+                }
+            }
+        }
+
         // タイムアウトを無効にする.
         set_time_limit(0);
 
@@ -1331,28 +1365,29 @@ class FormPrintingController extends AbstractController
         // requestから対象顧客IDの一覧を取得する.
         $ids = $this->getIds($request);
         if (count($ids) == 0) {
-            $app->addError('admin.regular_member_list_pdf.parameter.notfound', 'admin');
+            $app->addError('admin.mail_label_pdf.parameter.notfound', 'admin');
             log_info('The Customer cannot found!');
-            return $app->redirect($app->url('admin_form_printing_regular_member_list'));
+            return $app->redirect($app->url('admin_form_printing_mail_label'));
         }
 
         // サービスの取得
         /* @var RegularMemberListPdfService $service */
-        $service = $app['eccube.service.regular_member_list_pdf'];
+        $service = $app['eccube.service.mail_label_pdf'];
 
         // 顧客情報取得
-        $customers = $app['eccube.repository.customer']->getQueryBuilderBySearchDataWithIds($ids)
+        $customers = $app['eccube.repository.customer']->getQueryBuilderBySearchData(array('customer_ids' => $ids))
+                ->OrderBy('c.id', 'ASC')
                 ->getQuery()
                 ->getResult();
 
         // 顧客情報からPDFを作成する
-        $status = $service->makePdf($customers);
+        $status = $service->makePdf($customers, null, $to, $existsId);
 
         // 異常終了した場合の処理
         if (!$status) {
-            $app->addError('admin.regular_member_list_pdf.download.failure', 'admin');
+            $app->addError('admin.mail_label_pdf.download.failure', 'admin');
             log_info('Unable to create pdf files! Process have problems!');
-            return $app->redirect($app->url('admin_form_printing_regular_member_list'));
+            return $app->redirect($app->url('admin_form_printing_mail_label'));
         }
 
         // ダウンロードする

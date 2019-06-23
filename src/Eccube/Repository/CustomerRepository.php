@@ -179,6 +179,12 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
                 ->andWhere('c.id = :customer_id')
                 ->setParameter('customer_id', $searchData['customer_id']);
         }
+        // CusotmerId
+        if (!empty($searchData['customer_ids']) && count($searchData['customer_ids']) > 0) {
+            $qb
+                ->andWhere($qb->expr()->in('c.id', ':customerIds'))
+                ->setParameter('customerIds', $searchData['customer_ids']);
+        }
 
         // PrefArea
         if (!empty($searchData['pref_area']) && count($searchData['pref_area']) > 0) {
@@ -261,9 +267,13 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
 
         // Pref
         if (!empty($searchData['pref']) && $searchData['pref']) {
-            $qb
-                ->andWhere('c.Pref = :pref')
-                ->setParameter('pref', $searchData['pref']->getId());
+            if ($searchData['pref'] instanceof \Eccube\Entity\Master\Pref) {
+                $qb->andWhere('c.Pref = :pref')
+                    ->setParameter('pref', $searchData['pref']->getId());
+            } else {
+                $qb->andWhere('c.Pref = :pref')
+                    ->setParameter('pref', $searchData['pref']);
+            }
         }
 
         // Address
@@ -277,9 +287,12 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
         if (!empty($searchData['sex']) && count($searchData['sex']) > 0) {
             $sexs = array();
             foreach ($searchData['sex'] as $sex) {
-                $sexs[] = $sex->getId();
+                if ($sex instanceof \Eccube\Entity\Master\Sex) {
+                    $sexs[] = $sex->getId();
+                } else {
+                    $sexs[] = $sex;
+                }
             }
-
             $qb
                 ->andWhere($qb->expr()->in('c.Sex', ':sexs'))
                 ->setParameter('sexs', $sexs);
@@ -451,16 +464,24 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
 
         // SupporterType
         if (!empty($searchData['customer_basicinfo_supporter_type']) && $searchData['customer_basicinfo_supporter_type']) {
-            $qb
-                ->andWhere('bc.SupporterType = :supporterType')
-                ->setParameter('supporterType', $searchData['customer_basicinfo_supporter_type']->getId());
+            if ($searchData['customer_basicinfo_supporter_type'] instanceof \Eccube\Entity\Master\SupporterType) {
+                $qb->andWhere('bc.SupporterType = :supporterType')
+                    ->setParameter('supporterType', $searchData['customer_basicinfo_supporter_type']->getId());
+            } else {
+                $qb->andWhere('bc.SupporterType = :supporterType')
+                    ->setParameter('supporterType', $searchData['customer_basicinfo_supporter_type']);
+            }
         }
 
         // InstructorType
         if (!empty($searchData['customer_basicinfo_instructor_type']) && $searchData['customer_basicinfo_instructor_type']) {
-            $qb
-                ->andWhere('bc.InstructorType = :instructorType')
-                ->setParameter('instructorType', $searchData['customer_basicinfo_instructor_type']->getId());
+            if ($searchData['customer_basicinfo_instructor_type'] instanceof \Eccube\Entity\Master\InstructorType) {
+                $qb->andWhere('bc.InstructorType = :instructorType')
+                    ->setParameter('instructorType', $searchData['customer_basicinfo_instructor_type']->getId());
+            } else {
+                $qb->andWhere('bc.InstructorType = :instructorType')
+                    ->setParameter('instructorType', $searchData['customer_basicinfo_instructor_type']);
+            }
         }
 
         // buy_product_name、buy_product_code

@@ -254,11 +254,49 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
     form.submit();
   };
 
+  $('#mail_label_download').click(function() {
+      $("#search_form").attr('action', "{{ url('admin_customer_export_mail_label') }}");
+      $('#search_form input:hidden[name="to"]').val("0")
+      $('#search_form input:hidden[name="existsId"]').val("1")
+      $("#search_form").submit();
+  });
+  $('#mail_label_home_download').click(function() {
+      $("#search_form").attr('action', "{{ url('admin_customer_export_mail_label') }}");
+      $('#search_form input:hidden[name="to"]').val("1")
+      $('#search_form input:hidden[name="existsId"]').val("1")
+      $("#search_form").submit();
+  });
+  $('#mail_label_company_download').click(function() {
+      $("#search_form").attr('action', "{{ url('admin_customer_export_mail_label') }}");
+      $('#search_form input:hidden[name="to"]').val("2")
+      $('#search_form input:hidden[name="existsId"]').val("1")
+      $("#search_form").submit();
+  });
+  $('#mail_label_without_id_download').click(function() {
+      $("#search_form").attr('action', "{{ url('admin_customer_export_mail_label') }}");
+      $('#search_form input:hidden[name="to"]').val("0")
+      $('#search_form input:hidden[name="existsId"]').val("0")
+      $("#search_form").submit();
+  });
+  $('#mail_label_home_without_id_download').click(function() {
+      $("#search_form").attr('action', "{{ url('admin_customer_export_mail_label') }}");
+      $('#search_form input:hidden[name="to"]').val("1")
+      $('#search_form input:hidden[name="existsId"]').val("0")
+      $("#search_form").submit();
+  });
+  $('#mail_label_company_without_id_download').click(function() {
+      $("#search_form").attr('action', "{{ url('admin_customer_export_mail_label') }}");
+      $('#search_form input:hidden[name="to"]').val("2")
+      $('#search_form input:hidden[name="existsId"]').val("0")
+      $("#search_form").submit();
+  });
 </script>
 {% endblock javascript %}
 
 {% block main %}
 <form name="search_form" id="search_form" method="post" action="{{ url('admin_customer') }}">
+  <input type="hidden" name="to" value="0">
+  <input type="hidden" name="existsId" value="0">
   {{ form_widget(searchForm._token) }}
   <!--検索条件設定テーブルここから-->
   <div id="search_wrap" class="search-box">
@@ -558,12 +596,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
               <li id="result_list_main__printing_menu" class="dropdown">
               <a class="dropdown-toggle" data-toggle="dropdown">帳票ダウンロード<svg class="cb cb-angle-down icon_down"><use xlink:href="#cb-angle-down"></svg></a>
               <ul class="dropdown-menu">
-                <li><a href="{{ url('admin_customer_export_mail_label_select_exists_id') }}">郵送ラベル(希望送付先/IDあり)</a></li>
-                <li><a href="{{ url('admin_customer_export_mail_label_select_not_exists_id') }}">郵送ラベル(希望送付先/IDなし)</a></li>
-                <li><a href="{{ url('admin_customer_export_mail_label_homet_exists_id') }}">郵送ラベル(自宅/IDあり)</a></li>
-                <li><a href="{{ url('admin_customer_export_mail_label_home_not_exists_id') }}">郵送ラベル(自宅/IDなし)</a></li>
-                <li><a href="{{ url('admin_customer_export_mail_label_company_exists_id') }}">郵送ラベル(勤務先/IDあり)</a></li>
-                <li><a href="{{ url('admin_customer_export_mail_label_company_not_exists_id') }}">郵送ラベル(勤務先/IDなし)</a></li>
+                <li><a id="mail_label_download" href="javascript:void(0);">郵送ラベル(希望発送先/IDあり)</a></li>
+                <li><a id="mail_label_home_download" href="javascript:void(0);">郵送ラベル(自宅/IDあり)</a></li>
+                <li><a id="mail_label_company_download" href="javascript:void(0);">郵送ラベル(勤務先/IDあり)</a></li>
+                <li><a id="mail_label_without_id_download" href="javascript:void(0);">郵送ラベル(希望発送先/IDなし)</a></li>
+                <li><a id="mail_label_home_without_id_download" href="javascript:void(0);">郵送ラベル(自宅/IDなし)</a></li>
+                <li><a id="mail_label_company_without_id_download" href="javascript:void(0);">郵送ラベル(勤務先/IDなし)</a></li>
               </ul>
               </li>
             </ul>

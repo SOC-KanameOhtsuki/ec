@@ -190,32 +190,17 @@ class InstructorFlyerPdfService extends AbstractFPDIService
         $this->setSourceFile($templateFilePath);
         // PDFにページを追加する
         $this->addPdfPage();
-        // 年会費
-        $membership = $this->app['config']['default_membership'];
-        try {
-            $membershipInfo = $this->app['eccube.repository.product']->getQueryBuilderBySearchDataForAdmin(array('membership_year' => date('Y')))->getQuery()->getSingleResult();
-            $membership = $membershipInfo->getPrice02IncTaxMax();
-        } catch (\Exception $e) {
-        }
-        $this->lfText(163.0, 36.2, date('Y'), 11, 'B');
-        $this->lfText(190.0, 36.2, number_format($membership), 11, 'B');
         // 記入日
-        $this->lfText(151.5, 127.5, date('Y'), 13, 'B');
-        $this->lfText(168.2, 127.5, date('n'), 13, 'B');
-        $this->lfText(177.5, 127.5, date('j'), 13, 'B');
+        $this->lfText(151.5, 130.5, date('Y'), 13, 'B');
+        $this->lfText(168.5, 130.5, date('n'), 13, 'B');
+        $this->lfText(179.0, 130.5, date('j'), 13, 'B');
         // 受講日
-        $this->lfText(55.8, 222.8, date('Y', strtotime($flyer_data->getProductTraining()->getTrainingDateStart()->format('Y/m/d H:i'))), 15, 'B');
-        $this->lfText(79.2, 222.8, date('n', strtotime($flyer_data->getProductTraining()->getTrainingDateStart()->format('Y/m/d H:i'))), 15, 'B');
-        $this->lfText(96.5, 222.8, date('j', strtotime($flyer_data->getProductTraining()->getTrainingDateStart()->format('Y/m/d H:i'))), 15, 'B');
-        $this->lfText(112.7, 222.8, $this->WeekDay[date('w', strtotime($flyer_data->getProductTraining()->getTrainingDateStart()->format('Y/m/d H:i')))], 15, 'B');
+        $this->lfText(55.8, 225.3, date('Y', strtotime($flyer_data->getProductTraining()->getTrainingDateStart()->format('Y/m/d H:i'))), 15, 'B');
+        $this->lfText(79.2, 225.3, date('n', strtotime($flyer_data->getProductTraining()->getTrainingDateStart()->format('Y/m/d H:i'))), 15, 'B');
+        $this->lfText(96.5, 225.3, date('j', strtotime($flyer_data->getProductTraining()->getTrainingDateStart()->format('Y/m/d H:i'))), 15, 'B');
+        $this->lfText(112.7, 225.3, $this->WeekDay[date('w', strtotime($flyer_data->getProductTraining()->getTrainingDateStart()->format('Y/m/d H:i')))], 15, 'B');
         // 場所
-        $this->lfText(147.3, 222.8, $flyer_data->getProductTraining()->getPlace(), 15, 'B');
-        // 会員数
-        $this->lfText(79.2, 252.1, date('Y'), 11, 'B');
-        $this->lfText(95.9, 252.1, '3', 11, 'B');
-        $this->lfText(106.8, 252.1, '31', 11, 'B');
-        $lastTermCustomers = $this->app['orm.em']->getConnection()->fetchColumn('SELECT COUNT(*) FROM dtb_membership_billing_status WHERE product_membership = (SELECT product_membership_id FROM dtb_product_membership WHERE membership_year = ' . (date('Y') - 1) . ');');
-        $this->lfText(127.2, 252.1, $lastTermCustomers, 11, 'B');
+        $this->lfText(147.3, 226.2, $flyer_data->getProductTraining()->getPlace(), 9, 'B');
 
         return true;
     }
