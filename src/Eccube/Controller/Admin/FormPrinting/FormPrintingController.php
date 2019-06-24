@@ -1521,7 +1521,9 @@ class FormPrintingController extends AbstractController
         }
         // 受注情報取得
         $orders = array();
-        $orderDatas = $app['eccube.repository.order']->getQueryBuilderBySearchDataForAdmin(array('product_id' => $productMemberShip->getProduct()->getId()));
+        $orderDatas = $app['eccube.repository.order']->getQueryBuilderBySearchDataForAdmin(array('product_id' => $productMemberShip->getProduct()->getId()))
+                                                                                        ->getQuery()
+                                                                                        ->getResult();
         foreach ($orderDatas as $orderData) {
             $orders[$orderData->getCustomer()->getId()] = $orderData;
         }
@@ -1551,6 +1553,7 @@ class FormPrintingController extends AbstractController
         $response->setCallback(function () use ($app, $request, $customers, $orders, $membershipBillingStatus, $productMemberShip) {
 
             log_info('customers:' . count($customers));
+            log_info('orders:' . count($orders));
 
             // サービスの取得
             /* @var TrainingMemberListCsvExportService $service */
