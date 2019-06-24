@@ -153,8 +153,6 @@
       - id: regular_member_list
         name: 正会員一覧
         url: admin_form_printing_regular_member_list
-        
-        
 - id: questionnaire
   name: 総会表決アンケート
   has_child: true

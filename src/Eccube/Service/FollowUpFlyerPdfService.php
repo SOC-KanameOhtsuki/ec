@@ -140,23 +140,23 @@ class FollowUpFlyerPdfService extends AbstractFPDIService
         $this->SetTextColor(0, 0, 0);
 
         // 講習会日
-        $this->lfText(55.6, 70.5, $flyer_data->getProductTraining()->getTrainingDateStart()->format('Y年n月j日(') . $this->WeekDay[$flyer_data->getProductTraining()->getTrainingDateStart()->format('w')] . ')', 28, 'B');
-        $this->lfText(140.0, 73.5, $flyer_data->getProductTraining()->getTrainingDateStart()->format('H:i～') . $flyer_data->getProductTraining()->getTrainingDateEnd()->format('H:i'), 20, 'B');
+        $this->lfText(55.6, 76.5, $flyer_data->getProductTraining()->getTrainingDateStart()->format('Y年n月j日(') . $this->WeekDay[$flyer_data->getProductTraining()->getTrainingDateStart()->format('w')] . ')', 28, 'B');
+        $this->lfText(143.0, 79.5, $flyer_data->getProductTraining()->getTrainingDateStart()->format('H:i～') . $flyer_data->getProductTraining()->getTrainingDateEnd()->format('H:i'), 20, 'B');
         // 場所
-        $this->lfText(55.6, 84.2, $flyer_data->getProductTraining()->getPlace(), 28, 'B');
+        $this->lfText(55.6, 92.8, $flyer_data->getProductTraining()->getPlace(), 28, 'B');
         // 住所
-        $this->lfText(55.6, 94.4, "(" . $flyer_data->getProductTraining()->getAddr01() . $flyer_data->getProductTraining()->getAddr02() . ")", 17, 'B');
+        $this->lfText(55.6, 103.0, "(" . $flyer_data->getProductTraining()->getAddr01() . $flyer_data->getProductTraining()->getAddr02() . ")", 17, 'B');
         // 内容
-        $this->lfMultiText(49.0, 135.3, 145.0, 20.0, str_replace("　", "", $flyer_data->getProductTraining()->getProduct()->getDescriptionDetail()), 17, 'B');
+        $this->lfMultiText(49.0, 113.5, 145.0, 20.0, str_replace("　", "", $flyer_data->getProductTraining()->getProduct()->getDescriptionDetail()), 17, 'B');
         // 受講料
-        $this->lfText(49.0, 132.2, ((0 < $flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax())?number_format($flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax()) . '円':"無料"), 17, 'B');
+        $this->lfText(49.0, 139.1, ((0 < $flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax())?number_format($flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax()) . '円':"無料"), 17, 'B');
         // 持ち物
-        $this->lfMultiText(49.0, 135.8, 145.0, 11.3, $flyer_data->getProductTraining()->getItem(), 17, 'B');
+        $this->lfMultiText(49.0, 143.7, 146.0, 11.3, $flyer_data->getProductTraining()->getItem(), 17, 'B');
         // 定員
         $ProductClasses = $flyer_data->getProductTraining()->getProduct()->getProductClasses();
         $ProductClass = $ProductClasses[0];
         if ($ProductClass->getStockUnlimited()) {
-            $this->lfText(49.0, 155.1, $ProductClass->getStock() . '名', 17, 'B');
+            $this->lfText(49.0, 162.0, $ProductClass->getStock() . '名', 17, 'B');
         }
         // 期限
         if (is_null($flyer_data->getProductTraining()->getAcceptLimitDate())) {
@@ -168,16 +168,12 @@ class FollowUpFlyerPdfService extends AbstractFPDIService
         } else {
             $limit = $flyer_data->getProductTraining()->getAcceptLimitDate()->format('Y/m/d');
         }
-        // 主催
-        $this->lfText(49.0, 189.2, "認定 NPO法人ふまねっと", 17, 'B');
-        // 共催
-        // 定員
         $bakFontStyle = $this->FontStyle;
         $bakFontSize = $this->FontSizePt;
-        $this->SetFont('', "B", 13);
-        $this->SetXY(49.0, 160.4);
+        $this->SetFont('', "B", 17);
+        $this->SetXY(49.0, 167.0);
         $line_height = $this->getStringHeight(28.0, "あ");
-        $this->MultiCell(28.0, $line_height, date('n月j日(', strtotime($limit)) . $this->WeekDay[date('w', strtotime($limit))] . ")", 0, 'C', false, 0,  "", "", true, 0, false, true, $line_height, "M");
+        $this->MultiCell(28.0, $line_height, date('n月j日', strtotime($limit)) . $this->WeekDay[date('w', strtotime($limit))] . ")", 0, 'L', false, 0,  "", "", true, 0, false, true, $line_height, "T");
         $this->SetFont('', $bakFontStyle, $bakFontSize);
 
         return true;
@@ -272,7 +268,7 @@ class FollowUpFlyerPdfService extends AbstractFPDIService
         $this->SetFont('', $style, $size);
         $this->SetXY($x, $y);
         $line_height = $this->getStringHeight($w, "あ");
-        $this->MultiCell($w, $line_height, $text, 0, 'L', false, 0,  "", "", true, 0, false, true, $h, "M");
+        $this->MultiCell($w, $line_height, $text, 0, 'L', false, 0,  "", "", true, 0, false, true, $h, "T");
 
         // 復元
         $this->SetFont('', $bakFontStyle, $bakFontSize);

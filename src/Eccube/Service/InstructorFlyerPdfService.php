@@ -141,7 +141,7 @@ class InstructorFlyerPdfService extends AbstractFPDIService
         $this->SetXY(10.8, 95.3);
         $this->MultiCell(29.0, 8.7, $flyer_data->getProductTraining()->getAddr01(), 0, "C", false, 0, "", "", true, 0, false, true, 8.7, "M");
         $this->SetFont('', $bakFontStyle, $bakFontSize);
-        $this->SetTextColor(0, 0, 0);
+        $this->SetTextColor(50, 50, 50);
         // 講習会種別
         $this->SetFont(self::FONT_GOTHIC);
         if ($flyer_data->getProductTraining()->getTrainingType()->getId() == 2) {
@@ -159,13 +159,13 @@ class InstructorFlyerPdfService extends AbstractFPDIService
         // 住所
         $this->lfText(126.0, 102.3, $flyer_data->getProductTraining()->getPref()->getName() . $flyer_data->getProductTraining()->getAddr01() . $flyer_data->getProductTraining()->getAddr02(), 12, 'B');
         // 内容
-        $this->lfMultiText(31.8, 120.5, 88.0, 32.3, str_replace("　", "", $flyer_data->getProductTraining()->getProduct()->getDescriptionDetail()), 11, 'B');
+        $this->lfMultiText(31.0, 124.7, 88.0, 32.3, str_replace("　", "", $flyer_data->getProductTraining()->getProduct()->getDescriptionDetail()), 11, 'B');
         // 対象
-        $this->lfText(31.8, 164.5, $flyer_data->getProductTraining()->getTarget(), 13, 'B');
+        $this->lfText(31.0, 160.5, $flyer_data->getProductTraining()->getTarget(), 13, 'B');
         // 受講料
-        $this->lfText(31.8, 169.2, number_format($flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax()) . '円', 13, 'B');
+        $this->lfText(31.0, 169.2, number_format($flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax()) . '円', 13, 'B');
         // 持ち物
-        $this->lfMultiText(31.8, 191.5, 88.0, 10.4, $flyer_data->getProductTraining()->getItem(), 11, 'B');
+        $this->lfMultiText(31.0, 193.5, 88.0, 10.4, $flyer_data->getProductTraining()->getItem(), 11, 'B');
         // 期限
         if (is_null($flyer_data->getProductTraining()->getAcceptLimitDate())) {
             $limit = date('Y/m/d', strtotime($flyer_data->getProductTraining()->getTrainingDateStart()->format('Y/m/d') . " -24 day"));
@@ -180,9 +180,7 @@ class InstructorFlyerPdfService extends AbstractFPDIService
         // 定員
         $ProductClasses = $flyer_data->getProductTraining()->getProduct()->getProductClasses();
         $ProductClass = $ProductClasses[0];
-        if ($ProductClass->getStockUnlimited()) {
-            $this->lfText(31.8, 208.5, '定員' . $ProductClass->getStock() . '名(先着順)', 11, 'B');
-        }
+        $this->lfText(31.0, 211.0, '定員' . $ProductClass->getStock() . '名', 13, 'B');
 
         // テンプレートファイルを読み込む
         $pdfFile = $this->app['config']['pdf_template_instructor_flyer2'];
@@ -294,7 +292,7 @@ class InstructorFlyerPdfService extends AbstractFPDIService
         $this->SetFont('', $style, $size);
         $this->SetXY($x, $y);
         $line_height = $this->getStringHeight($w, "あ");
-        $this->MultiCell($w, $line_height, $text, 0, 'L', false, 0,  "", "", true, 0, false, true, $h, "M");
+        $this->MultiCell($w, $line_height, $text, 0, 'L', false, 0,  "", "", true, 0, false, true, $h, "T");
 
         // 復元
         $this->SetFont('', $bakFontStyle, $bakFontSize);

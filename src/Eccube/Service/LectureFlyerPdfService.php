@@ -134,12 +134,10 @@ class LectureFlyerPdfService extends AbstractFPDIService
         $this->SetXY(34.8, 106.5);
         $this->MultiCell(130.0, 12.0, $flyer_data->getProductTraining()->getPlace(), 0, "L", false, 0, "", "", true, 0, false, true, 14.7, "T");
         // 住所
-        $this->lfText(34.8, 130.3, "(住所：" . $flyer_data->getProductTraining()->getAddr01() . $flyer_data->getProductTraining()->getAddr02() . ")", 22, 'B');
+        $this->lfText(57.7, 133.6, $flyer_data->getProductTraining()->getAddr01() . $flyer_data->getProductTraining()->getAddr02(), 20, 'B');
         $this->SetTextColor(33, 72, 53);
         // 講師
         $this->lfText(34.8, 143.6, $flyer_data->getProductTraining()->getLecturer(), 17, 'B');
-        // 内容
-        $this->lfMultiText(34.8, 135.3, 130.0, 10.0, str_replace("　", "", $flyer_data->getProductTraining()->getProduct()->getDescriptionDetail()), 17, 'B');
         // 受講料
         $this->lfText(34.8, 185.4, ((0 <$flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax())?number_format($flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax()) . '円':"無料"), 13, 'B');
         // 定員
@@ -154,9 +152,6 @@ class LectureFlyerPdfService extends AbstractFPDIService
         }
         // 持ち物
         $this->lfMultiText(34.8, 193.8, 88.0, 10.0, $flyer_data->getProductTraining()->getItem(), 13, 'B');
-        // 主催
-        $this->lfText(34.8, 209.3, "認定NPO法人ふまねっと", 13, 'B');
-        // 共催
         // 期限
         if (is_null($flyer_data->getProductTraining()->getAcceptLimitDate())) {
             $holidayRepository = new HolidayRepository();
@@ -169,15 +164,18 @@ class LectureFlyerPdfService extends AbstractFPDIService
         $this->lfText(165.8, 252.0, date('n月j日(', strtotime($limit)) . $this->WeekDay[date('w', strtotime($limit))] . ")", 13, 'B');
         // 受講料
         $this->SetTextColor(255, 255, 255);
-        $this->Rotate(-5.0, 156.2, 58.2);
-        $this->lfText(156.2, 58.2, "参加料", 28, 'B');
-        $this->Rotate(5.0, 156.2, 58.2);
+        $this->Rotate(-5.0, 156.2, 60.5);
+        $this->lfText(156.2, 60.5, "参加料", 28, 'B');
+        $this->Rotate(5.0, 156.2, 60.5);
         $this->Rotate(-5.0, 155.2, 69.2);
         $this->lfText(155.2, 69.2, ((0 <$flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax())?number_format($flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax()) . '円':"無料"), 24, 'B');
         $this->Rotate(5.0, 155.2, 69.2);
         // 定員
         if ($ProductClass) {
             $ProductClass = $ProductClasses[0];
+            $this->Rotate(-5.0, 169.0, 135.0);
+            $this->lfText(169.0, 135.0, '定員', 22, 'B');
+            $this->Rotate(5.0, 169.0, 135.0);
             $this->Rotate(-5.0, 167.0, 143.8);
             $this->lfText(167.0, 143.8, $ProductClass->getStock() . '人', 22, 'B');
             $this->Rotate(5.0, 167.0, 143.8);

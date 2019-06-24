@@ -82,7 +82,7 @@ class SupporterFlyerPdfService extends AbstractFPDIService
         $this->SetFont(self::FONT_SJIS);
 
         // PDFの余白(上左右)を設定
-        $this->SetMargins(15, 20);
+        $this->SetMargins(0, 0);
 
         // ヘッダーの出力を無効化
         $this->setPrintHeader(false);
@@ -171,13 +171,17 @@ class SupporterFlyerPdfService extends AbstractFPDIService
         // PDFにページを追加する
         $this->addPdfPage();
         // 記入日
-        $this->lfText(152.0, 123.5, date('Y'), 13, 'B');
-        $this->lfText(169.5, 123.5, date('n'), 13, 'B');
-        $this->lfText(181.0, 123.5, date('j'), 13, 'B');
+        $this->lfText(152.0, 130.6, date('Y'), 13, 'B');
+        $this->lfText(169.5, 130.6, date('n'), 13, 'B');
+        $this->lfText(180.5, 130.6, date('j'), 13, 'B');
         // 受講日
-        $this->lfText(50.0, 218.5, date('n月j日(', strtotime($flyer_data->getProductTraining()->getTrainingDateStart()->format('Y/m/d H:i'))) . $this->WeekDay[date('w', strtotime($flyer_data->getProductTraining()->getTrainingDateStart()->format('Y/m/d H:i')))] . ')', 15, 'B');
+        $trainingDate = $flyer_data->getProductTraining()->getTrainingDateStart()->format('Y-m-d H:i');
+        $this->lfText(57.0, 225.8, date('Y', strtotime($trainingDate)), 15, 'B');
+        $this->lfText(78.0, 225.8, date('n', strtotime($trainingDate)), 15, 'B');
+        $this->lfText(97.0, 225.8, date('j', strtotime($trainingDate)), 15, 'B');
+        $this->lfText(113.0, 225.8, $this->WeekDay[date('w', strtotime($trainingDate))], 15, 'B');
         // 場所
-        $this->lfText(125.3, 218.5, $flyer_data->getProductTraining()->getPlace(), 15, 'B');
+        $this->lfText(148.1, 227.1, $flyer_data->getProductTraining()->getPlace(), 9, 'B');
 
         return true;
     }
