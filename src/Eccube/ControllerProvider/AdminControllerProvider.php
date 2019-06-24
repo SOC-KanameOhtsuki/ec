@@ -149,6 +149,10 @@ class AdminControllerProvider implements ControllerProviderInterface
         $c->delete('/order/group/{id}/delete', '\Eccube\Controller\Admin\Order\OrderController::groupDelete')->assert('id', '\d+')->bind('admin_order_group_delete');
         $c->match('/order/export/order', '\Eccube\Controller\Admin\Order\OrderController::exportOrder')->bind('admin_order_export_order');
         $c->match('/order/export/shipping', '\Eccube\Controller\Admin\Order\OrderController::exportShipping')->bind('admin_order_export_shipping');
+        $c->match('/order/export/yamato_label', '\Eccube\Controller\Admin\Order\OrderController::exportYamatoLabel')->bind('admin_order_export_yamato_label');
+        $c->match('/order/export/product_transmittal', '\Eccube\Controller\Admin\Order\OrderController::exportProductTransmittal')->bind('admin_order_export_product_transmittal');
+        $c->match('/order/export/order_confirm_fax', '\Eccube\Controller\Admin\Order\OrderController::exportOrderConfirmFax')->bind('admin_order_export_order_confirm_fax');
+        $c->match('/order/export/order_confirm_mail', '\Eccube\Controller\Admin\Order\OrderController::exportOrderConfirmMail')->bind('admin_order_export_order_confirm_mail');
         $c->post('/order/search/customer', '\Eccube\Controller\Admin\Order\EditController::searchCustomer')->bind('admin_order_search_customer');
         $c->post('/order/search/customer/html', '\Eccube\Controller\Admin\Order\EditController::searchCustomerHtml')->bind('admin_order_search_customer_html');
         $c->match('/order/search/customer/html/page/{page_no}', '\Eccube\Controller\Admin\Order\EditController::searchCustomerHtml')->assert('page_no', '\d+')->bind('admin_order_search_customer_html_page');
