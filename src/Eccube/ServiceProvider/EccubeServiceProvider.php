@@ -658,6 +658,7 @@ class EccubeServiceProvider implements ServiceProviderInterface
             $types[] = new \Eccube\Form\Type\Admin\QuestionnaireDetailType($app);
             $types[] = new \Eccube\Form\Type\Admin\QuestionnaireDetailChoiceType($app);
             $types[] = new \Eccube\Form\Type\Admin\SearchQuestionnaireType($app);
+            $types[] = new \Eccube\Form\Type\Admin\SearchMembershipPaymentCustomerType($app);
 
             $types[] = new \Eccube\Form\Type\Admin\MasterdataType($app);
             $types[] = new \Eccube\Form\Type\Admin\MasterdataDataType($app);

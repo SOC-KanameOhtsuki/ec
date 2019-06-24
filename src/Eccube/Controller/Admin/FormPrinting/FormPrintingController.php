@@ -1319,7 +1319,7 @@ class FormPrintingController extends AbstractController
 
         // 異常終了した場合の処理
         if (!$status) {
-            $app->addError('admin.mail_label_pdf.download.failure', 'admin');
+            $app->addError('admin.mail_label.download.failure', 'admin');
             log_info('Unable to create pdf files! Process have problems!');
             return $app->redirect($app->url('admin_form_printing_mail_label'));
         }
@@ -1400,6 +1400,175 @@ class FormPrintingController extends AbstractController
         // レスポンスヘッダーにContent-Dispositionをセットし、ファイル名を指定
         $response->headers->set('Content-Disposition', 'attachment; filename="'.$service->getPdfFileName().'"');
         log_info('MailLabelPdf download success!', array('Customer ID' => implode(',', $this->getIds($request))));
+        return $response;
+    }
+
+    public function membershipPaymentStatusList(Application $app, Request $request = null, $page_no = null)
+    {
+        $session = $request->getSession();
+        $pagination = array();
+        $builder = $app['form.factory']
+            ->createBuilder('admin_search_membership_payment_customer');
+        $searchForm = $builder->getForm();
+
+        //アコーディオンの制御初期化( デフォルトでは閉じる )
+        $active = false;
+
+        $pageMaxis = $app['eccube.repository.master.page_max']->findAll();
+
+        // 表示件数は順番で取得する、1.SESSION 2.設定ファイル
+        $page_count = $session->get('eccube.admin.membership_payment_customer.search.page_count', $app['config']['default_page_count']);
+
+        $page_count_param = $request->get('page_count');
+        // 表示件数はURLパラメターから取得する
+        if($page_count_param && is_numeric($page_count_param)){
+            foreach($pageMaxis as $pageMax){
+                if($page_count_param == $pageMax->getName()){
+                    $page_count = $pageMax->getName();
+                    // 表示件数入力値正し場合はSESSIONに保存する
+                    $session->set('eccube.admin.membership_payment_customer.search.page_count', $page_count);
+                    break;
+                }
+            }
+        }
+
+        if ('POST' === $request->getMethod()) {
+
+            $searchForm->handleRequest($request);
+            if (isset($request->get('admin_search_membership_payment_customer')['membership_year'])) {
+                $searchData = array('membership_pay_' . $request->get('admin_search_membership_payment_customer')['membership_year'] => array(1, 3, 4),
+                                    'target_membership_product_id' => $request->get('admin_search_membership_payment_customer')['membership_year']);
+                // paginator
+                $qb = $app['eccube.repository.customer']->getQueryBuilderBySearchData($searchData) 
+                                                       ->OrderBy('c.id', 'ASC');
+                $page_no = 1;
+                $pagination = $app['paginator']()->paginate(
+                    $qb,
+                    $page_no,
+                    $page_count
+                );
+
+                // sessionに検索条件を保持.
+                $session->set('eccube.admin.membership_payment_customer.search', $searchData);
+                $session->set('eccube.admin.membership_payment_customer.search.page_no', $page_no);
+            }
+        } else {
+            if (is_null($page_no) && $request->get('resume') != Constant::ENABLED) {
+                // sessionを削除
+                $session->remove('eccube.admin.membership_payment_customer.search');
+                $session->remove('eccube.admin.membership_payment_customer.search.page_no');
+                $session->remove('eccube.admin.membership_payment_customer.search.page_count');
+            } else {
+                // pagingなどの処理
+                if (is_null($page_no)) {
+                    $page_no = intval($session->get('eccube.admin.membership_payment_customer.search.page_no'));
+                } else {
+                    $session->set('eccube.admin.membership_payment_customer.search.page_no', $page_no);
+                }
+                $searchData = $session->get('eccube.admin.membership_payment_customer.search');
+                if (!is_null($searchData)) {
+                    // 表示件数
+                    $page_count = $request->get('page_count', $page_count);
+                    $qb = $app['eccube.repository.customer']->getQueryBuilderBySearchData($searchData)
+                                                            ->OrderBy('c.id', 'ASC');
+                    $event = new EventArgs(
+                        array(
+                            'form' => $searchForm,
+                            'qb' => $qb,
+                        ),
+                        $request
+                    );
+
+                    $pagination = $app['paginator']()->paginate(
+                        $qb,
+                        $page_no,
+                        $page_count
+                    );
+                }
+            }
+        }
+        return $app->render('FormPrinting/membership_payment_status_list.twig', array(
+            'searchForm' => $searchForm->createView(),
+            'pagination' => $pagination,
+            'pageMaxis' => $pageMaxis,
+            'page_no' => $page_no,
+            'page_count' => $page_count,
+            'active' => $active,
+        ));
+    }
+
+    public function membershipPaymentStatusListExport(Application $app, Request $request = null)
+    {
+        // タイムアウトを無効にする.
+        set_time_limit(0);
+
+        // sql loggerを無効にする.
+        $em = $app['orm.em'];
+        $em->getConfiguration()->setSQLLogger(null);
+
+        // sessionに保持されている検索条件を復元.
+        $session = $request->getSession();
+        $searchData = $session->get('eccube.admin.membership_payment_customer.search');
+        $productMemberShip = null;
+        // 年会費商品情報取得
+        if (isset($searchData['target_membership_product_id'])) {
+            $productMemberShip = $app['eccube.repository.product_membership']->find($searchData['target_membership_product_id']);
+        }
+        if (is_null($productMemberShip)) {
+            $app->addError('admin.membership_payment_status_list.parameter.notfound', 'admin');
+            log_info('The Customer cannot found!');
+            return $app->redirect($app->url('admin_form_printing_membership_payment_status_list'));
+        }
+        // 受注情報取得
+        $orders = array();
+        $orderDatas = $app['eccube.repository.order']->getQueryBuilderBySearchDataForAdmin(array('product_id' => $productMemberShip->getProduct()->getId()));
+        foreach ($orderDatas as $orderData) {
+            $orders[$orderData->getCustomer()->getId()] = $orderData;
+        }
+        // 年会費支払い状況取得
+        $membershipBillingStatus = array();
+        $membershipBillingStatusDatas = $app['eccube.repository.membership_billing_status']->createQueryBuilder('ms')
+                                                                                        ->leftJoin('ms.ProductMembership', 'pm')
+                                                                                        ->where('pm.id = :ProductMembershipId')
+                                                                                        ->setParameter('ProductMembershipId', $productMemberShip->getId())
+                                                                                        ->getQuery()
+                                                                                        ->getResult();
+        foreach ($membershipBillingStatusDatas as $membershipBillingStatusData) {
+            $membershipBillingStatus[$membershipBillingStatusData->getCustomer()->getId()] = $membershipBillingStatusData;
+        }
+
+        // サービスの取得
+        /* @var RegularMemberListPdfService $service */
+        $service = $app['eccube.service.csv.membership_payment_status.export'];
+
+        // 顧客情報取得
+        $customers = $app['eccube.repository.customer']->getQueryBuilderBySearchData(array())
+                ->OrderBy('c.id', 'ASC')
+                ->getQuery()
+                ->getResult();
+
+        $response = new StreamedResponse();
+        $response->setCallback(function () use ($app, $request, $customers, $orders, $membershipBillingStatus, $productMemberShip) {
+
+            log_info('customers:' . count($customers));
+
+            // サービスの取得
+            /* @var TrainingMemberListCsvExportService $service */
+            $service = $app['eccube.service.csv.membership_payment_status.export'];
+
+            // 顧客情報から年会費支払状況名簿CSVを作成する
+            $service->makeCsv($customers, $orders, $membershipBillingStatus, $productMemberShip);
+        });
+
+        $now = new \DateTime();
+        $filename = 'MemberPaymentCustomerList_' . $now->format('YmdHis') . '.csv';
+        $response->headers->set('Content-Type', 'application/octet-stream');
+        $response->headers->set('Content-Disposition', 'attachment; filename=' . $filename);
+
+        $response->send();
+
+        log_info("CSVファイル名", array($filename));
+
         return $response;
     }
 
