@@ -855,7 +855,6 @@ class OrderController extends AbstractController
         return $response;
     }
 
-
     /**
      * グループ請求納品書選択出力.
      *
@@ -947,7 +946,6 @@ class OrderController extends AbstractController
         return $response;
     }
 
-
     /**
      * グループ請求納品書全件出力.
      *
@@ -994,6 +992,244 @@ class OrderController extends AbstractController
             $app->addError('admin.delevery_pdf.download.failure', 'admin');
             log_info('Unable to create pdf files! Process have problems!');
             return $app->redirect($app->url('admin_group_order'));
+        }
+
+        // ダウンロードする
+        $response = new Response(
+            $service->outputPdf(),
+            200,
+            array('content-type' => 'application/pdf')
+        );
+
+        // レスポンスヘッダーにContent-Dispositionをセットし、ファイル名を指定
+        $response->headers->set('Content-Disposition', 'attachment; filename="'.$service->getPdfFileName().'"');
+        log_info('DeliveryPdf download success!');
+        return $response;
+    }
+
+    /**
+     * ヤマトラベル出力.
+     *
+     * @param Application $app
+     * @param Request $request
+     * @return StreamedResponse
+     */
+    public function exportYamatoLabel(Application $app, Request $request)
+    {
+        // タイムアウトを無効にする.
+        set_time_limit(0);
+
+        // sql loggerを無効にする.
+        $em = $app['orm.em'];
+        $em->getConfiguration()->setSQLLogger(null);
+
+        $session = $request->getSession();
+        $viewData = $session->get('eccube.admin.order.search');
+        if (is_null($viewData)) {
+            $app->addError('商品送付状出力に失敗しました', 'admin');
+            log_info('The Order cannot found!');
+            return $app->redirect($app->url('admin_group_order'));
+        }
+        $builder = $app['form.factory']
+            ->createBuilder('admin_search_order');
+        $searchForm = $builder->getForm();
+        // sessionに保持されている検索条件を復元.
+        $searchData = \Eccube\Util\FormUtil::submitAndGetData($searchForm, $viewData);
+        $orders = $app['eccube.repository.order']->getQueryBuilderBySearchDataForAdmin($searchData)
+                                                            ->getQuery()
+                                                            ->getResult();
+
+        $response = new StreamedResponse();
+        $response->setCallback(function () use ($app, $orders) {
+            // サービスの取得
+            /* @var YamatoLabelCsvExportService $service */
+            $service = $app['eccube.service.csv.yamato_label.export'];
+            log_info('対象データ出力 service:' . (is_null($service)?"NULL":"NOT NULL"));
+            // 受注情報からヤマトラベルCSVを作成する
+            $service->makeCsv($app, $orders);
+        });
+
+        $now = new \DateTime();
+        $filename = 'yamato_label_' . $now->format('YmdHis') . '.csv';
+        $response->headers->set('Content-Type', 'application/octet-stream');
+        $response->headers->set('Content-Disposition', 'attachment; filename=' . $filename);
+
+        $response->send();
+
+        log_info("CSVファイル名", array($filename));
+
+        return $response;
+    }
+
+    /**
+     * 商品送付状出力.
+     *
+     * @param Application $app
+     * @param Request $request
+     * @return StreamedResponse
+     */
+    public function exportProductTransmittal(Application $app, Request $request)
+    {
+        $session = $request->getSession();
+        $viewData = $session->get('eccube.admin.order.search');
+        if (is_null($viewData)) {
+            $app->addError('商品送付状出力に失敗しました', 'admin');
+            log_info('The Order cannot found!');
+            return $app->redirect($app->url('admin_group_order'));
+        }
+        $builder = $app['form.factory']
+            ->createBuilder('admin_search_order');
+        $searchForm = $builder->getForm();
+        // sessionに保持されている検索条件を復元.
+        $searchData = \Eccube\Util\FormUtil::submitAndGetData($searchForm, $viewData);
+
+        // タイムアウトを無効にする.
+        set_time_limit(0);
+
+        // sql loggerを無効にする.
+        $em = $app['orm.em'];
+        $em->getConfiguration()->setSQLLogger(null);
+
+        // サービスの取得
+        /* @var DeliveryPdfService $service */
+        $service = $app['eccube.service.product_transmittal_pdf'];
+
+        // 受注情報取得
+        $orders = $app['eccube.repository.order']->getQueryBuilderBySearchDataForAdmin($searchData)
+                                                ->getQuery()
+                                                ->getResult();
+
+        // 受注情報からPDFを作成する
+        $status = $service->makePdf($orders);
+
+        // 異常終了した場合の処理
+        if (!$status) {
+            $app->addError('admin.delevery_pdf.download.failure', 'admin');
+            log_info('Unable to create pdf files! Process have problems!');
+            return $app->redirect($app->url('admin_order'));
+        }
+
+        // ダウンロードする
+        $response = new Response(
+            $service->outputPdf(),
+            200,
+            array('content-type' => 'application/pdf')
+        );
+
+        // レスポンスヘッダーにContent-Dispositionをセットし、ファイル名を指定
+        $response->headers->set('Content-Disposition', 'attachment; filename="'.$service->getPdfFileName().'"');
+        log_info('DeliveryPdf download success!');
+        return $response;
+    }
+
+    /**
+     * 受付書（Fax）出力.
+     *
+     * @param Application $app
+     * @param Request $request
+     * @return StreamedResponse
+     */
+    public function exportOrderConfirmFax(Application $app, Request $request)
+    {
+        $session = $request->getSession();
+        $viewData = $session->get('eccube.admin.order.search');
+        if (is_null($viewData)) {
+            $app->addError('受付書（Fax）出力に失敗しました', 'admin');
+            log_info('The Order cannot found!');
+            return $app->redirect($app->url('admin_group_order'));
+        }
+        $builder = $app['form.factory']
+            ->createBuilder('admin_search_order');
+        $searchForm = $builder->getForm();
+        // sessionに保持されている検索条件を復元.
+        $searchData = \Eccube\Util\FormUtil::submitAndGetData($searchForm, $viewData);
+
+        // タイムアウトを無効にする.
+        set_time_limit(0);
+
+        // sql loggerを無効にする.
+        $em = $app['orm.em'];
+        $em->getConfiguration()->setSQLLogger(null);
+
+        // サービスの取得
+        /* @var DeliveryPdfService $service */
+        $service = $app['eccube.service.fax_accept_form_pdf'];
+
+        // 受注情報取得
+        $orders = $app['eccube.repository.order']->getQueryBuilderBySearchDataForAdmin($searchData)
+                                                ->getQuery()
+                                                ->getResult();
+
+        // 受注情報からPDFを作成する
+        $status = $service->makePdf($orders);
+
+        // 異常終了した場合の処理
+        if (!$status) {
+            $app->addError('admin.delevery_pdf.download.failure', 'admin');
+            log_info('Unable to create pdf files! Process have problems!');
+            return $app->redirect($app->url('admin_order'));
+        }
+
+        // ダウンロードする
+        $response = new Response(
+            $service->outputPdf(),
+            200,
+            array('content-type' => 'application/pdf')
+        );
+
+        // レスポンスヘッダーにContent-Dispositionをセットし、ファイル名を指定
+        $response->headers->set('Content-Disposition', 'attachment; filename="'.$service->getPdfFileName().'"');
+        log_info('DeliveryPdf download success!');
+        return $response;
+    }
+
+
+    /**
+     * 受付書（Mail）出力.
+     *
+     * @param Application $app
+     * @param Request $request
+     * @return StreamedResponse
+     */
+    public function exportOrderConfirmMail(Application $app, Request $request)
+    {
+        $session = $request->getSession();
+        $viewData = $session->get('eccube.admin.order.search');
+        if (is_null($viewData)) {
+            $app->addError('受付書（Mail）出力に失敗しました', 'admin');
+            log_info('The Order cannot found!');
+            return $app->redirect($app->url('admin_group_order'));
+        }
+        $builder = $app['form.factory']
+            ->createBuilder('admin_search_order');
+        $searchForm = $builder->getForm();
+        // sessionに保持されている検索条件を復元.
+        $searchData = \Eccube\Util\FormUtil::submitAndGetData($searchForm, $viewData);
+
+        // タイムアウトを無効にする.
+        set_time_limit(0);
+
+        // sql loggerを無効にする.
+        $em = $app['orm.em'];
+        $em->getConfiguration()->setSQLLogger(null);
+
+        // サービスの取得
+        /* @var DeliveryPdfService $service */
+        $service = $app['eccube.service.mail_accept_form_pdf'];
+
+        // 受注情報取得
+        $orders = $app['eccube.repository.order']->getQueryBuilderBySearchDataForAdmin($searchData)
+                                                ->getQuery()
+                                                ->getResult();
+
+        // 受注情報からPDFを作成する
+        $status = $service->makePdf($orders);
+
+        // 異常終了した場合の処理
+        if (!$status) {
+            $app->addError('admin.delevery_pdf.download.failure', 'admin');
+            log_info('Unable to create pdf files! Process have problems!');
+            return $app->redirect($app->url('admin_order'));
         }
 
         // ダウンロードする

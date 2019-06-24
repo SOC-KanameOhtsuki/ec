@@ -113,6 +113,15 @@ class EccubeServiceProvider implements ServiceProviderInterface
         $app['eccube.service.regular_member_list_pdf'] = $app->share(function () use ($app) {
             return new \Eccube\Service\RegularMemberListPdfService($app);
         });
+        $app['eccube.service.product_transmittal_pdf'] = $app->share(function () use ($app) {
+            return new \Eccube\Service\ProductTransmittalPdfService($app);
+        });
+        $app['eccube.service.mail_accept_form_pdf'] = $app->share(function () use ($app) {
+            return new \Eccube\Service\MailAcceptFormPdfService($app);
+        });
+        $app['eccube.service.fax_accept_form_pdf'] = $app->share(function () use ($app) {
+            return new \Eccube\Service\FaxAcceptFormPdfService($app);
+        });
         $app['eccube.service.csv.export'] = $app->share(function () use ($app) {
             $csvService = new \Eccube\Service\CsvExportService();
             $csvService->setEntityManager($app['orm.em']);
@@ -161,6 +170,21 @@ class EccubeServiceProvider implements ServiceProviderInterface
         });
         $app['eccube.service.csv.lecture_member_list.export'] = $app->share(function () use ($app) {
             $csvService = new \Eccube\Service\LectureMemberListCsvExportService();
+            $csvService->setConfig($app['config']);
+            return $csvService;
+        });
+        $app['eccube.service.csv.yamato_label.export'] = $app->share(function () use ($app) {
+            $csvService = new \Eccube\Service\YamatoLabelCsvExportService();
+            $csvService->setConfig($app['config']);
+            return $csvService;
+        });
+        $app['eccube.service.csv.membership_payment_status.export'] = $app->share(function () use ($app) {
+            $csvService = new \Eccube\Service\MembershipPaymentStatusCsvExportService();
+            $csvService->setConfig($app['config']);
+            return $csvService;
+        });
+        $app['eccube.service.csv.donation_list.export'] = $app->share(function () use ($app) {
+            $csvService = new \Eccube\Service\DonationListCsvExportService();
             $csvService->setConfig($app['config']);
             return $csvService;
         });
