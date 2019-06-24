@@ -47,10 +47,10 @@ class MembershipPaymentStatusCsvExportService extends CsvExportService
             $row[] = ((is_null($customerData->getName01())?'':$customerData->getName01()) . (is_null($customerData->getName02())?'':$customerData->getName02()));
             // Status
             $row[] = $customerData->getCustomerBasicInfo()->getStatus()->getName();
+            // 支払方法
+            $row[] = (isset($orderDatas[$customerData->getId()])?(is_null($orderDatas[$customerData->getId()]->getPaymentMethod())?'':$orderDatas[$customerData->getId()]->getPaymentMethod()):'');
             // 支払状況
             $row[] = (isset($membershipBillingStatus[$customerData->getId()])?'支払済み':'未納');
-            // 支払方法
-            $row[] = (isset($order[$customerData->getId()])?(!is_null($order[$customerData->getId()]->getPaymentMethod())?$order[$customerData->getId()]->getPaymentMethod():''):'');
             // 郵便番号
             $row[] = (is_null($customerData->getZip01())?"":$customerData->getZip01()) . (is_null($customerData->getZip02())?"":$customerData->getZip02());
             // 都道府県
