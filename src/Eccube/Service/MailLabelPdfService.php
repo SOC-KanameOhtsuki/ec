@@ -70,7 +70,7 @@ class MailLabelPdfService extends AbstractFPDIService
         parent::__construct();
 
         // Fontの設定しておかないと文字化けを起こす
-         $this->SetFont(self::FONT_SJIS);
+        $this->SetFont(self::FONT_GOTHIC);
 
         // PDFの余白(上左右)を設定
         $this->SetMargins(0, 0);
@@ -81,7 +81,7 @@ class MailLabelPdfService extends AbstractFPDIService
         // フッターの出力を無効化
         $this->setPrintFooter(true);
         $this->setFooterMargin();
-        $this->setFooterFont(array(self::FONT_SJIS, '', 8));
+        $this->setFooterFont(array(self::FONT_GOTHIC, '', 8));
     }
 
     /**
@@ -97,6 +97,7 @@ class MailLabelPdfService extends AbstractFPDIService
         if (count($customersData) < 1) {
             return false;
         }
+        $this->SetFont(self::FONT_GOTHIC);
         // 発行日の設定
         $this->issueDate = '作成日: ' . date('Y年m月d日');
         // ダウンロードファイル名の初期化
@@ -221,16 +222,7 @@ class MailLabelPdfService extends AbstractFPDIService
                     $this->SetFont('', $bakFontStyle, $bakFontSize);
                 }
                 // 会員番号
-                if (!is_null($customerData->getCustomerBasicInfo()->getCustomerNumberOld()) && ($existsId == 1)){
-                    $oldCustomerId = '';
-                    if (strlen($customerData->getCustomerBasicInfo()->getCustomerNumberOld()) < 6) {
-                        $oldCustomerId = intval($customerData->getCustomerBasicInfo()->getCustomerNumberOld());
-                    } else {
-                        $oldCustomerId = intval(substr($customerData->getCustomerBasicInfo()->getCustomerNumberOld(),
-                                                strlen($customerData->getCustomerBasicInfo()->getCustomerNumberOld()) - 5));
-                    }
-                    $this->lfText(89.4 + $col_adjuster, 51.7 + $row_adjuster, "ID " . $oldCustomerId, 9, 'B');
-                }
+                $this->lfText(89.4 + $col_adjuster, 51.7 + $row_adjuster, "ID " . $customerData->getId(), 9, 'B');
             }
         } else {
             foreach ($customersData as $customerData) {
@@ -346,16 +338,7 @@ class MailLabelPdfService extends AbstractFPDIService
                     $this->SetFont('', $bakFontStyle, $bakFontSize);
                 }
                 // 会員番号
-                if (!is_null($customerData->getCustomerBasicInfo()->getCustomerNumberOld()) && ($existsId == 1)){
-                    $oldCustomerId = '';
-                    if (strlen($customerData->getCustomerBasicInfo()->getCustomerNumberOld()) < 6) {
-                        $oldCustomerId = intval($customerData->getCustomerBasicInfo()->getCustomerNumberOld());
-                    } else {
-                        $oldCustomerId = intval(substr($customerData->getCustomerBasicInfo()->getCustomerNumberOld(),
-                                                strlen($customerData->getCustomerBasicInfo()->getCustomerNumberOld()) - 5));
-                    }
-                    $this->lfText(89.4 + $col_adjuster, 51.7 + $row_adjuster, "ID " . $oldCustomerId, 9, 'B');
-                }
+                $this->lfText(89.4 + $col_adjuster, 51.7 + $row_adjuster, "ID " . $customerData->getId(), 9, 'B');
             }
         }
 

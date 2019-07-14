@@ -46,8 +46,9 @@ class EndOfTermCommand extends \Knp\Command\Command
         $this->getHelper('em')->getEntityManager()->getFilters()->disable('soft_delete');
         $newTermInfos = $this->app['eccube.repository.master.term_info']->createQueryBuilder('t')
                 ->andWhere("t.term_year >= " . $termInfo->getTermYear())
-                ->andWhere("t.term_start > '" . $termInfo->getTermStart()->format('Y-m-d H:i:s') . "'")
-                ->andWhere("t.term_end > '" . date('Y-m-d') . "'")
+                ->andWhere("t.valid_period_start > '" . $termInfo->getValidPeriodStart()->format('Y-m-d H:i:s') . "'")
+                ->andWhere("t.valid_period_end > '" . date('Y-m-d  H:i:s') . "'")
+                ->andWhere("t.valid_flg = 1")
                 ->addOrderBy('t.term_year', 'desc')
                 ->getQuery()
                 ->getResult();
@@ -61,9 +62,12 @@ class EndOfTermCommand extends \Knp\Command\Command
             $newTermInfo->setTermName(date('Y年度', strtotime($insert_Date)));
             $newTermInfo->setTermStart(new \DateTime(date('Y-m-d 00:00:00', strtotime($insert_Date))));
             $newTermInfo->setTermEnd(new \DateTime(date('Y-m-d 23:59:59', strtotime('-1 day', strtotime('+1 year', strtotime($insert_Date))))));
+            $newTermInfo->setValidPeriodStart(new \DateTime(date('Y-m-d 00:00:00', strtotime($insert_Date))));
+            $newTermInfo->setValidPeriodEnd(new \DateTime(date('Y-m-d 23:59:59', strtotime('-1 day', strtotime('+1 year', strtotime($insert_Date))))));
             $newTermInfo->setTermYear(date('Y', strtotime($insert_Date)));
             $newTermInfo->setJapaneseYear($termInfo->getJapaneseYear() + ($newTermInfo->getTermYear() - $termInfo->getTermYear()));
-            $newTermInfo->setDelFlg(1);
+            $newTermInfo->setDelFlg(0);
+            $newTermInfo->setValidFlg(1);
             $this->app['orm.em']->persist($newTermInfo);
             $this->app['orm.em']->flush();
         }
@@ -170,7 +174,7 @@ class EndOfTermCommand extends \Knp\Command\Command
         file_put_contents($logfile_path, date('Y-m-d H:i:s: ') . "年会費免除情報クリア\n", FILE_APPEND);
         $this->getHelper('em')->getEntityManager()->getConnection()->executeQuery("UPDATE dtb_customer_basic_info LEFT JOIN dtb_customer ON dtb_customer.customer_id = dtb_customer_basic_info.customer_id SET dtb_customer_basic_info.membership_exemption = 1 WHERE dtb_customer_basic_info.membership_exemption <> 1 AND dtb_customer.del_flg = 0;");
         file_put_contents($logfile_path, date('Y-m-d H:i:s: ') . "次年度情報復元\n", FILE_APPEND);
-        $newTermInfo->setDelFlg(0);
+        $newTermInfo->setValidFlg(0);
         $this->app['orm.em']->persist($newTermInfo);
         $this->app['orm.em']->flush();
     }

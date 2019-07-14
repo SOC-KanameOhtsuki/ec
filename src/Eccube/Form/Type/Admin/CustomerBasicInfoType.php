@@ -33,11 +33,6 @@ class CustomerBasicInfoType extends AbstractType
                 'required' => false,
                 'read_only' =>'true',
             ))
-            ->add('customer_number_old', 'text', array(
-                'label' => '旧会員ID',
-                'required' => false,
-                'read_only' =>'true',
-            ))
             ->add('customer_pin_code', 'text', array(
                 'label' => 'PINコード',
                 'required' => false,

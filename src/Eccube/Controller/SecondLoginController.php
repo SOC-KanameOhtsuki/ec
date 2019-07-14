@@ -50,8 +50,7 @@ class SecondLoginController extends AbstractController
             $targetPath = $form->get('_target_path')->getData();
             if ($form->isValid()) {
                 $CustomerBasicInfo = $Customer->getCustomerBasicInfo();
-                if ((($CustomerBasicInfo->getCustomerNumber() == $form->get('login_menber_id')->getData())
-                    || ($CustomerBasicInfo->getCustomerNumberOld() == $form->get('login_menber_id')->getData()))
+                if (($CustomerBasicInfo->getCustomerNumber() == $form->get('login_menber_id')->getData())
                     && ($CustomerBasicInfo->getCustomerPinCode() == $form->get('login_pin')->getData())) {
                     $app->setCustomerType($app['config']['customer_type_fumanet']);
                     return $app->redirect($targetPath);

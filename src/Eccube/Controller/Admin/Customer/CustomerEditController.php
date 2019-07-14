@@ -369,17 +369,8 @@ class CustomerEditController extends AbstractController
 
                 $customerId = $CustomerBasicInfo->getCustomerNumber();
                 if ((strlen($customerId) < 1) || (is_null($customerId))) {
-                    if ($CustomerBasicInfo->getStatus()->getId() == 1) {
-                        // 正会員ID
-                        if ($Customer->getPref() == null) {
-                            $customerId = sprintf("00%07d", $Customer->getId());
-                        } else {
-                            $customerId = sprintf(($Customer->getPref()->getRank() < 10 ? "JPN0%d%07d" : "JPN%d%07d"), $Customer->getPref()->getRank(), $Customer->getId());
-                        }
-                    } else {
-                        // 仮会員ID
-                        $customerId = sprintf($app['config']['temp_customer_number'], date('YmdHis'));
-                    }
+                    // 正会員ID
+                    $customerId = 'MMB-' . date('Ymd') . sprintf("%07d", $Customer->getId());
                     $CustomerBasicInfo->setCustomerNumber($customerId);
                     $app['orm.em']->persist($CustomerBasicInfo);
                     $app['orm.em']->flush();

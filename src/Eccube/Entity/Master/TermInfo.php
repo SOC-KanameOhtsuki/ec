@@ -247,4 +247,88 @@ class TermInfo extends \Eccube\Entity\AbstractEntity
     {
         return $this->japanese_year;
     }
+    /**
+     * @var \DateTime
+     */
+    private $valid_period_start;
+
+    /**
+     * @var \DateTime
+     */
+    private $valid_period_end;
+
+    /**
+     * @var integer
+     */
+    private $valid_flg = '0';
+
+
+    /**
+     * Set valid_period_start
+     *
+     * @param \DateTime $validPeriodStart
+     * @return TermInfo
+     */
+    public function setValidPeriodStart($validPeriodStart)
+    {
+        $this->valid_period_start = $validPeriodStart;
+
+        return $this;
+    }
+
+    /**
+     * Get valid_period_start
+     *
+     * @return \DateTime 
+     */
+    public function getValidPeriodStart()
+    {
+        return $this->valid_period_start;
+    }
+
+    /**
+     * Set valid_period_end
+     *
+     * @param \DateTime $validPeriodEnd
+     * @return TermInfo
+     */
+    public function setValidPeriodEnd($validPeriodEnd)
+    {
+        $this->valid_period_end = $validPeriodEnd;
+
+        return $this;
+    }
+
+    /**
+     * Get valid_period_end
+     *
+     * @return \DateTime 
+     */
+    public function getValidPeriodEnd()
+    {
+        return $this->valid_period_end;
+    }
+
+    /**
+     * Set valid_flg
+     *
+     * @param integer $validFlg
+     * @return TermInfo
+     */
+    public function setValidFlg($validFlg)
+    {
+        $this->valid_flg = $validFlg;
+
+        return $this;
+    }
+
+    /**
+     * Get valid_flg
+     *
+     * @return integer 
+     */
+    public function getValidFlg()
+    {
+        return $this->valid_flg;
+    }
 }

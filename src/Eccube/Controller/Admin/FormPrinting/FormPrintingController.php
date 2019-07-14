@@ -1575,6 +1575,330 @@ class FormPrintingController extends AbstractController
         return $response;
     }
 
+    public function donationList(Application $app, Request $request = null, $page_no = null)
+    {
+        $session = $request->getSession();
+        $pagination = array();
+        $builder = $app['form.factory']
+            ->createBuilder('admin_search_donation_payment_customer');
+        $searchForm = $builder->getForm();
+        $pageMaxis = $app['eccube.repository.master.page_max']->findAll();
+
+        $searchType = 0;
+        $searchTypeName = '';
+        $searchDateStart = '';
+        $searchDateEnd = '';
+
+        // 表示件数は順番で取得する、1.SESSION 2.設定ファイル
+        $page_count = $session->get('eccube.admin.donation_payment_customer.search.page_count', $app['config']['default_page_count']);
+        $page_count_param = $request->get('page_count');
+        // 表示件数はURLパラメターから取得する
+        if($page_count_param && is_numeric($page_count_param)){
+            foreach($pageMaxis as $pageMax){
+                if($page_count_param == $pageMax->getName()){
+                    $page_count = $pageMax->getName();
+                    // 表示件数入力値正し場合はSESSIONに保存する
+                    $session->set('eccube.admin.donation_payment_customer.search.page_count', $page_count);
+                    break;
+                }
+            }
+        }
+
+        if ('POST' === $request->getMethod()) {
+            $searchForm->handleRequest($request);
+            $isValid = false;
+            if ($searchForm->isValid()) {
+                $searchData = $searchForm->getData();
+                $searchType = $searchData['search_donation_type'];
+                if ($searchData['search_donation_type'] == 1) {
+                    if (isset($searchData['target_year'])) {
+                        $searchTypeName = $searchData['target_year'] . '年';
+                        $searchDateStart = new \DateTime($searchData['target_year'] . '-01-01 00:00:00');
+                        $searchDateEnd = new \DateTime($searchData['target_year'] . '-12-31 23:59:59');
+                        $isValid = true;
+                    } else {
+                        $form['target_year']->addError(new FormError("正しい西暦を入力してください"));
+                    }
+                } else if ($searchData['search_donation_type'] == 2) {
+                    $TermInfo = null;
+                    if (isset($searchData['target_term'])) {
+                        $TermInfo = $app['eccube.repository.master.term_info']->find($searchData['target_term']);
+                    }
+                    if (!is_null($TermInfo)) {
+                        $searchTypeName = $TermInfo->getTermName();
+                        $searchDateStart = new \DateTime($TermInfo->getTermStart()->format('Y-m-d 00:00:00'));
+                        $searchDateEnd = new \DateTime($TermInfo->getTermEnd()->format('Y-m-d 23:59:59'));
+                        $isValid = true;
+                    } else {
+                        $form['target_term']->addError(new FormError("正しい年度を入力してください"));
+                    }
+                } else {
+                    $searchTypeName = '期間';
+                    if (!is_null($searchData['target_date_start'])) {
+                        $searchDateStart = $searchData['target_date_start']->format('Y/m/d');
+                    }
+                    if (!is_null($searchData['target_date_end'])) {
+                        $searchDateEnd = $searchData['target_date_end']->format('Y/m/d');
+                    }
+                    $isValid = true;
+                }
+            }
+            if ($isValid) {
+                // paginator
+                $qb = $app['eccube.repository.customer']->getQueryBuilderBySearchDataForDanation($searchData);
+
+                $page_no = 1;
+                $pagination = $app['paginator']()->paginate(
+                    $qb,
+                    $page_no,
+                    $page_count
+                );
+
+                // sessionに検索条件を保持.
+                $viewData = \Eccube\Util\FormUtil::getViewData($searchForm);
+                $session->set('eccube.admin.donation_payment_customer.search', $viewData);
+                $session->set('eccube.admin.donation_payment_customer.search.page_no', $page_no);
+            } else {
+                $app->addError('検索条件が不正です', 'admin');
+            }
+        } else {
+            if (is_null($page_no) && $request->get('resume') != Constant::ENABLED) {
+                // sessionを削除
+                $session->remove('eccube.admin.donation_payment_customer.search');
+                $session->remove('eccube.admin.donation_payment_customer.search.page_no');
+                $session->remove('eccube.admin.donation_payment_customer.search.page_count');
+            } else {
+                // pagingなどの処理
+                if (is_null($page_no)) {
+                    $page_no = intval($session->get('eccube.admin.donation_payment_customer.search.page_no'));
+                } else {
+                    $session->set('eccube.admin.donation_payment_customer.search.page_no', $page_no);
+                }
+                $viewData = $session->get('eccube.admin.donation_payment_customer.search');
+                $searchData = array();
+                if (!is_null($viewData)) {
+                    // sessionに保持されている検索条件を復元.
+                    $searchData = \Eccube\Util\FormUtil::submitAndGetData($searchForm, $viewData);
+                }
+                // 表示件数
+                $page_count = $request->get('page_count', $page_count);
+                $qb = $app['eccube.repository.customer']->getQueryBuilderBySearchDataForDanation($searchData);
+
+                $event = new EventArgs(
+                    array(
+                        'form' => $searchForm,
+                        'qb' => $qb,
+                    ),
+                    $request
+                );
+
+                $pagination = $app['paginator']()->paginate(
+                    $qb,
+                    $page_no,
+                    $page_count
+                );
+            }
+        }
+        return $app->render('FormPrinting/donation_list.twig', array(
+            'searchForm' => $searchForm->createView(),
+            'searchType' => $searchType,
+            'searchTypeName' => $searchTypeName,
+            'searchDateStart' => $searchDateStart,
+            'searchDateEnd' => $searchDateEnd,
+            'pagination' => $pagination,
+            'pageMaxis' => $pageMaxis,
+            'page_no' => $page_no,
+            'page_count' => $page_count
+        ));
+    }
+
+    public function donationListCsvExport(Application $app, Request $request = null)
+    {
+        $summarize = 0;
+        $queryString = $request->getQueryString();
+        if (!empty($queryString)) {
+            // クエリーをparseする
+            parse_str($queryString, $ary);
+            foreach ($ary as $key => $val) {
+                // キーが一致
+                if (preg_match('/^summarize$/', $key)) {
+                    $summarize = $val;
+                }
+            }
+        }
+
+        // タイムアウトを無効にする.
+        set_time_limit(0);
+
+        // sql loggerを無効にする.
+        $em = $app['orm.em'];
+        $em->getConfiguration()->setSQLLogger(null);
+
+        // sessionに保持されている検索条件を復元.
+        $builder = $app['form.factory']
+            ->createBuilder('admin_search_donation_payment_customer');
+        $searchForm = $builder->getForm();
+        $session = $request->getSession();
+        $viewData = $session->get('eccube.admin.donation_payment_customer.search');
+        $searchData = array();
+        if (!is_null($viewData)) {
+            // sessionに保持されている検索条件を復元.
+            $searchData = \Eccube\Util\FormUtil::submitAndGetData($searchForm, $viewData);
+        }
+
+        // サービスの取得
+        /* @var DonationListCsvExportService $service */
+        $service = $app['eccube.service.csv.donation_list.export'];
+
+        // 顧客情報取得
+        $customers = $app['eccube.repository.customer']->getQueryBuilderBySearchDataForDanation($searchData)
+                ->getQuery()
+                ->getResult();
+
+        $response = new StreamedResponse();
+        $response->setCallback(function () use ($app, $request, $customers, $searchData, $summarize) {
+
+            log_info('customers:' . count($customers));
+
+            // サービスの取得
+            /* @var DonationListCsvExportService $service */
+            $service = $app['eccube.service.csv.donation_list.export'];
+
+            // 顧客情報から寄付名簿CSVを作成する
+            $service->makeCsv($customers, $searchData, $summarize);
+        });
+
+        $now = new \DateTime();
+        $filename = 'MemberPaymentCustomerList_' . $now->format('YmdHis') . '.csv';
+        $response->headers->set('Content-Type', 'application/octet-stream');
+        $response->headers->set('Content-Disposition', 'attachment; filename=' . $filename);
+
+        $response->send();
+
+        log_info("CSVファイル名", array($filename));
+
+        return $response;
+    }
+
+    public function donationListExport(Application $app, Request $request = null)
+    {
+        // タイムアウトを無効にする.
+        set_time_limit(0);
+
+        // sql loggerを無効にする.
+        $em = $app['orm.em'];
+        $em->getConfiguration()->setSQLLogger(null);
+
+        // sessionに保持されている検索条件を復元.
+        // sessionに保持されている検索条件を復元.
+        $builder = $app['form.factory']
+            ->createBuilder('admin_search_donation_payment_customer');
+        $searchForm = $builder->getForm();
+        $session = $request->getSession();
+        $viewData = $session->get('eccube.admin.donation_payment_customer.search');
+        $searchData = array();
+        if (!is_null($viewData)) {
+            // sessionに保持されている検索条件を復元.
+            $searchData = \Eccube\Util\FormUtil::submitAndGetData($searchForm, $viewData);
+        }
+        // サービスの取得
+        /* @var DonationListPdfService $service */
+        $service = $app['eccube.service.donation_list_pdf'];
+
+        // 顧客情報取得
+        $customers = $app['eccube.repository.customer']->getQueryBuilderBySearchDataForDanation($searchData)
+                ->getQuery()
+                ->getResult();
+
+        // 年度情報
+        $TermInfo = null;
+        if (isset($searchData['target_term'])) {
+            $TermInfo = $app['eccube.repository.master.term_info']->find($searchData['target_term']);
+        }
+
+        // サービスの取得
+        /* @var DonationListPdfService $service */
+        $service = $app['eccube.service.donation_list'];
+
+        // 顧客情報から寄付名簿PDFを作成する
+        $status = $service->makePdf($customers, $searchData, $TermInfo);
+
+        // 異常終了した場合の処理
+        if (!$status) {
+            $app->addError('admin.donation_list_pdf.download.failure', 'admin');
+            log_info('Unable to create pdf files! Process have problems!');
+            return $app->redirect($app->url('admin_form_printing_donation_list'));
+        }
+
+        // ダウンロードする
+        $response = new Response(
+            $service->outputPdf(),
+            200,
+            array('content-type' => 'application/pdf')
+        );
+
+        // レスポンスヘッダーにContent-Dispositionをセットし、ファイル名を指定
+        $response->headers->set('Content-Disposition', 'attachment; filename="'.$service->getPdfFileName().'"');
+        log_info('DonationListPdf download success!');
+        return $response;
+    }
+
+    public function donationCertificateExport(Application $app, Request $request = null)
+    {
+        // タイムアウトを無効にする.
+        set_time_limit(0);
+
+        // sql loggerを無効にする.
+        $em = $app['orm.em'];
+        $em->getConfiguration()->setSQLLogger(null);
+
+        // sessionに保持されている検索条件を復元.
+        $builder = $app['form.factory']
+            ->createBuilder('admin_search_donation_payment_customer');
+        $searchForm = $builder->getForm();
+        $session = $request->getSession();
+        $viewData = $session->get('eccube.admin.donation_payment_customer.search');
+        $searchData = array();
+        if (!is_null($viewData)) {
+            // sessionに保持されている検索条件を復元.
+            $searchData = \Eccube\Util\FormUtil::submitAndGetData($searchForm, $viewData);
+        }
+        // サービスの取得
+        /* @var DonationListPdfService $service */
+        $service = $app['eccube.service.donation_list_pdf'];
+
+        // 顧客情報取得
+        $customers = $app['eccube.repository.customer']->getQueryBuilderBySearchDataForDanation($searchData)
+                ->getQuery()
+                ->getResult();
+
+        // サービスの取得
+        /* @var DonationCertificatePdfService $service */
+        $service = $app['eccube.service.donation_certificate_pdf'];
+
+        // 顧客情報から寄付名簿PDFを作成する
+        $status = $service->makePdf($customers, $searchData);
+
+        // 異常終了した場合の処理
+        if (!$status) {
+            $app->addError('admin.donation_certificate_pdf.download.failure', 'admin');
+            log_info('Unable to create pdf files! Process have problems!');
+            return $app->redirect($app->url('admin_form_printing_donation_list'));
+        }
+
+        // ダウンロードする
+        $response = new Response(
+            $service->outputPdf(),
+            200,
+            array('content-type' => 'application/pdf')
+        );
+
+        // レスポンスヘッダーにContent-Dispositionをセットし、ファイル名を指定
+        $response->headers->set('Content-Disposition', 'attachment; filename="'.$service->getPdfFileName().'"');
+        log_info('DonationCertificatePdf download success!');
+        return $response;
+    }
+
     public function regularMemberList(Application $app, Request $request = null, $page_no = null)
     {
         $session = $request->getSession();

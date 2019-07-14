@@ -196,7 +196,7 @@ This file is Custom File
     <div id="search_box" class="row">
       <div id="search_box_main" class="col-md-12 accordion">
 
-        {{ form_widget(searchForm.multi, { attr: { placeholder: '会員番号・会員ID・旧会員ID・メールアドレス・お名前', class : 'input_search' } } ) }}
+        {{ form_widget(searchForm.multi, { attr: { placeholder: '会員番号・会員ID・メールアドレス・お名前', class : 'input_search' } } ) }}
 
         <a id="search_box_main__toggle" href="#" class="toggle{% if active %} active{% endif %}"><svg class="cb cb-minus"> <use xlink:href="#cb-minus"/></svg> <svg class="cb cb-minus"> <use xlink:href="#cb-minus"/></svg></a>
         <div id="search_box_main__body" class="search-box-inner accpanel" {% if active %} style="display: block;"{% endif %}>
@@ -212,12 +212,6 @@ This file is Custom File
                 <div id="search_box_main__customer_number" class="form-group">
                   <label>会員ID</label>
                   {{ form_widget(searchForm.customer_number) }}
-                </div>
-              </div>
-              <div class="col-xs-6 col-md-4">
-                <div id="search_box_main__customer_number_old" class="form-group">
-                  <label>旧会員ID</label>
-                  {{ form_widget(searchForm.customer_number_old) }}
                 </div>
               </div>
               <div class="col-xs-6 col-md-4">

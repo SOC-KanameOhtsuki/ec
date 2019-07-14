@@ -682,8 +682,10 @@ class CustomerController extends AbstractController
         $oldestMembershipPayment = (int) $Customer->getCustomerBasicInfo()->getRegularMemberPromoted()->format('Y');
         $currentYear = (int) date('Y');
         $termInfos = $app['eccube.repository.master.term_info']->createQueryBuilder('t')
-                ->andWhere("t.term_end >= '" . date('Y-m-d') . "'")
+                ->andWhere("t.valid_period_start >= '" . date('Y-m-d H:i:s') . "'")
+                ->andWhere("t.valid_period_end >= '" . date('Y-m-d H:i:s') . "'")
                 ->andWhere('t.del_flg = 0')
+                ->andWhere('t.valid_flg = 1')
                 ->addOrderBy('t.term_year', 'desc')
                 ->getQuery()
                 ->getResult();

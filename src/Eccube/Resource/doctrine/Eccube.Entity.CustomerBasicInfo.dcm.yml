@@ -23,9 +23,6 @@ Eccube\Entity\CustomerBasicInfo:
         customer_number:
             type: text
             nullable: true
-        customer_number_old:
-            type: text
-            nullable: true
         customer_pin_code:
             type: integer
             nullable: true

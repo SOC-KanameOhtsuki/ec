@@ -26,16 +26,7 @@ class RegularMemberListCsvExportService extends CsvExportService
         foreach ($customerDatas as $customerData) {
             $row = array();
             // 会員番号
-            $oldCustomerId = '';
-            if (!is_null($customerData->getCustomerBasicInfo()->getCustomerNumberOld()) ){
-                if (strlen($customerData->getCustomerBasicInfo()->getCustomerNumberOld()) < 6) {
-                    $oldCustomerId = intval($customerData->getCustomerBasicInfo()->getCustomerNumberOld());
-                } else {
-                    $oldCustomerId = intval(substr($customerData->getCustomerBasicInfo()->getCustomerNumberOld(),
-                                            strlen($customerData->getCustomerBasicInfo()->getCustomerNumberOld()) - 5));
-                }
-            }
-            $row[] = $oldCustomerId;
+            $row[] = $customerData->getId();
             // 会員名(姓)
             $row[] = (is_null($customerData->getName01())?"":$customerData->getName01());
             // 会員名(名)

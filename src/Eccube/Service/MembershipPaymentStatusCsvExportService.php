@@ -33,16 +33,7 @@ class MembershipPaymentStatusCsvExportService extends CsvExportService
             // 年度
             $row[] = $productMemberShip->getMembershipYear();
             // 会員番号
-            $oldCustomerId = '';
-            if (!is_null($customerData->getCustomerBasicInfo()->getCustomerNumberOld()) ){
-                if (strlen($customerData->getCustomerBasicInfo()->getCustomerNumberOld()) < 6) {
-                    $oldCustomerId = intval($customerData->getCustomerBasicInfo()->getCustomerNumberOld());
-                } else {
-                    $oldCustomerId = intval(substr($customerData->getCustomerBasicInfo()->getCustomerNumberOld(),
-                                            strlen($customerData->getCustomerBasicInfo()->getCustomerNumberOld()) - 5));
-                }
-            }
-            $row[] = $oldCustomerId;
+            $row[] = $customerData->getId();
             // 氏名
             $row[] = ((is_null($customerData->getName01())?'':$customerData->getName01()) . (is_null($customerData->getName02())?'':$customerData->getName02()));
             // Status

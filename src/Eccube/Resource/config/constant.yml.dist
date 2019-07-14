@@ -293,6 +293,7 @@ product_order_price_higher: 3
 pdf_template_payment: payment.pdf
 pdf_template_invoice: invoice.pdf
 pdf_template_delevery: delivery_slip.pdf
+pdf_template_donation_certificate: donation_certificate.pdf
 pdf_template_business_card: name_tag.pdf
 pdf_template_certification: certification.pdf
 pdf_template_regular_member_list: regular_member_list.pdf

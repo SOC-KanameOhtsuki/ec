@@ -32,7 +32,9 @@ class MembershipBillingCheckCommand extends \Knp\Command\Command
         $logfile_path = $this->app['config']['root_dir'].'/app/log/MembershipBillingCheck.log';
         $this->app['orm.em']->getConnection()->getConfiguration()->setSQLLogger(null);
         $termInfos = $this->app['eccube.repository.master.term_info']->createQueryBuilder('t')
-                ->andWhere("t.term_end >= '" . date('Y-m-d') . "'")
+                ->andWhere("t.valid_period_start <= '" . date('Y-m-d H:i:s') . "'")
+                ->andWhere("t.valid_period_end >= '" . date('Y-m-d H:i:s') . "'")
+                ->andWhere("t.valid_flg = 1")
                 ->andWhere('t.del_flg = 0')
                 ->addOrderBy('t.term_year', 'desc')
                 ->getQuery()

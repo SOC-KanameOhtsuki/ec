@@ -209,18 +209,23 @@ form.address1.help: '市区町村名 (例：千代田区神田神保町)'
 form.address2.help: '番地・ビル名 (例：1-3-5)'
 
 admin.payment_pdf.parameter.notfound: 出力対象がありません。
-admin.invoice_pdf.parameter.notfound: 出力対象がありません。
-admin.delevery_pdf.parameter.notfound: 出力対象がありません。
-admin.business_card_pdf.parameter.notfound: 出力対象がありません。
-admin.certification_pdf.parameter.notfound: 出力対象がありません。
-admin.mail_label.parameter.notfound: 出力対象がありません。
-admin.membership_payment_status_list.parameter.notfound: 出力対象がありません。
-admin.regular_member_list_pdf.parameter.notfound: 出力対象がありません。
 admin.payment_pdf.download.failure: ダウンロード失敗!
+admin.invoice_pdf.parameter.notfound: 出力対象がありません。
 admin.invoice_pdf.download.failure: ダウンロード失敗!
+admin.delevery_pdf.parameter.notfound: 出力対象がありません。
 admin.delevery_pdf.download.failure: ダウンロード失敗!
+admin.business_card_pdf.parameter.notfound: 出力対象がありません。
 admin.business_card_pdf.download.failure: ダウンロード失敗!
+admin.certification_pdf.parameter.notfound: 出力対象がありません。
 admin.certification_pdf.failure: ダウンロード失敗!
+admin.mail_label.parameter.notfound: 出力対象がありません。
 admin.mail_label.download.failure: ダウンロード失敗!
+admin.membership_payment_status_list.parameter.notfound: 出力対象がありません。
 admin.membership_payment_status_list.download.failure: ダウンロード失敗!
+admin.regular_member_list_pdf.parameter.notfound: 出力対象がありません。
 admin.regular_member_list_pdf.download.failure: ダウンロード失敗!
+admin.mail_label.download.failure: ダウンロード失敗!
+admin.mail_label_pdf.parameter.notfound: 出力対象がありません。
+admin.mail_label_pdf.download.failure: ダウンロード失敗!
+admin.donation_list_pdf.download.failure: ダウンロード失敗!
+admin.donation_certificate_pdf.download.failure: ダウンロード失敗!

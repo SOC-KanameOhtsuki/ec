@@ -17,16 +17,16 @@ use Eccube\Entity\Order;
 use Eccube\Entity\OrderDetail;
 
 /**
- * Class CertificationPdfService.
+ * Class DonationListPdfService.
  * Do export pdf function.
  */
-class CertificationPdfService extends AbstractFPDIService
+class DonationListPdfService extends AbstractFPDIService
 {
     // ====================================
     // 定数宣言
     // ====================================
     /** ダウンロードするPDFファイル名 */
-    const OUT_PDF_FILE_NAME = 'certification';
+    const OUT_PDF_FILE_NAME = 'donation_list';
 
     /** FONT ゴシック */
     const FONT_GOTHIC = 'kozgopromedium';
@@ -64,6 +64,9 @@ class CertificationPdfService extends AbstractFPDIService
     /** 最大ページ @var string */
     private $pageMax = '';
 
+    /** 曜日 @var array */
+    private $WeekDay = ['0' => '日', '1' => '月', '2' => '火', '3' => '水', '4' => '木', '5' => '金', '6' => '土'];
+
     /**
      * コンストラクタ.
      *
@@ -75,7 +78,7 @@ class CertificationPdfService extends AbstractFPDIService
         parent::__construct();
 
         // Fontの設定しておかないと文字化けを起こす
-        $this->SetFont(self::FONT_SJIS);
+        $this->SetFont(self::FONT_GOTHIC);
 
         // PDFの余白(上左右)を設定
         $this->SetMargins(0, 0);
@@ -86,7 +89,7 @@ class CertificationPdfService extends AbstractFPDIService
         // フッターの出力を無効化
         $this->setPrintFooter(true);
         $this->setFooterMargin();
-        $this->setFooterFont(array(self::FONT_SJIS, '', 8));
+        $this->setFooterFont(array(self::FONT_GOTHIC, '', 8));
     }
 
     /**
@@ -96,119 +99,97 @@ class CertificationPdfService extends AbstractFPDIService
      *
      * @return bool
      */
-    public function makePdf(array $customersData, $product = NULL)
+    public function makePdf(array $customersData, $searchData, $TermInfo)
     {
-        // データが空であれば終了
-        if (count($customersData) < 1) {
+        if (is_null($TermInfo)) {
             return false;
         }
+        $getDonationDetailSql = 'SELECT';
+        $getDonationDetailSql .= ' dtb_order.customer_id AS customer_id,';
+        $getDonationDetailSql .= ' dtb_order_detail.price AS price,';
+        $getDonationDetailSql .= ' dtb_order.payment_date AS payment_date';
+        $getDonationDetailSql .= ' FROM';
+        $getDonationDetailSql .= ' dtb_order';
+        $getDonationDetailSql .= ' INNER JOIN dtb_order_detail ON dtb_order_detail.order_id = dtb_order.order_id';
+        $getDonationDetailSql .= ' INNER JOIN dtb_product_category ON dtb_product_category.product_id = dtb_order_detail.product_id';
+        $getDonationDetailSql .= ' WHERE';
+        $getDonationDetailSql .= ' dtb_product_category.category_id = 2';
+        $getDonationDetailSql .= " AND dtb_order.payment_date >= '" . $TermInfo->getTermStart()->format('Y-m-d 00:00:00') . "'";
+        $getDonationDetailSql .= " AND dtb_order.payment_date <= '" . $TermInfo->getTermEnd()->format('Y-m-d 23:59:59') . "'";
+        $getDonationSummarySql = 'SELECT';
+        $getDonationSummarySql .= ' dtb_order.customer_id AS customer_id,';
+        $getDonationSummarySql .= ' SUM(dtb_order_detail.price) AS total_donation';
+        $getDonationSummarySql .= ' FROM';
+        $getDonationSummarySql .= ' dtb_order';
+        $getDonationSummarySql .= ' INNER JOIN dtb_order_detail ON dtb_order_detail.order_id = dtb_order.order_id';
+        $getDonationSummarySql .= ' INNER JOIN dtb_product_category ON dtb_product_category.product_id = dtb_order_detail.product_id';
+        $getDonationSummarySql .= ' WHERE';
+        $getDonationSummarySql .= ' dtb_product_category.category_id = 2';
+        $getDonationSummarySql .= " AND dtb_order.payment_date >= '" . $TermInfo->getTermStart()->format('Y-m-d 00:00:00') . "'";
+        $getDonationSummarySql .= " AND dtb_order.payment_date <= '" . $TermInfo->getTermEnd()->format('Y-m-d 23:59:59') . "'";
+
         // 発行日の設定
         $this->issueDate = '作成日: ' . date('Y年m月d日');
-        // ページ計算
-        $this->pageMax = ((int) (count($customersData) / self::MAX_ROR_PER_PAGE)) + (((count($customersData) % self::MAX_ROR_PER_PAGE) == 0)?0:1);
         // ダウンロードファイル名の初期化
         $this->downloadFileName = null;
 
         // テンプレートファイルを読み込む
-        $pdfFile = $this->app['config']['pdf_template_certification'];
-        $templateFilePath = __DIR__.'/../Resource/pdf/'.$pdfFile;
+        $pdfFile = $this->app['config']['pdf_template_fax_accept'];
+        $templateFilePath = __DIR__.'/../Resource/pdf/'. $pdfFile;
         $this->setSourceFile($templateFilePath);
+        $BaseInfo = $this->app['eccube.repository.base_info']->get();
 
         $this->SetFont(self::FONT_GOTHIC);
+        $this->SetTextColor(53, 53, 53);
         foreach ($customersData as $customerData) {
             // PDFにページを追加する
             $this->addPdfPage();
-            // サポーター
-            if ($customerData->getCustomerBasicInfo()->getSupporterType()->getId() == 2) {
-                $imgFile = __DIR__.'/../Resource/pdf/supporter_mark.jpg';
-                if (file_exists($imgFile)) {
-                    $this->Image($imgFile, 10.0, 10.4, 27.5);
-                }
+            // Fax番号
+            $this->lfText(36.1, 19.0, $customerData->getFax01() . '-' . $customerData->getFax02() . '-' . $customerData->getFax03(), 15, '');
+            // 会員名
+            $this->lfText(18.3, 28.1, $customerData->getName01() . $customerData->getName02() . '様', 15, '');
+            $this->lfText(33.8, 76.7, $customerData->getName01() . $customerData->getName02() . '様', 12, '');
+            if ($product->hasProductTraining()) {
+                // 講習会種別
+                $bakFontStyle = $this->FontStyle;
+                $bakFontSize = $this->FontSizePt;
+                $this->SetFont('', '', 12);
+                $this->SetXY(38.6, 45.8);
+                $this->MultiCell(67.8, 7.0, $product->getProductTraining()->getTrainingType()->getName(), 0, "C", false, 0, "", "", true, 0, false, true, 7.0, "T");
+                $this->SetFont('', $bakFontStyle, $bakFontSize);
+                // 受講日
+                $startDate = $product->getProductTraining()->getTrainingDateStart()->format('Y年n月j日(') . $this->WeekDay[$product->getProductTraining()->getTrainingDateStart()->format('w')] . ')';
+                $endDate = $product->getProductTraining()->getTrainingDateEnd()->format('Y年n月j日(') . $this->WeekDay[$product->getProductTraining()->getTrainingDateEnd()->format('w')] . ')';
+                $this->lfText(33.8, 82.2, $startDate . $product->getProductTraining()->getTrainingDateStart()->format(' G:i～') . (($startDate==$endDate)?'':$endDate . ' ') . $product->getProductTraining()->getTrainingDateEnd()->format('G:i'), 12, '');
+                // 受付開始時間
+                $this->lfText(143.3, 82.2, date('G:i', strtotime($product->getProductTraining()->getTrainingDateStart()->format('Y-m-d H:i:s') . " -30 minute")), 12, '');
+                // 場所
+                $this->lfText(33.8, 87.7, $product->getProductTraining()->getPlace(), 12, '');
+                // 住所
+                $this->lfText(33.8, 93.2, $product->getProductTraining()->getPref()->getName() . $product->getProductTraining()->getAddr01() . $product->getProductTraining()->getAddr02(), 12, '');
+                // 持ち物
+                $this->lfText(33.8, 98.7, $product->getProductTraining()->getItem(), 12, '');
             }
-            // インストラクタ
-            if ($customerData->getCustomerBasicInfo()->getInstructorType()->getId() == 1) {
-                $imgFile = __DIR__.'/../Resource/pdf/instructor_3_mark.jpg';
-                if (file_exists($imgFile)) {
-                    $this->Image($imgFile, 39.1, 10.4, 27.5);
-                }
-            } else if ($customerData->getCustomerBasicInfo()->getInstructorType()->getId() == 2) {
-                $imgFile = __DIR__.'/../Resource/pdf/instructor_2_mark.jpg';
-                if (file_exists($photoFile)) {
-                    $this->Image($imgFile, 39.1, 10.4, 27.5);
-                }
-            }
-            // 年度
-            $termInfos = $this->app['eccube.repository.master.term_info']->createQueryBuilder('t')
-                    ->andWhere("t.valid_period_start <= '" . date('Y-m-d H:i:s') . "'")
-                    ->andWhere("t.valid_period_end >= '" . date('Y-m-d H:i:s') . "'")
-                    ->andWhere('t.del_flg = 0')
-                    ->andWhere('t.valid_flg = 1')
-                    ->addOrderBy('t.term_year', 'desc')
-                    ->getQuery()
-                    ->getResult();
-            if ((!is_null($termInfos)) && (0 < count($termInfos))) {
-                $currentTermYear = $termInfos[0]->getTermYear();
-            } else if (date('m') < 4) {
-                $currentTermYear = date('Y') - 1;
+            // 備考
+            $bakFontStyle = $this->FontStyle;
+            $bakFontSize = $this->FontSizePt;
+            $this->SetFont('', '', 12);
+            $this->SetXY(33.8, 100.2);
+            $this->MultiCell(88.4, 5.5, str_replace("　", "", $product->getDescriptionDetail()), 0, "L", false, 0, "", "", true, 0, false, true, 17.0, "T");
+            $this->SetFont('', $bakFontStyle, $bakFontSize);
+            // 受講料
+            $price = 0;
+            if (isset($orders[$customerData->getId()])) {
+                $price = $orders[$customerData->getId()]->getPaymentTotal();
             } else {
-                $currentTermYear = date('Y');
+                $price = $product->getPrice02IncTaxMax();
             }
             $bakFontStyle = $this->FontStyle;
             $bakFontSize = $this->FontSizePt;
-            $this->SetFont('', 'B', 17);
-            $this->SetXY(72.4, 14.8);
-            $this->MultiCell(18.0, 8.0, $currentTermYear, 0, "C", false, 0, "", "", true, 2, false, true, 8.0, "T");
+            $this->SetFont('', '', 12);
+            $this->SetXY(32.5, 157.0);
+            $this->MultiCell(24.4, 7.0, number_format($price), 0, "R", false, 0, "", "", true, 0, false, true, 7.0, "T");
             $this->SetFont('', $bakFontStyle, $bakFontSize);
-            // 会員番号
-            $this->lfText(42.9, 28.0, $customerData->getId(), 12, 'B');
-            // プロフィール写真
-            if (!is_null($customerData->getCustomerImages())) {
-                if (0 < count($customerData->getCustomerImages())) {
-                    $photoFile = $this->app['config']['customer_image_save_realdir'].'/'.$customerData->getCustomerImages()[0]->getFileName();
-                    if (file_exists($photoFile)) {
-                        $this->Image($photoFile, 11.0, 23.8, 19.5);
-                    }
-                }
-            }
-            // QRコード
-            $customerId = $customerData->getCustomerBasicInfo()->getCustomerNumber();
-            $QrCode = null;
-            if ((0 < strlen($customerId)) && (!is_null($customerId))) {
-                $isQrCodeRegisted = false;
-                if (!is_null($customerData->getCustomerQrs())) {
-                    if (count($customerData->getCustomerQrs()) > 0) {
-                        $QrCode = $customerData->getCustomerQrs()[0];
-                    }
-                }
-                if (!is_null($QrCode)) {
-                    if (file_exists($this->app['config']['customer_image_save_realdir'] . "/" . $QrCode->getFileName())) {
-                        $isQrCodeRegisted = true;
-                    }
-                }
-                if (!$isQrCodeRegisted) {
-                    $qrCodeImg = file_get_contents($this->app['config']['qr_code_get_url'] . $customerId);
-                    if ($qrCodeImg !== false) {
-                        $fileName = date('mdHis').uniqid('_') . '.jpg';
-                        if (file_put_contents($this->app['config']['customer_image_save_realdir'] . "/" . $fileName, $qrCodeImg) !== false) {
-                            $QrCode = new \Eccube\Entity\CustomerQr();
-                            $QrCode->setCustomer($customerData);
-                            $QrCode->setFileName($fileName);
-                            $QrCode->setRank(1);
-                            $this->app['orm.em']->persist($QrCode);
-                            $this->app['orm.em']->flush();
-                            $isQrCodeRegisted = true;
-                        };
-                    }
-                }
-            }
-            if ($isQrCodeRegisted) {
-                $photoFile = $this->app['config']['customer_image_save_realdir'] . "/" . $QrCode->getFileName();
-                $this->Image($photoFile, 82.3, 23.8, 9.0);
-            }
-            // 会員名
-            $this->lfText(39.5, 37.0, $customerData->getName01() . " " . $customerData->getName02(), 22, 'B');
-            // PINコード
-            $this->lfText(72.4, 49.7, $customerData->getCustomerBasicInfo()->getCustomerPinCode(), 10);
         }
 
         return true;
@@ -260,9 +241,6 @@ class CertificationPdfService extends AbstractFPDIService
 
         // テンプレートに使うテンプレートファイルのページ番号を指定
         $this->useTemplate($tplIdx, null, null, null, null, true);
-
-        // ページ情報
-        $this->lfText(194.3, 7.6, '(' . $this->PageNo() . '/' . $this->pageMax . ')', 8);
     }
 
     /**

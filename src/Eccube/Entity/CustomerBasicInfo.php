@@ -389,38 +389,9 @@ class CustomerBasicInfo extends \Eccube\Entity\AbstractEntity
     }
 
     /**
-     * @var string
-     */
-    private $customer_number_old;
-
-    /**
      * @var \Eccube\Entity\Master\NobulletinType
      */
     private $Nobulletin;
-
-
-    /**
-     * Set customer_number_old
-     *
-     * @param string $customerNumberOld
-     * @return CustomerBasicInfo
-     */
-    public function setCustomerNumberOld($customerNumberOld)
-    {
-        $this->customer_number_old = $customerNumberOld;
-
-        return $this;
-    }
-
-    /**
-     * Get customer_number_old
-     *
-     * @return string 
-     */
-    public function getCustomerNumberOld()
-    {
-        return $this->customer_number_old;
-    }
 
     /**
      * Set Nobulletin

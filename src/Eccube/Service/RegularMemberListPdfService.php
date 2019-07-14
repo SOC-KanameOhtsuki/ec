@@ -106,16 +106,6 @@ class RegularMemberListPdfService extends AbstractFPDIService
         // PDFにページを追加する
         $this->AddPage('LANDSCAPE', 'A4');
         foreach ($customersData as $customerData) {
-            // 会員番号
-            $oldCustomerId = '';
-            if (!is_null($customerData->getCustomerBasicInfo()->getCustomerNumberOld()) ){
-                if (strlen($customerData->getCustomerBasicInfo()->getCustomerNumberOld()) < 6) {
-                    $oldCustomerId = intval($customerData->getCustomerBasicInfo()->getCustomerNumberOld());
-                } else {
-                    $oldCustomerId = intval(substr($customerData->getCustomerBasicInfo()->getCustomerNumberOld(),
-                                            strlen($customerData->getCustomerBasicInfo()->getCustomerNumberOld()) - 5));
-                }
-            }
             // サポータ資格
             $supporter_type = ($customerData->getCustomerBasicInfo()->getSupporterType() == '非サポータ'?'':'サポータ');
             // インストラクタ資格
@@ -162,7 +152,7 @@ class RegularMemberListPdfService extends AbstractFPDIService
             }
 
             // 会員番号
-            $this->Cell(25.0, $height, $oldCustomerId, 1, 0, "C", false, "", 0, false, "T", "M");
+            $this->Cell(25.0, $height, $customerData->getId(), 1, 0, "C", false, "", 0, false, "T", "M");
             // 会員名(姓)
             $this->MultiCell(20.0, $height, $customerData->getName01(), 1, "L", false, 0, "", "", true, 0, false, true, $height, "M");
             // 会員名(名)

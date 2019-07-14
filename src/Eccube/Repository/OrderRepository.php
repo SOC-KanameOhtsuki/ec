@@ -835,4 +835,47 @@ class OrderRepository extends EntityRepository
 
         return $orders;
     }
-}
+
+
+    /**
+     * 購入実績あり寄付一覧を取得する.
+     *
+     * @return \Eccube\Entity\Product[] 寄付商品の配列
+     */
+    public function getOrderedDonationList(Category $Parent = null, $flat = fale)
+    {
+        $options = $this->app['config']['doctrine_cache'];
+        $lifetime = $options['result_cache']['lifetime'];
+
+        $qb = $this->createQueryBuilder('o')
+                    ->innerJoin('o.OrderDetails', 'od')
+                    ->innerJoin('od.Product', 'p')
+                    ->innerJoin('p.ProductCategories', 'pct')
+                    ->innerJoin('pct.Category', 'c')
+                    ->where('o.del_flg = 0')
+                    ->andWhere('c.id = 2')
+                    ->groupBy('p.id')
+                    ->orderBy('p.id', 'DESC');
+        $ordredDonations = array();
+        $orders = $qb->getQuery()
+            ->useResultCache(true, $lifetime)
+            ->getResult();
+        foreach($orders as $order) {
+            if (is_null($order->getOrderDetails())) {
+                continue;
+            }
+            foreach($order->getOrderDetails() as $orderDetail) {
+                if (is_null($orderDetail->getProduct())) {
+                    continue;
+                }
+                foreach($orderDetail->getProduct()->getProductCategories() as $productCategory) {
+                    if ($productCategory->getCategoryId() == 2) {
+                        $ordredDonations[] = $orderDetail->getProduct();
+                        break;
+                    }
+                }
+            }
+        }
+
+        return $ordredDonations;
+    }}

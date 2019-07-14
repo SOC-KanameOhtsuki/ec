@@ -164,10 +164,9 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
             $clean_key_multi = preg_replace('/\s+|[　]+/u', '', $searchData['multi']);
             $id = preg_match('/^\d+$/', $clean_key_multi) ? $clean_key_multi : null;
             $qb
-                ->andWhere('c.id = :customer_id OR bc.customer_number LIKE :customer_number OR bc.customer_number_old LIKE :customer_number_old OR CONCAT(c.name01, c.name02) LIKE :name OR CONCAT(c.kana01, c.kana02) LIKE :kana OR c.email LIKE :email')
+                ->andWhere('c.id = :customer_id OR bc.customer_number LIKE :customer_number OR CONCAT(c.name01, c.name02) LIKE :name OR CONCAT(c.kana01, c.kana02) LIKE :kana OR c.email LIKE :email')
                 ->setParameter('customer_id', $id)
                 ->setParameter('customer_number', '%' . $clean_key_multi . '%')
-                ->setParameter('customer_number_old', '%' . $clean_key_multi . '%')
                 ->setParameter('name', '%' . $clean_key_multi . '%')
                 ->setParameter('kana', '%' . $clean_key_multi . '%')
                 ->setParameter('email', '%' . $clean_key_multi . '%');
@@ -428,13 +427,6 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
                 ->setParameter('customer_number', '%' . $searchData['customer_number'] . '%');
         }
 
-        // CustomerNumberOld
-        if (!empty($searchData['customer_number_old']) && $searchData['customer_number_old']) {
-            $qb
-                ->andWhere('bc.customer_number_old LIKE :customer_number_old')
-                ->setParameter('customer_number_old', '%' . $searchData['customer_number_old'] . '%');
-        }
-
         // BasicInfoStatus
         if (!empty($searchData['customer_basicinfo_status']) && count($searchData['customer_basicinfo_status']) > 0) {
             $qb
@@ -567,10 +559,9 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
                 $clean_key_multi = preg_replace('/\s+|[　]+/u', '', $searchData['searchData']['multi']);
                 $id = preg_match('/^\d+$/', $clean_key_multi) ? $clean_key_multi : null;
                 $subQuery
-                    ->andWhere($alias.'.id = :customer_id' . $subQueryIndex . ' OR ' . 'bc' . $subQueryIndex . '.customer_number LIKE :customer_number' . $subQueryIndex . ' OR ' . 'bc' . $subQueryIndex . '.customer_number_old LIKE :customer_number_old' . $subQueryIndex . ' OR CONCAT(' . $alias . '.name01, ' . $alias . '.name02) LIKE :name' . $subQueryIndex . ' OR CONCAT(' . $alias . '.kana01, ' . $alias . '.kana02) LIKE :kana' . $subQueryIndex . ' OR ' . $alias . '.email LIKE :email' . $subQueryIndex);
+                    ->andWhere($alias.'.id = :customer_id' . $subQueryIndex . ' OR ' . 'bc' . $subQueryIndex . '.customer_number LIKE :customer_number' . $subQueryIndex . ' OR CONCAT(' . $alias . '.name01, ' . $alias . '.name02) LIKE :name' . $subQueryIndex . ' OR CONCAT(' . $alias . '.kana01, ' . $alias . '.kana02) LIKE :kana' . $subQueryIndex . ' OR ' . $alias . '.email LIKE :email' . $subQueryIndex);
                 $params['customer_id' . $subQueryIndex] = $id;
                 $params['customer_number' . $subQueryIndex] = '%' . $clean_key_multi . '%';
-                $params['customer_number_old' . $subQueryIndex] = '%' . $clean_key_multi . '%';
                 $params['name' . $subQueryIndex] = '%' . $clean_key_multi . '%';
                 $params['kana' . $subQueryIndex] = '%' . $clean_key_multi . '%';
                 $params['email' . $subQueryIndex] = '%' . $clean_key_multi . '%';
@@ -817,13 +808,6 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
                 $params['customer_number' . $subQueryIndex] = '%' . $searchData['searchData']['customer_number'] . '%';
             }
 
-            // CustomerNumberOld
-            if (!empty($searchData['searchData']['customer_number_old']) && $searchData['searchData']['customer_number_old']) {
-                $subQuery
-                    ->andWhere('bc' . $subQueryIndex . '.customer_number_old LIKE :customer_number_old' . $subQueryIndex);
-                $params['customer_number_old' . $subQueryIndex] = '%' . $searchData['searchData']['customer_number_old'] . '%';
-            }
-
             // BasicInfoStatus
             if (!empty($searchData['searchData']['customer_basicinfo_status']) && count($searchData['searchData']['customer_basicinfo_status']) > 0) {
                 $subQuery
@@ -930,6 +914,67 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
         // Order By
         $qb->addOrderBy('c.update_date', 'DESC');
 
+        return $qb;
+    }
+
+    public function getQueryBuilderBySearchDataForDanation($searchData)
+    {
+        $qb = $this->createQueryBuilder('c')
+            ->select('c')
+            ->innerJoin('c.Orders', 'o')
+            ->innerJoin('o.OrderDetails', 'od')
+            ->innerJoin('od.Product', 'p')
+            ->innerJoin('p.ProductCategories', 'pct')
+            ->innerJoin('pct.Category', 'pc')
+            ->where('c.del_flg = 0')
+            ->andWhere('pc.id = 2');
+
+        // search_donation_type
+        $searchDateStart = null;
+        $searchDateEnd = null;
+        if (!empty($searchData['search_donation_type'])) {
+            if ($searchData['search_donation_type'] == 1
+                && !empty($searchData['target_year']) && $searchData['target_year']) {
+                $searchDateStart = $searchData['target_year'] . '-01-01 00:00:00';
+                $searchDateEnd = $searchData['target_year'] . '-12-31 23:59:59';
+            } else if ($searchData['search_donation_type'] == 2
+                && !empty($searchData['target_term']) && $searchData['target_term']) {
+                $TermInfo = $this->getEntityManager()->getRepository('Eccube\Entity\Master\TermInfo')->find($searchData['target_term']);
+                if ($TermInfo) {
+                    $searchDateStart = $TermInfo->getTermStart()->format('Y-m-d 00:00:00');
+                    $searchDateEnd = $TermInfo->getTermEnd()->format('Y-m-d 23:59:59');
+                }
+            }
+        }
+        // target_date
+        if (is_null($searchDateStart)
+            && !empty($searchData['target_date_start']) && $searchData['target_date_start']) {
+            $searchDateStart = $searchData['target_date_start']->format('Y-m-d 00:00:00');
+        }
+        if (is_null($searchDateEnd)
+            && !empty($searchData['target_date_end']) && $searchData['target_date_end']) {
+            $searchDateEnd = $searchData['target_date_end']->format('Y-m-d 23:59:59');
+        }
+        if (!is_null($searchDateStart)) {
+            $qb
+                ->andWhere('o.payment_date >= :target_date_start')
+                ->setParameter('target_date_start', $searchDateStart);
+        }
+        if (!is_null($searchDateEnd)) {
+            $qb
+                ->andWhere('o.payment_date <= :target_date_end')
+                ->setParameter('target_date_end', $searchDateEnd);
+        }
+
+        // kifu_no_pub
+        if (isset($searchData['kifu_no_pub']) && Str::isNotBlank($searchData['kifu_no_pub'])) {
+            $qb
+                ->andWhere('od.kifu_no_pub = :kifu_no_pub')
+                ->setParameter('kifu_no_pub', $searchData['kifu_no_pub']);
+        }
+
+        // Order By
+        $qb->addOrderBy('c.id', 'ASC');
         return $qb;
     }
 

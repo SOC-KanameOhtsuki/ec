@@ -122,6 +122,12 @@ class EccubeServiceProvider implements ServiceProviderInterface
         $app['eccube.service.fax_accept_form_pdf'] = $app->share(function () use ($app) {
             return new \Eccube\Service\FaxAcceptFormPdfService($app);
         });
+        $app['eccube.service.donation_list_pdf'] = $app->share(function () use ($app) {
+            return new \Eccube\Service\DonationListPdfService($app);
+        });
+        $app['eccube.service.donation_certificate_pdf'] = $app->share(function () use ($app) {
+            return new \Eccube\Service\DonationCertificatePdfService($app);
+        });
         $app['eccube.service.csv.export'] = $app->share(function () use ($app) {
             $csvService = new \Eccube\Service\CsvExportService();
             $csvService->setEntityManager($app['orm.em']);
@@ -186,6 +192,7 @@ class EccubeServiceProvider implements ServiceProviderInterface
         $app['eccube.service.csv.donation_list.export'] = $app->share(function () use ($app) {
             $csvService = new \Eccube\Service\DonationListCsvExportService();
             $csvService->setConfig($app['config']);
+            $csvService->setEntityManager($app['orm.em']);
             return $csvService;
         });
         $app['eccube.service.shopping'] = $app->share(function () use ($app) {
@@ -659,6 +666,7 @@ class EccubeServiceProvider implements ServiceProviderInterface
             $types[] = new \Eccube\Form\Type\Admin\QuestionnaireDetailChoiceType($app);
             $types[] = new \Eccube\Form\Type\Admin\SearchQuestionnaireType($app);
             $types[] = new \Eccube\Form\Type\Admin\SearchMembershipPaymentCustomerType($app);
+            $types[] = new \Eccube\Form\Type\Admin\SearchDonationPaymentCustomerType($app);
 
             $types[] = new \Eccube\Form\Type\Admin\MasterdataType($app);
             $types[] = new \Eccube\Form\Type\Admin\MasterdataDataType($app);

@@ -21,6 +21,12 @@ Eccube\Entity\Master\TermInfo:
         term_end:
             type: date
             nullable: false
+        valid_period_start:
+            type: datetime
+            nullable: false
+        valid_period_end:
+            type: datetime
+            nullable: false
         term_year:
             type: integer
             nullable: false
@@ -28,6 +34,12 @@ Eccube\Entity\Master\TermInfo:
             type: integer
             nullable: false
         del_flg:
+            type: smallint
+            nullable: false
+            unsigned: false
+            options:
+                default: '0'
+        valid_flg:
             type: smallint
             nullable: false
             unsigned: false

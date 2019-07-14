@@ -53,9 +53,9 @@ class SearchCustomerType extends AbstractType
         $BaseInfoStatusList = $this->app['eccube.repository.customer_basic_info_status']->getStatusList();
         $months = range(1, 12);
         $builder
-            // 会員番号・会員ID・旧会員ID・メールアドレス・名前・名前(フリガナ)
+            // 会員番号・会員ID・メールアドレス・名前・名前(フリガナ)
             ->add('multi', 'text', array(
-                'label' => '会員番号・会員ID・旧会員ID・メールアドレス・名前・名前(フリガナ)',
+                'label' => '会員番号・会員ID・メールアドレス・名前・名前(フリガナ)',
                 'required' => false,
                 'constraints' => array(
                     new Assert\Length(array('max' => $config['stext_len'])),
@@ -70,13 +70,6 @@ class SearchCustomerType extends AbstractType
             ))
             ->add('customer_number', 'text', array(
                 'label' => '会員ID',
-                'required' => false,
-                'constraints' => array(
-                    new Assert\Length(array('max' => $config['stext_len'])),
-                ),
-            ))
-            ->add('customer_number_old', 'text', array(
-                'label' => '旧会員ID',
                 'required' => false,
                 'constraints' => array(
                     new Assert\Length(array('max' => $config['stext_len'])),
