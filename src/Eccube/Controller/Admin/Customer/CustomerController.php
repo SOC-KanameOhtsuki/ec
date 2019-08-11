@@ -1246,7 +1246,7 @@ class CustomerController extends AbstractController
         });
 
         $now = new \DateTime();
-        $filename = 'pregular_member_list_' . $now->format('YmdHis') . '.csv';
+        $filename = 'regular_member_list_' . $now->format('YmdHis') . '.csv';
         $response->headers->set('Content-Type', 'application/octet-stream');
         $response->headers->set('Content-Disposition', 'attachment; filename=' . $filename);
         $response->send();
