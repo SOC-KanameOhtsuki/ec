@@ -158,12 +158,12 @@ class DonationListCsvExportService extends CsvExportService
                         $row = array();
                         // ID
                         $oldCustomerId = '';
-                        if (!is_null($customerData->getCustomerBasicInfo()->getCustomerNumberOld()) ){
-                            if (strlen($customerData->getCustomerBasicInfo()->getCustomerNumberOld()) < 6) {
-                                $oldCustomerId = intval($customerData->getCustomerBasicInfo()->getCustomerNumberOld());
+                        if (!is_null($customerData->getCustomerBasicInfo()->getCustomerNumber()) ){
+                            if (strlen($customerData->getCustomerBasicInfo()->getCustomerNumber()) < 6) {
+                                $oldCustomerId = intval($customerData->getCustomerBasicInfo()->getCustomerNumber());
                             } else {
-                                $oldCustomerId = intval(substr($customerData->getCustomerBasicInfo()->getCustomerNumberOld(),
-                                                        strlen($customerData->getCustomerBasicInfo()->getCustomerNumberOld()) - 5));
+                                $oldCustomerId = intval(substr($customerData->getCustomerBasicInfo()->getCustomerNumber(),
+                                                        strlen($customerData->getCustomerBasicInfo()->getCustomerNumber()) - 5));
                             }
                         }
                         $row[] = $oldCustomerId;
