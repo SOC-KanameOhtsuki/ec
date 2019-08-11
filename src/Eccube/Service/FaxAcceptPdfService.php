@@ -168,12 +168,17 @@ class FaxAcceptPdfService extends AbstractFPDIService
             } else {
                 $price = $product->getPrice02IncTaxMax();
             }
-            $bakFontStyle = $this->FontStyle;
-            $bakFontSize = $this->FontSizePt;
-            $this->SetFont('', '', 12);
-            $this->SetXY(32.5, 157.0);
-            $this->MultiCell(24.4, 7.0, number_format($price), 0, "R", false, 0, "", "", true, 0, false, true, 7.0, "T");
-            $this->SetFont('', $bakFontStyle, $bakFontSize);
+            if (0 < $price) {
+                $bakFontStyle = $this->FontStyle;
+                $bakFontSize = $this->FontSizePt;
+                $this->SetFont('', '', 12);
+                $this->SetXY(32.5, 157.0);
+                $this->MultiCell(24.4, 7.0, number_format($price), 0, "R", false, 0, "", "", true, 0, false, true, 7.0, "T");
+                $this->SetFont('', $bakFontStyle, $bakFontSize);
+            } else {
+                $this->lfText(33.8, 161.0, '無料', 12, '');
+                $this->Rect(58.7, 157.7, 4.3, 5.0, 'F', null, array(255, 255, 255));
+            }
         }
 
         return true;
