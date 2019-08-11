@@ -24,7 +24,7 @@ class MembershipPaymentStatusCsvExportService extends CsvExportService
     {
         $this->fopen();
         $this->fputcsv(['年会費支払状況名簿']);
-        $this->fputcsv(['No.','年度','会員番号','氏名','Status','支払方法','支払状況','郵便番号''都道府県','住所1','住所2','メール']);
+        $this->fputcsv(['No.','年度','会員番号','氏名','Status','支払方法','支払状況','郵便番号','都道府県','住所1','住所2','メール']);
         $no = 1;
         foreach ($customerDatas as $customerData) {
             $row = array();
