@@ -74,7 +74,7 @@ class RegularMemberListPdfService extends AbstractFPDIService
 
         // PDFの余白(上左右)を設定
         $this->SetMargins(5, 22);
-        $this->SetAutoPageBreak(false, 5);
+        $this->SetAutoPageBreak(true, 10);
 
         $this->setHeaderMargin(10);
         $this->setHeaderFont(array(self::FONT_SJIS, '', 8));
