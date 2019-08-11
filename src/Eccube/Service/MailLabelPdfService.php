@@ -204,7 +204,9 @@ class MailLabelPdfService extends AbstractFPDIService
                     $this->SetFont('', $bakFontStyle, $bakFontSize);
                 }
                 // 会員番号
-                $this->lfText(89.4 + $col_adjuster, 51.7 + $row_adjuster, "ID " . $customerData->getId(), 9, 'B');
+                if ($existsId == 1) {
+                    $this->lfText(89.4 + $col_adjuster, 51.7 + $row_adjuster, "ID " . $customerData->getId(), 9, 'B');
+                }
             }
         } else {
             foreach ($customersData as $customerData) {
@@ -304,7 +306,9 @@ class MailLabelPdfService extends AbstractFPDIService
                     $this->SetFont('', $bakFontStyle, $bakFontSize);
                 }
                 // 会員番号
-                $this->lfText(89.4 + $col_adjuster, 51.7 + $row_adjuster, "ID " . $customerData->getId(), 9, 'B');
+                if ($existsId == 1) {
+                    $this->lfText(89.4 + $col_adjuster, 51.7 + $row_adjuster, "ID " . $customerData->getId(), 9, 'B');
+                }
             }
         }
 

@@ -1754,6 +1754,8 @@ class FormPrintingController extends AbstractController
         $customers = $app['eccube.repository.customer']->getQueryBuilderBySearchDataForDanation($searchData)
                 ->getQuery()
                 ->getResult();
+        log_info('SQL:' . $app['eccube.repository.customer']->getQueryBuilderBySearchDataForDanation($searchData)
+                ->getQuery()->getSQL());
 
         $response = new StreamedResponse();
         $response->setCallback(function () use ($app, $request, $customers, $searchData, $summarize) {
@@ -1769,7 +1771,7 @@ class FormPrintingController extends AbstractController
         });
 
         $now = new \DateTime();
-        $filename = 'MemberPaymentCustomerList_' . $now->format('YmdHis') . '.csv';
+        $filename = 'DonationCustomerList_' . $now->format('YmdHis') . '.csv';
         $response->headers->set('Content-Type', 'application/octet-stream');
         $response->headers->set('Content-Disposition', 'attachment; filename=' . $filename);
 
