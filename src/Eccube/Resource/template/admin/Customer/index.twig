@@ -290,6 +290,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
       $('#search_form input:hidden[name="existsId"]').val("0")
       $("#search_form").submit();
   });
+  $('#print_certification').click(function() {
+      $("#search_form").attr('action', "{{ url('admin_customer_print_certification') }}");
+      $("#search_form").submit();
+  });
 </script>
 {% endblock javascript %}
 
@@ -596,6 +600,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
                 <li><a id="mail_label_without_id_download" href="javascript:void(0);">郵送ラベル(希望発送先/IDなし)</a></li>
                 <li><a id="mail_label_home_without_id_download" href="javascript:void(0);">郵送ラベル(自宅/IDなし)</a></li>
                 <li><a id="mail_label_company_without_id_download" href="javascript:void(0);">郵送ラベル(勤務先/IDなし)</a></li>
+                <li><a id="print_certification" href="javascript:void(0);">認定証</a></li>
               </ul>
               </li>
             </ul>
