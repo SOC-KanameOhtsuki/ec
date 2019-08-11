@@ -122,7 +122,14 @@ class FaxAcceptPdfService extends AbstractFPDIService
             // PDFにページを追加する
             $this->addPdfPage();
             // Fax番号
-            $this->lfText(36.1, 19.0, $customerData->getFax01() . '-' . $customerData->getFax02() . '-' . $customerData->getFax03(), 15, '');
+            $fax = '';
+            foreach ($customerData->getCustomerAddresses() as $AddresInfo) {
+                if ($AddresInfo->getMailTo()->getId() == 2) {
+                    $fax = ((is_null($AddresInfo->getFax01())&&is_null($AddresInfo->getFax02())&&is_null($AddresInfo->getFax02()))?"":$AddresInfo->getFax01() . '-' . $AddresInfo->getFax02() . '-' . $AddresInfo->getFax03());
+                    break;
+                }
+            }
+            $this->lfText(36.1, 19.0, $fax, 15, '');
             // 会員名
             $this->lfText(18.3, 28.1, $customerData->getName01() . $customerData->getName02() . '様', 15, '');
             $this->lfText(33.8, 76.7, $customerData->getName01() . $customerData->getName02() . '様', 12, '');

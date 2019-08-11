@@ -24,7 +24,7 @@ class MembershipPaymentStatusCsvExportService extends CsvExportService
     {
         $this->fopen();
         $this->fputcsv(['年会費支払状況名簿']);
-        $this->fputcsv(['No.','年度','会員番号','氏名','Status','支払方法','支払状況','都道府県','住所1','住所2','ID']);
+        $this->fputcsv(['No.','年度','会員番号','氏名','Status','支払方法','支払状況','郵便番号''都道府県','住所1','住所2','メール']);
         $no = 1;
         foreach ($customerDatas as $customerData) {
             $row = array();
@@ -50,7 +50,7 @@ class MembershipPaymentStatusCsvExportService extends CsvExportService
             $row[] = (is_null($customerData->getAddr01())?'':$customerData->getAddr01());
             // 住所2
             $row[] = (is_null($customerData->getAddr02())?'':$customerData->getAddr02());
-            // ID
+            // Mail
             $row[] = (is_null($customerData->getEmail())?'':$customerData->getEmail());
             $this->fputcsv($row);
             ++$no;

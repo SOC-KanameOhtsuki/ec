@@ -99,7 +99,7 @@ class MailAcceptPdfService extends AbstractFPDIService
      *
      * @return bool
      */
-    public function makePdf(array $customersData, $product)
+    public function makePdf(array $customersData, array $orders, $product)
     {
         // データが空であれば終了
         if (count($customersData) < 1) {
@@ -151,9 +151,15 @@ class MailAcceptPdfService extends AbstractFPDIService
             $bakFontStyle = $this->FontStyle;
             $bakFontSize = $this->FontSizePt;
             // 受講料
-            if (0 < $product->getPrice02IncTaxMax()) {
+            $price = 0;
+            if (isset($orders[$customerData->getId()])) {
+                $price = $orders[$customerData->getId()]->getPaymentTotal();
+            } else {
+                $price = $product->getPrice02IncTaxMax();
+            }
+            if (0 < $price) {
                 $this->SetXY(40.4, 148.6);
-                $this->MultiCell(36.4, $line_height, number_format($product->getPrice02IncTaxMax()), 0, "R", false, 0, "", "", true, 0, false, true, 5.5, "T");
+                $this->MultiCell(36.4, $line_height, number_format($price), 0, "R", false, 0, "", "", true, 0, false, true, 5.5, "T");
             } else {
                 $this->lfText(40.4, 152.8, '無料', 12, '');
                 $this->Rect(75.9, 149.1, 6.5, 6.5, 'F', null, array(255, 255, 255));

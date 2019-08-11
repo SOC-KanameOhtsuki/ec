@@ -1427,6 +1427,15 @@ class TrainingController extends AbstractController
                     ->getQuery()
                     ->getResult();
         }
+        // 受注情報取得
+        $order_results = $app['eccube.repository.order']->getQueryBuilderBySearchDataForAdmin(['product_id' => $request->get('id')])
+                                                    ->orderBy('o.id', 'ASC')
+                                                    ->getQuery()
+                                                    ->getResult();
+        $orders = array();
+        foreach($order_results as $order) {
+            $orders[$order->getCustomer()->getId()] = $order;
+        }
 
         // サービスの取得
         /* @var FaxAcceptPdfService $service */
@@ -1434,11 +1443,11 @@ class TrainingController extends AbstractController
         $session = $request->getSession();
 
         // 顧客情報からPDFを作成する
-        $status = $service->makePdf($customers, $app['eccube.repository.product']->find($id));
+        $status = $service->makePdf($customers, $orders, $app['eccube.repository.product']->find($id));
 
         // 異常終了した場合の処理
         if (!$status) {
-            $app->addError('FAX受付票出力に失敗しました', 'admin');
+            $app->addError('郵便受付票出力に失敗しました', 'admin');
             log_info('Unable to create pdf files! Process have problems!');
             return $app->redirect($app->url('admin_student'), array('id' => $id));
         }
