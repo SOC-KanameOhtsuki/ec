@@ -133,7 +133,7 @@ class CertificationPdfService extends AbstractFPDIService
                 }
             } else if ($customerData->getCustomerBasicInfo()->getInstructorType()->getId() == 2) {
                 $imgFile = __DIR__.'/../Resource/pdf/instructor_2_mark.jpg';
-                if (file_exists($photoFile)) {
+                if (file_exists($imgFile)) {
                     $this->Image($imgFile, 39.1, 10.4, 27.5);
                 }
             }
