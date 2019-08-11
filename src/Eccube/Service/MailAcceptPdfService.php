@@ -121,25 +121,50 @@ class MailAcceptPdfService extends AbstractFPDIService
         foreach ($customersData as $customerData) {
             // PDFにページを追加する
             $this->addPdfPage();
+            $zip_code = '';
+            foreach ($customerData->getCustomerAddresses() as $AddresInfo) {
+                if ($AddresInfo->getMailTo()->getId() == 2) {
+                    // 郵便番号
+                    $zip_code = (is_null($AddresInfo->getZip01())?"":$AddresInfo->getZip01() . (is_null($AddresInfo->getZip02())?'':'-')) . (is_null($AddresInfo->getZip02())?"":$AddresInfo->getZip02());
+                    break;
+                }
+            }
+            // 郵便番号
+            $this->lfText(34.3, 16.5, $zip_code, 15, '');
             // 会員名
-            $this->lfText(19.4, 23.1, $customerData->getName01() . $customerData->getName02() . '様', 15, 'B');
-            $this->lfText(40.4, 81.0, $customerData->getName01() . $customerData->getName02() . '様', 9, 'B');
+            $this->lfText(30.0, 22.0, $customerData->getName01() . ' ' . $customerData->getName02() . '様', 15, '');
+            $this->lfText(40.4, 121.0, $customerData->getName01() . ' ' . $customerData->getName02() . '様', 12, '');
             if ($product->hasProductTraining()) {
                 // 講習会種別
-                $this->lfText(39.9, 52.3, $product->getProductTraining()->getTrainingType()->getName(), 11, 'B');
+                $this->lfText(39.9, 127.0, $product->getProductTraining()->getTrainingType()->getName(), 12, '');
                 // 受講日
-                $this->lfText(40.4, 86.4, $product->getProductTraining()->getTrainingDateStart()->format('Y年m月d日(') . $this->WeekDay[$product->getProductTraining()->getTrainingDateStart()->format('w')] . $product->getProductTraining()->getTrainingDateStart()->format(') H:i～') . $product->getProductTraining()->getTrainingDateEnd()->format('H:i'), 9);
+                $this->lfText(40.4, 133.6, $product->getProductTraining()->getTrainingDateStart()->format('Y年n月j日(') . $this->WeekDay[$product->getProductTraining()->getTrainingDateStart()->format('w')] . $product->getProductTraining()->getTrainingDateStart()->format(') H:i～') . $product->getProductTraining()->getTrainingDateEnd()->format('H:i'), 12);
+                // 受付開始時間
+                $this->lfText(148.2, 133.6, date('G:i', strtotime($product->getProductTraining()->getTrainingDateStart()->format('Y-m-d H:i:s') . " -30 minute")), 12, '');
                 // 場所
-                $this->lfText(40.4, 91.7, $product->getProductTraining()->getPlace(), 9, 'B');
+                $this->lfText(40.4, 140.0, $product->getProductTraining()->getPlace(), 12, '');
                 // 住所
-                $this->lfText(40.4, 97.5, $product->getProductTraining()->getPref()->getName() . $product->getProductTraining()->getAddr01() . $product->getProductTraining()->getAddr02(), 9, 'B');
+                $this->lfText(40.4, 146.4, $product->getProductTraining()->getPref()->getName() . $product->getProductTraining()->getAddr01() . $product->getProductTraining()->getAddr02(), 12, '');
                 // 持ち物
-                $this->lfText(40.4, 103.4, $product->getProductTraining()->getItem(), 9, 'B');
+                $this->lfText(40.4, 179.2, $product->getProductTraining()->getItem(), 12, '');
             }
+            $bakFontStyle = $this->FontStyle;
+            $bakFontSize = $this->FontSizePt;
             // 受講料
-            $this->lfText(34.8, 148.5, number_format($product->getPrice02IncTaxMax()) . '円', 11, 'B');
+            if (0 < $product->getPrice02IncTaxMax()) {
+                $this->SetXY(40.4, 148.6);
+                $this->MultiCell(36.4, $line_height, number_format($product->getPrice02IncTaxMax()), 0, "R", false, 0, "", "", true, 0, false, true, 5.5, "T");
+            } else {
+                $this->lfText(40.4, 152.8, '無料', 12, '');
+                $this->Rect(75.9, 149.1, 6.5, 6.5, 'F', null, array(255, 255, 255));
+                $this->Rect(46.2, 155.2, 156.0, 20.6, 'F', null, array(255, 255, 255));
+            }
             // 備考
-            $this->lfText(40.4, 109.2, str_replace("　", "", $product->getDescriptionDetail()), 9, 'B');
+            $this->SetFont('', '', 12);
+            $this->SetXY(40.4, 181.2);
+            $line_height = $this->getStringHeight(150.0, "あ");
+            $this->MultiCell(150.0, $line_height, str_replace("　", "", $product->getDescriptionDetail()), 0, "L", false, 0, "", "", true, 0, false, true, 24.0, "T");
+            $this->SetFont('', $bakFontStyle, $bakFontSize);
         }
 
         return true;
