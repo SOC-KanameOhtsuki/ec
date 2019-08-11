@@ -210,12 +210,11 @@ class CertificationPdfService extends AbstractFPDIService
             $bakFontSize = $this->FontSizePt;
             $fontSize = 22;
             $this->SetFont('', 'B', $fontSize);
-            if (11.5 < $this->getStringHeight(80.0, $customerData->getName01() . " " . $customerData->getName02())) {
+            while (11.5 < $this->getStringHeight(64.0, $customerData->getName01() . " " . $customerData->getName02())) {
                 $this->SetFont('', 'B', --$fontSize);
             }
-            $this->SetXY(12.7, 32.3);
-            $current_row += $height;
-            $this->MultiCell(80.0, $min_height, $customerData->getName01() . " " . $customerData->getName02(), 0, "C", false, 0, "", "", true, 0, false, true, 11.5, "M");
+            $this->SetXY(30.5, 32.3);
+            $this->MultiCell(64.0, 11.5, $customerData->getName01() . " " . $customerData->getName02(), 1, "C", false, 0, "", "", true, 0, false, true, 11.5, "M");
             // PINコード
             $this->lfText(72.4, 49.7, $customerData->getCustomerBasicInfo()->getCustomerPinCode(), 10);
         }
