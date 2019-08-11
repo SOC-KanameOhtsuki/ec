@@ -657,6 +657,92 @@ class CustomerController extends AbstractController
     }
 
     /**
+     * 認定証の出力.
+     * @param Application $app
+     * @param Request $request
+     * @return StreamedResponse
+     */
+    public function printCertification(Application $app, Request $request)
+    {
+        // タイムアウトを無効にする.
+        set_time_limit(0);
+
+        // sql loggerを無効にする.
+        $em = $app['orm.em'];
+        $em->getConfiguration()->setSQLLogger(null);
+
+        if ('POST' === $request->getMethod()) {
+            $builder = $app['form.factory']
+                ->createBuilder('admin_search_customer');
+            $searchForm = $builder->getForm();
+            $searchForm->handleRequest($request);
+            // 会員データ検索用のクエリビルダを取得.
+            $session = $request->getSession();
+            $custom_search_input = json_decode($session->get('eccube.admin.customer.search.custom_search_input'), true);
+            $original_searchs = array();
+            foreach ($custom_search_input as $searchId => $custom_search) {
+                $OrignalSearch = $app['eccube.repository.orignal_search']->findOneBy(array('id' => $searchId, 'del_flg' => 0));
+                if ($OrignalSearch) {
+                    $custom_searchs[] = array('id' => $searchId, 'name' => $OrignalSearch->getSearchName(), 'type' => $custom_search['join']);
+                    $original_searchs[] = array('entity' => $OrignalSearch, 'join' => $custom_search['join']);
+                }
+            }
+            $is_custom_search = boolval($session->get('eccube.admin.customer.search.is_custom_search'));
+            if ((!$is_custom_search) || (count($original_searchs) < 1)) {
+                $viewData = $session->get('eccube.admin.customer.search');
+                $searchData = array();
+                if (!is_null($viewData)) {
+                    // sessionに保持されている検索条件を復元.
+                    $searchData = \Eccube\Util\FormUtil::getViewData($searchForm, $viewData);
+                }
+                $qb = $app['eccube.repository.customer']->getQueryBuilderBySearchData($searchData);
+            } else {
+                $searchDatas = array();
+                foreach($original_searchs as $original_search) {
+                    $builder = $app['form.factory']
+                        ->createBuilder('admin_search_customer');
+                    $searchFormTemp = $builder->getForm();
+                    $searchDatas[] = array('searchData' => \Eccube\Util\FormUtil::submitAndGetData($searchFormTemp, json_decode($original_search['entity']->getSearchValue(), true)), 'join' => $original_search['join']);
+                }
+                // paginator
+                $qb = $app['eccube.repository.customer']->getQueryBuilderBySearchDatas($searchDatas);
+            }
+        } else {
+            $qb = $app['eccube.repository.customer']->getQueryBuilderBySearchDatas(array());
+        }
+        $customers = $qb->OrderBy('c.id', 'ASC')
+                        ->getQuery()
+                        ->getResult();
+
+        // サービスの取得
+        /* @var MailLabelPdfService $service */
+        $service = $app['eccube.service.certification_pdf'];
+        $session = $request->getSession();
+
+        // 顧客情報からPDFを作成する
+        $status = $service->makePdf($customers);
+
+        // 異常終了した場合の処理
+        if (!$status) {
+            $app->addError('admin.certification_pdf.download.failure', 'admin');
+            log_info('Unable to create pdf files! Process have problems!');
+            return $app->redirect($app->url('admin_form_printing_certification'));
+        }
+
+        // ダウンロードする
+        $response = new Response(
+            $service->outputPdf(),
+            200,
+            array('content-type' => 'application/pdf')
+        );
+
+        // レスポンスヘッダーにContent-Dispositionをセットし、ファイル名を指定
+        $response->headers->set('Content-Disposition', 'attachment; filename="'.$service->getPdfFileName().'"');
+        log_info("認定証ファイル名", array($service->getPdfFileName()));
+        return $response;
+    }
+
+    /**
      * 年会費支払い状況.
      * @param Application $app
      * @param Request $request

@@ -102,6 +102,7 @@ class AdminControllerProvider implements ControllerProviderInterface
         $c->match('/customer/{id}/payment_membership_select', '\Eccube\Controller\Admin\Customer\CustomerController::paymentMembershipSelect')->assert('id', '\d+')->bind('admin_customer_payment_membership_select');
         $c->post('/customer/membership_exemption', '\Eccube\Controller\Admin\Customer\CustomerController::membershipExemption')->bind('admin_customer_membership_exemption');
         $c->match('/customer/out_regular_member_list', '\Eccube\Controller\Admin\Customer\CustomerController::outRegularMemberList')->bind('admin_customer_out_regular_member_list');
+        $c->match('/customer/print_certification', '\Eccube\Controller\Admin\Customer\CustomerController::printCertification')->bind('admin_customer_print_certification');
         
         $c->match('/customer/{id}/training_order_history', '\Eccube\Controller\Admin\Customer\CustomerController::trainingOrderHistory')->assert('id', '\d+')->bind('admin_customer_training_order_history');
         $c->match('/customer/{id}/contribution_order_history', '\Eccube\Controller\Admin\Customer\CustomerController::contributionOrderHistory')->assert('id', '\d+')->bind('admin_customer_contribution_order_history');

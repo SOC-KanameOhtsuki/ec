@@ -206,7 +206,16 @@ class CertificationPdfService extends AbstractFPDIService
                 $this->Image($photoFile, 82.3, 23.8, 9.0);
             }
             // 会員名
-            $this->lfText(39.5, 37.0, $customerData->getName01() . " " . $customerData->getName02(), 22, 'B');
+            $bakFontStyle = $this->FontStyle;
+            $bakFontSize = $this->FontSizePt;
+            $fontSize = 22;
+            $this->SetFont('', 'B', $fontSize);
+            if (11.5 < $this->getStringHeight(80.0, $customerData->getName01() . " " . $customerData->getName02())) {
+                $this->SetFont('', 'B', --$fontSize);
+            }
+            $this->SetXY(12.7, 32.3);
+            $current_row += $height;
+            $this->MultiCell(80.0, $min_height, $customerData->getName01() . " " . $customerData->getName02(), 0, "C", false, 0, "", "", true, 0, false, true, 11.5, "M");
             // PINコード
             $this->lfText(72.4, 49.7, $customerData->getCustomerBasicInfo()->getCustomerPinCode(), 10);
         }
