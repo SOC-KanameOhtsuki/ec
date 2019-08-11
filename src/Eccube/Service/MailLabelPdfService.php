@@ -148,24 +148,7 @@ class MailLabelPdfService extends AbstractFPDIService
                         if (strlen((is_null($AddresInfo->getName01())?"":$AddresInfo->getName01())) > 0 && strlen((is_null($AddresInfo->getName02())?"":$AddresInfo->getName02())) > 0 ) {
                             $name = $AddresInfo->getName01() . " " . $AddresInfo->getName02() . ' 様';
                         }
-                        $Out = true;
                         break;
-                    }
-                }
-                if (!$Out) {
-                    // 郵便番号
-                    $zip_code = "〒" . (is_null($customerData->getZip01())?"":$customerData->getZip01() . (is_null($customerData->getZip02())?'':'-')) . (is_null($customerData->getZip02())?"":$customerData->getZip02());
-                    // 住所
-                    if (strlen((is_null($customerData->getPref())?"":$customerData->getPref())) > 0 && strlen((is_null($customerData->getAddr01())?"":$customerData->getAddr01())) > 0  && strlen((is_null($customerData->getAddr02())?"":$customerData->getAddr02())) > 0 ) {
-                        $addr = (is_null($customerData->getPref())?"":$customerData->getPref()->getName()) . (is_null($customerData->getAddr01())?"":$customerData->getAddr01()) . (is_null($customerData->getAddr02())?"":$customerData->getAddr02());
-                    }
-                    // 勤務先
-                    if (strlen((is_null($customerData->getCompanyName())?"":$customerData->getCompanyName())) > 0 ) {
-                        $company = $customerData->getCompanyName();
-                    }
-                    // 会員名
-                    if (strlen((is_null($customerData->getName01())?"":$customerData->getName01())) > 0 && strlen((is_null($customerData->getName02())?"":$customerData->getName02())) > 0 ) {
-                        $name = $customerData->getName01() . " " . $customerData->getName02() . ' 様';
                     }
                 }
                 // 郵便番号
@@ -183,19 +166,18 @@ class MailLabelPdfService extends AbstractFPDIService
                     $this->SetFont('', $bakFontStyle, $bakFontSize);
                     $current_row += $height;
                 }
-                // 会員名&勤務先
                 if ((strlen($name) > 0) && (strlen($company) > 0)) {
                     $bakFontStyle = $this->FontStyle;
                     $bakFontSize = $this->FontSizePt;
                     $this->SetFont('', 'B', 9);
                     $min_height = $this->getStringHeight(70.0, "会") + 0.3;
-                    $height = $this->getStringHeight(70.0, "会") + 0.3;
+                    $height = $this->getStringHeight(70.0, $company) + 0.3;
                     $this->SetXY(26.2 + $col_adjuster, $current_row);
                     $current_row += $height;
                     $this->MultiCell(70.0, $min_height, $company, 0, "L", false, 0, "", "", true, 0, false, true, $height, "M");
                     $this->SetFont('', 'B', 14);
                     $min_height = $this->getStringHeight(70.0, "あ") + 0.3;
-                    $height = $this->getStringHeight(70.0, "あ") + 0.3;
+                    $height = $this->getStringHeight(70.0, $name) + 0.3;
                     $this->SetXY(26.2 + $col_adjuster, $current_row);
                     $current_row += $height;
                     $this->MultiCell(70.0, $min_height, $name, 0, "L", false, 0, "", "", true, 0, false, true, $height, "M");
@@ -205,7 +187,7 @@ class MailLabelPdfService extends AbstractFPDIService
                     $bakFontSize = $this->FontSizePt;
                     $this->SetFont('', 'B', 14);
                     $min_height = $this->getStringHeight(70.0, "会") + 0.3;
-                    $height = $this->getStringHeight(70.0, "会") + 0.3;
+                    $height = $this->getStringHeight(70.0, $company) + 0.3;
                     $this->SetXY(26.2 + $col_adjuster, $current_row);
                     $current_row += $height;
                     $this->MultiCell(70.0, $min_height, $company, 0, "L", false, 0, "", "", true, 0, false, true, $height, "M");
@@ -215,7 +197,7 @@ class MailLabelPdfService extends AbstractFPDIService
                     $bakFontSize = $this->FontSizePt;
                     $this->SetFont('', 'B', 14);
                     $min_height = $this->getStringHeight(70.0, "あ") + 0.3;
-                    $height = $this->getStringHeight(70.0, "あ") + 0.3;
+                    $height = $this->getStringHeight(70.0, $name) + 0.3;
                     $this->SetXY(26.2 + $col_adjuster, $current_row);
                     $current_row += $height;
                     $this->MultiCell(70.0, $min_height, $name, 0, "L", false, 0, "", "", true, 0, false, true, $height, "M");
@@ -264,24 +246,7 @@ class MailLabelPdfService extends AbstractFPDIService
                         if (strlen((is_null($AddresInfo->getName01())?"":$AddresInfo->getName01())) > 0 && strlen((is_null($AddresInfo->getName02())?"":$AddresInfo->getName02())) > 0 ) {
                             $name = $AddresInfo->getName01() . " " . $AddresInfo->getName02() . ' 様';
                         }
-                        $Out = true;
                         break;
-                    }
-                }
-                if (!$Out) {
-                    // 郵便番号
-                    $zip_code = "〒" . (is_null($customerData->getZip01())?"":$customerData->getZip01() . (is_null($customerData->getZip02())?'':'-')) . (is_null($customerData->getZip02())?"":$customerData->getZip02());
-                    // 住所
-                    if (strlen((is_null($customerData->getPref())?"":$customerData->getPref())) > 0 && strlen((is_null($customerData->getAddr01())?"":$customerData->getAddr01())) > 0  && strlen((is_null($customerData->getAddr02())?"":$customerData->getAddr02())) > 0 ) {
-                        $addr = (is_null($customerData->getPref())?"":$customerData->getPref()->getName()) . (is_null($customerData->getAddr01())?"":$customerData->getAddr01()) . (is_null($customerData->getAddr02())?"":$customerData->getAddr02());
-                    }
-                    // 勤務先
-                    if (strlen((is_null($customerData->getCompanyName())?"":$customerData->getCompanyName())) > 0 ) {
-                        $company = $customerData->getCompanyName();
-                    }
-                    // 会員名
-                    if (strlen((is_null($customerData->getName01())?"":$customerData->getName01())) > 0 && strlen((is_null($customerData->getName02())?"":$customerData->getName02())) > 0 ) {
-                        $name = $customerData->getName01() . " " . $customerData->getName02() . ' 様';
                     }
                 }
                 // 郵便番号
@@ -300,18 +265,19 @@ class MailLabelPdfService extends AbstractFPDIService
                     $current_row += $height;
                 }
                 // 会員名&勤務先
+                file_put_contents('/var/www/ec_ohtsuki/app/log/check.log', "name" . $name . "\n", FILE_APPEND);
                 if ((strlen($name) > 0) && (strlen($company) > 0)) {
                     $bakFontStyle = $this->FontStyle;
                     $bakFontSize = $this->FontSizePt;
                     $this->SetFont('', 'B', 9);
                     $min_height = $this->getStringHeight(70.0, "会") + 0.3;
-                    $height = $this->getStringHeight(70.0, "会") + 0.3;
+                    $height = $this->getStringHeight(70.0, $company) + 0.3;
                     $this->SetXY(26.2 + $col_adjuster, $current_row);
                     $current_row += $height;
                     $this->MultiCell(70.0, $min_height, $company, 0, "L", false, 0, "", "", true, 0, false, true, $height, "M");
                     $this->SetFont('', 'B', 14);
                     $min_height = $this->getStringHeight(70.0, "あ") + 0.3;
-                    $height = $this->getStringHeight(70.0, "あ") + 0.3;
+                    $height = $this->getStringHeight(70.0, $name) + 0.3;
                     $this->SetXY(26.2 + $col_adjuster, $current_row);
                     $current_row += $height;
                     $this->MultiCell(70.0, $min_height, $name, 0, "L", false, 0, "", "", true, 0, false, true, $height, "M");
@@ -321,7 +287,7 @@ class MailLabelPdfService extends AbstractFPDIService
                     $bakFontSize = $this->FontSizePt;
                     $this->SetFont('', 'B', 14);
                     $min_height = $this->getStringHeight(70.0, "会") + 0.3;
-                    $height = $this->getStringHeight(70.0, "会") + 0.3;
+                    $height = $this->getStringHeight(70.0, $company) + 0.3;
                     $this->SetXY(26.2 + $col_adjuster, $current_row);
                     $current_row += $height;
                     $this->MultiCell(70.0, $min_height, $company, 0, "L", false, 0, "", "", true, 0, false, true, $height, "M");
@@ -331,7 +297,7 @@ class MailLabelPdfService extends AbstractFPDIService
                     $bakFontSize = $this->FontSizePt;
                     $this->SetFont('', 'B', 14);
                     $min_height = $this->getStringHeight(70.0, "あ") + 0.3;
-                    $height = $this->getStringHeight(70.0, "あ") + 0.3;
+                    $height = $this->getStringHeight(70.0, $name) + 0.3;
                     $this->SetXY(26.2 + $col_adjuster, $current_row);
                     $current_row += $height;
                     $this->MultiCell(70.0, $min_height, $name, 0, "L", false, 0, "", "", true, 0, false, true, $height, "M");

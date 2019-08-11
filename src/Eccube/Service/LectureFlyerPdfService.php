@@ -79,7 +79,7 @@ class LectureFlyerPdfService extends AbstractFPDIService
         parent::__construct();
 
         // Fontの設定しておかないと文字化けを起こす
-        $this->SetFont(self::FONT_SJIS);
+        $this->SetFont(self::FONT_GOTHIC);
 
         // PDFの余白(上左右)を設定
         $this->SetMargins(15, 20);
@@ -121,37 +121,30 @@ class LectureFlyerPdfService extends AbstractFPDIService
         // 講習会日
         $this->SetTextColor(6, 50, 29);
         $this->lfText(15.5, 79.0, $flyer_data->getProductTraining()->getTrainingDateStart()->format('Y年n月j日(') . $this->WeekDay[$flyer_data->getProductTraining()->getTrainingDateStart()->format('w')] . ')', 40);
-        $this->lfText(24.5, 97.4, $flyer_data->getProductTraining()->getTrainingDateStart()->format('G時i分～') . $flyer_data->getProductTraining()->getTrainingDateEnd()->format('G時i分') . "(受付開始：" .  date('G時i分', strtotime($flyer_data->getProductTraining()->getTrainingDateStart()->format('Y-m-d H:i:s') . " -30 minute")) . ")", 18, 'B');
+        $this->lfText(24.5, 97.4, $flyer_data->getProductTraining()->getTrainingDateStart()->format('G時i分～') . $flyer_data->getProductTraining()->getTrainingDateEnd()->format('G時i分') . "(受付開始：" .  date('G時i分', strtotime($flyer_data->getProductTraining()->getTrainingDateStart()->format('Y-m-d H:i:s') . " -30 minute")) . ")", 18, '');
         // 場所
         $bakFontStyle = $this->FontStyle;
         $bakFontSize = $this->FontSizePt;
         $fontSize = 60;
-        $this->SetFont('', 'B', $fontSize);
+        $this->SetFont('', '', $fontSize);
         while (12.0 < $this->getStringHeight(130.0, $flyer_data->getProductTraining()->getAddr01())) {
             --$fontSize;
-            $this->SetFont('', 'B', $fontSize);
+            $this->SetFont('', '', $fontSize);
         }
-        $this->SetXY(34.8, 106.5);
+        $this->SetXY(34.0, 106.5);
         $this->MultiCell(130.0, 12.0, $flyer_data->getProductTraining()->getPlace(), 0, "L", false, 0, "", "", true, 0, false, true, 14.7, "T");
         // 住所
-        $this->lfText(57.7, 133.6, $flyer_data->getProductTraining()->getAddr01() . $flyer_data->getProductTraining()->getAddr02(), 20, 'B');
+        $this->lfText(57.7, 133.1, $flyer_data->getProductTraining()->getAddr01() . $flyer_data->getProductTraining()->getAddr02(), 20, '');
         $this->SetTextColor(33, 72, 53);
         // 講師
-        $this->lfText(34.8, 143.6, $flyer_data->getProductTraining()->getLecturer(), 17, 'B');
+        $this->lfText(34.0, 143.6, $flyer_data->getProductTraining()->getLecturer(), 17, '');
         // 受講料
-        $this->lfText(34.8, 185.4, ((0 <$flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax())?number_format($flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax()) . '円':"無料"), 13, 'B');
+        $this->lfText(34.0, 185.4, ((0 <$flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax())?number_format($flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax()) . '円':"無料"), 13, '');
         // 定員
         $ProductClasses = $flyer_data->getProductTraining()->getProduct()->getProductClasses();
-        if ($ProductClasses) {
-            if ($ProductClasses[0]->getStockUnlimited()) {
-                $ProductClass = $ProductClasses[0];
-            }
-        }
-        if ($ProductClass) {
-            $this->lfText(34.8, 192.8, $ProductClass->getStock() . '名', 13, 'B');
-        }
+        $this->lfText(34.0, 192.8, $ProductClasses[0]->getStock() . '名', 13, '');
         // 持ち物
-        $this->lfMultiText(34.8, 193.8, 88.0, 10.0, $flyer_data->getProductTraining()->getItem(), 13, 'B');
+        $this->lfMultiText(34.0, 193.8, 88.0, 10.0, $flyer_data->getProductTraining()->getItem(), 13, '');
         // 期限
         if (is_null($flyer_data->getProductTraining()->getAcceptLimitDate())) {
             $holidayRepository = new HolidayRepository();
@@ -161,25 +154,36 @@ class LectureFlyerPdfService extends AbstractFPDIService
         } else {
             $limit = $flyer_data->getProductTraining()->getAcceptLimitDate()->format('Y/m/d');
         }
-        $this->lfText(165.8, 252.0, date('n月j日(', strtotime($limit)) . $this->WeekDay[date('w', strtotime($limit))] . ")", 13, 'B');
+        $this->lfText(165.8, 252.0, date('n月j日(', strtotime($limit)) . $this->WeekDay[date('w', strtotime($limit))] . ")", 13, '');
+        // 協力
+        $collaborator = "";
+        if (!is_null($flyer_data->getProductTraining()->getCollaborators())) {
+            $collaborator = $flyer_data->getProductTraining()->getCollaborators();
+        }
+        if (strlen($collaborator) > 0) {
+            $bakFontStyle = $this->FontStyle;
+            $bakFontSize = $this->FontSizePt;
+            $this->SetFont('', "B", 15);
+            $this->SetXY(13.8, 206.0);
+            $line_height = $this->getStringHeight(35.0, "あ");
+            $this->MultiCell(110.0, $line_height, str_replace(" ", "\n", preg_replace('/\s(?=\s)/', '', str_replace("　", " ", $collaborator))), 0, 'L', false, 0,  "", "", true, 0, false, true, 35.0, "T");
+            $this->SetFont('', $bakFontStyle, $bakFontSize);
+        }
         // 受講料
         $this->SetTextColor(255, 255, 255);
-        $this->Rotate(-5.0, 156.2, 60.5);
-        $this->lfText(156.2, 60.5, "参加料", 28, 'B');
-        $this->Rotate(5.0, 156.2, 60.5);
+        $this->Rotate(-5.0, 155.4, 56.5);
+        $this->lfText(155.4, 56.5, "参加料", 28, 'B');
+        $this->Rotate(5.0, 155.4, 56.5);
         $this->Rotate(-5.0, 155.2, 69.2);
         $this->lfText(155.2, 69.2, ((0 <$flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax())?number_format($flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax()) . '円':"無料"), 24, 'B');
         $this->Rotate(5.0, 155.2, 69.2);
         // 定員
-        if ($ProductClass) {
-            $ProductClass = $ProductClasses[0];
-            $this->Rotate(-5.0, 169.0, 135.0);
-            $this->lfText(169.0, 135.0, '定員', 22, 'B');
-            $this->Rotate(5.0, 169.0, 135.0);
-            $this->Rotate(-5.0, 167.0, 143.8);
-            $this->lfText(167.0, 143.8, $ProductClass->getStock() . '人', 22, 'B');
-            $this->Rotate(5.0, 167.0, 143.8);
-        }
+        $this->Rotate(-5.0, 169.0, 135.0);
+        $this->lfText(169.0, 135.0, '定員', 22, 'B');
+        $this->Rotate(5.0, 169.0, 135.0);
+        $this->Rotate(-5.0, 167.0, 143.8);
+        $this->lfText(167.0, 143.8, $ProductClasses[0]->getStock() . '人', 22, 'B');
+        $this->Rotate(5.0, 167.0, 143.8);
 
         return true;
     }

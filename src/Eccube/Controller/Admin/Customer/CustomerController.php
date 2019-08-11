@@ -578,20 +578,13 @@ class CustomerController extends AbstractController
     {
         $to = 0;
         $existsId = 0;
-        $queryString = $request->getQueryString();
-        if (!empty($queryString)) {
-            // クエリーをparseする
-            parse_str($queryString, $ary);
-            foreach ($ary as $key => $val) {
-                // キーが一致
-                if (preg_match('/^to$/', $key)) {
-                    $to = $val;
-                } else if (preg_match('/^existsId$/', $key)) {
-                    $existsId = $val;
-                }
-            }
+        $requrest_all = $request->request->all();
+        if (isset($requrest_all['to'])) {
+            $to = $requrest_all['to'];
         }
-
+        if (isset($requrest_all['existsId'])) {
+            $existsId = $requrest_all['existsId'];
+        }
         // タイムアウトを無効にする.
         set_time_limit(0);
 

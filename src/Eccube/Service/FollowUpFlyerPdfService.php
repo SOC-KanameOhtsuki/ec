@@ -79,7 +79,7 @@ class FollowUpFlyerPdfService extends AbstractFPDIService
         parent::__construct();
 
         // Fontの設定しておかないと文字化けを起こす
-        $this->SetFont(self::FONT_SJIS);
+        $this->SetFont(self::FONT_GOTHIC);
 
         // PDFの余白(上左右)を設定
         $this->SetMargins(15, 20);
@@ -143,21 +143,18 @@ class FollowUpFlyerPdfService extends AbstractFPDIService
         $this->lfText(55.6, 76.5, $flyer_data->getProductTraining()->getTrainingDateStart()->format('Y年n月j日(') . $this->WeekDay[$flyer_data->getProductTraining()->getTrainingDateStart()->format('w')] . ')', 28, 'B');
         $this->lfText(143.0, 79.5, $flyer_data->getProductTraining()->getTrainingDateStart()->format('H:i～') . $flyer_data->getProductTraining()->getTrainingDateEnd()->format('H:i'), 20, 'B');
         // 場所
-        $this->lfText(55.6, 92.8, $flyer_data->getProductTraining()->getPlace(), 28, 'B');
+        $this->lfText(55.6, 92.8, $flyer_data->getProductTraining()->getPlace(), 28, '');
         // 住所
-        $this->lfText(55.6, 103.0, "(" . $flyer_data->getProductTraining()->getAddr01() . $flyer_data->getProductTraining()->getAddr02() . ")", 17, 'B');
+        $this->lfText(55.6, 103.0, "(" . $flyer_data->getProductTraining()->getAddr01() . $flyer_data->getProductTraining()->getAddr02() . ")", 17, '');
         // 内容
-        $this->lfMultiText(49.0, 113.5, 145.0, 20.0, str_replace("　", "", $flyer_data->getProductTraining()->getProduct()->getDescriptionDetail()), 17, 'B');
+        $this->lfMultiText(49.0, 113.5, 145.0, 20.0, str_replace("　", "", $flyer_data->getProductTraining()->getProduct()->getDescriptionDetail()), 17, '');
         // 受講料
-        $this->lfText(49.0, 139.1, ((0 < $flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax())?number_format($flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax()) . '円':"無料"), 17, 'B');
+        $this->lfText(49.0, 139.1, ((0 < $flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax())?number_format($flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax()) . '円':"無料"), 17, '');
         // 持ち物
-        $this->lfMultiText(49.0, 143.7, 146.0, 11.3, $flyer_data->getProductTraining()->getItem(), 17, 'B');
+        $this->lfMultiText(49.0, 143.7, 146.0, 11.3, $flyer_data->getProductTraining()->getItem(), 17, '');
         // 定員
         $ProductClasses = $flyer_data->getProductTraining()->getProduct()->getProductClasses();
-        $ProductClass = $ProductClasses[0];
-        if ($ProductClass->getStockUnlimited()) {
-            $this->lfText(49.0, 162.0, $ProductClass->getStock() . '名', 17, 'B');
-        }
+        $this->lfText(49.0, 162.0, $ProductClasses[0]->getStock() . '名', 17, '');
         // 期限
         if (is_null($flyer_data->getProductTraining()->getAcceptLimitDate())) {
             $limit = date('Y/m/d', strtotime($flyer_data->getProductTraining()->getTrainingDateStart()->format('Y/m/d') . " -24 day"));
@@ -170,11 +167,25 @@ class FollowUpFlyerPdfService extends AbstractFPDIService
         }
         $bakFontStyle = $this->FontStyle;
         $bakFontSize = $this->FontSizePt;
-        $this->SetFont('', "B", 17);
+        $this->SetFont('', "", 17);
         $this->SetXY(49.0, 167.0);
         $line_height = $this->getStringHeight(28.0, "あ");
         $this->MultiCell(28.0, $line_height, date('n月j日', strtotime($limit)) . $this->WeekDay[date('w', strtotime($limit))] . ")", 0, 'L', false, 0,  "", "", true, 0, false, true, $line_height, "T");
         $this->SetFont('', $bakFontStyle, $bakFontSize);
+        // 協力
+        $collaborator = "";
+        if (!is_null($flyer_data->getProductTraining()->getCollaborators())) {
+            $collaborator = $flyer_data->getProductTraining()->getCollaborators();
+        }
+        if (strlen($collaborator) > 0) {
+            $bakFontStyle = $this->FontStyle;
+            $bakFontSize = $this->FontSizePt;
+            $this->SetFont('', "B", 15);
+            $this->SetXY(21.8, 193.3);
+            $line_height = $this->getStringHeight(20.0, "あ");
+            $this->MultiCell(195.0, $line_height, str_replace(" ", "\n", preg_replace('/\s(?=\s)/', '', str_replace("　", " ", $collaborator))), 0, 'L', false, 0,  "", "", true, 0, false, true, 20.0, "T");
+            $this->SetFont('', $bakFontStyle, $bakFontSize);
+        }
 
         return true;
     }

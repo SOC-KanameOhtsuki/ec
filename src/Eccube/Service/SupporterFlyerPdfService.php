@@ -141,7 +141,7 @@ class SupporterFlyerPdfService extends AbstractFPDIService
         $this->SetXY(16.0, 102.4);
         $this->MultiCell(29.0, 8.7, $flyer_data->getProductTraining()->getAddr01(), 0, "C", false, 0, "", "", true, 0, false, true, 8.7, "M");
         $this->SetFont('', $bakFontStyle, $bakFontSize);
-        $this->SetTextColor(50, 50, 50);
+        $this->SetTextColor(43, 37, 40);
         // 講習会日
         $this->lfText(65.0, 96.0, $flyer_data->getProductTraining()->getTrainingDateStart()->format('n月j日(') . $this->WeekDay[$flyer_data->getProductTraining()->getTrainingDateStart()->format('w')] . ')', 18, 'B');
         $this->lfText(65.0, 104.8, $flyer_data->getProductTraining()->getTrainingDateStart()->format('H:i～') . $flyer_data->getProductTraining()->getTrainingDateEnd()->format('H:i'), 12, 'B');
@@ -150,19 +150,28 @@ class SupporterFlyerPdfService extends AbstractFPDIService
         // 住所
         $this->lfText(136.0, 104.8, $flyer_data->getProductTraining()->getPref()->getName() . $flyer_data->getProductTraining()->getAddr01() . $flyer_data->getProductTraining()->getAddr02(), 10, 'B');
         // 内容
-        $this->lfMultiText(34.8, 122.3, 88.0, 10.0, str_replace("　", "", $flyer_data->getProductTraining()->getProduct()->getDescriptionDetail()), 11, 'B');
+        $this->lfMultiText(35.4, 122.3, 92.0, 10.0, str_replace("　", "", $flyer_data->getProductTraining()->getProduct()->getDescriptionDetail()), 11, '');
         // 対象
-        $this->lfMultiText(34.8, 139.3, 88.0, 10.0, $flyer_data->getProductTraining()->getTarget(), 13, 'B');
+        $this->lfMultiText(35.4, 139.0, 92.0, 10.0, $flyer_data->getProductTraining()->getTarget(), 11, '');
         // 講師
-        $this->lfText(34.8, 162.2, $flyer_data->getProductTraining()->getLecturer(), 13, 'B');
+        $this->lfText(35.4, 162.0, $flyer_data->getProductTraining()->getLecturer(), 11, '');
         // 受講料
-        $this->lfText(34.8, 174.6, number_format($flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax()) . '円', 13, 'B');
+        $this->lfText(35.4, 174.3, (0<$flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax()?number_format($flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax()) . '円':'無料'), 11, '');
         // 持ち物
-        $this->lfMultiText(34.8, 197.5, 88.0, 10.0, $flyer_data->getProductTraining()->getItem(), 11, 'B');
+        $this->lfMultiText(35.4, 197.7, 92.0, 10.0, $flyer_data->getProductTraining()->getItem(), 11, '');
         // 定員
         $ProductClasses = $flyer_data->getProductTraining()->getProduct()->getProductClasses();
         $ProductClass = $ProductClasses[0];
-        $this->lfText(34.8, 216.2, $ProductClass->getStock() . '名', 13, 'B');
+        $this->lfText(35.4, 217.4, $ProductClass->getStock() . '名', 11, '');
+        // 協力
+        $collaborator = "";
+        if (!is_null($flyer_data->getProductTraining()->getCollaborators())) {
+            $collaborator = $flyer_data->getProductTraining()->getCollaborators();
+        }
+        if (strlen($collaborator) > 0) {
+            $this->lfText(13.3, 242.6, "【協　力】", 13, 'B');
+            $this->lfText(35.4, 242.6, $collaborator, 13, 'B');
+        }
 
         // テンプレートファイルを読み込む
         $pdfFile = $this->app['config']['pdf_template_supporter_flyer2'];

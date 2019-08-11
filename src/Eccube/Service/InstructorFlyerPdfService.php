@@ -159,13 +159,13 @@ class InstructorFlyerPdfService extends AbstractFPDIService
         // 住所
         $this->lfText(126.0, 102.3, $flyer_data->getProductTraining()->getPref()->getName() . $flyer_data->getProductTraining()->getAddr01() . $flyer_data->getProductTraining()->getAddr02(), 12, 'B');
         // 内容
-        $this->lfMultiText(31.0, 124.7, 88.0, 32.3, str_replace("　", "", $flyer_data->getProductTraining()->getProduct()->getDescriptionDetail()), 11, 'B');
+        $this->lfMultiText(30.8, 124.3, 92.0, 32.3, str_replace("　", "", $flyer_data->getProductTraining()->getProduct()->getDescriptionDetail()), 11, '');
         // 対象
-        $this->lfText(31.0, 160.5, $flyer_data->getProductTraining()->getTarget(), 13, 'B');
+        $this->lfText(30.8, 160.7, $flyer_data->getProductTraining()->getTarget(), 11, '');
         // 受講料
-        $this->lfText(31.0, 169.2, number_format($flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax()) . '円', 13, 'B');
+        $this->lfText(30.8, 169.4, (0<($flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax())?number_format($flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax()) . '円':'無料'), 11, '');
         // 持ち物
-        $this->lfMultiText(31.0, 193.5, 88.0, 10.4, $flyer_data->getProductTraining()->getItem(), 11, 'B');
+        $this->lfMultiText(30.8, 194.2, 92.0, 10.4, $flyer_data->getProductTraining()->getItem(), 11, '');
         // 期限
         if (is_null($flyer_data->getProductTraining()->getAcceptLimitDate())) {
             $limit = date('Y/m/d', strtotime($flyer_data->getProductTraining()->getTrainingDateStart()->format('Y/m/d') . " -24 day"));
@@ -180,7 +180,16 @@ class InstructorFlyerPdfService extends AbstractFPDIService
         // 定員
         $ProductClasses = $flyer_data->getProductTraining()->getProduct()->getProductClasses();
         $ProductClass = $ProductClasses[0];
-        $this->lfText(31.0, 211.0, '定員' . $ProductClass->getStock() . '名', 13, 'B');
+        $this->lfText(30.8, 211.5, '定員' . $ProductClass->getStock() . '名', 11, '');
+        // 協力
+        $collaborator = "";
+        if (!is_null($flyer_data->getProductTraining()->getCollaborators())) {
+            $collaborator = $flyer_data->getProductTraining()->getCollaborators();
+        }
+        if (strlen($collaborator) > 0) {
+            $this->lfText(9.7, 265.2, "【協　力】", 12, 'B');
+            $this->lfText(30.8, 264.9, $collaborator, 15, 'B');
+        }
 
         // テンプレートファイルを読み込む
         $pdfFile = $this->app['config']['pdf_template_instructor_flyer2'];
