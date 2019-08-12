@@ -1646,6 +1646,7 @@ class FormPrintingController extends AbstractController
             if ($isValid) {
                 // paginator
                 $qb = $app['eccube.repository.customer']->getQueryBuilderBySearchDataForDanation($searchData);
+                log_info("SQL:" . $qb->getQUery()->getSQL());
 
                 $page_no = 1;
                 $pagination = $app['paginator']()->paginate(
@@ -1803,9 +1804,6 @@ class FormPrintingController extends AbstractController
             // sessionに保持されている検索条件を復元.
             $searchData = \Eccube\Util\FormUtil::submitAndGetData($searchForm, $viewData);
         }
-        // サービスの取得
-        /* @var DonationListPdfService $service */
-        $service = $app['eccube.service.donation_list_pdf'];
 
         // 顧客情報取得
         $customers = $app['eccube.repository.customer']->getQueryBuilderBySearchDataForDanation($searchData)
@@ -1820,7 +1818,7 @@ class FormPrintingController extends AbstractController
 
         // サービスの取得
         /* @var DonationListPdfService $service */
-        $service = $app['eccube.service.donation_list'];
+        $service = $app['eccube.service.donation_list_pdf'];
 
         // 顧客情報から寄付名簿PDFを作成する
         $status = $service->makePdf($customers, $searchData, $TermInfo);
