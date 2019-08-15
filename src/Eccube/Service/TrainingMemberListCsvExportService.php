@@ -42,7 +42,7 @@ class TrainingMemberListCsvExportService extends CsvExportService
                     }
                     // Tel
                     if (strlen((is_null($AddresInfo->getTel01())?"":$AddresInfo->getTel01())) > 0 && strlen((is_null($AddresInfo->getTel02())?"":$AddresInfo->getTel02())) > 0 && strlen((is_null($AddresInfo->getTel03())?"":$AddresInfo->getTel03())) > 0) {
-                        $tel = $AddresInfo->getTel01() . "-" . $AddresInfo->getTel03() . "-" . $AddresInfo->getTel03();
+                        $tel = $AddresInfo->getTel01() . "-" . $AddresInfo->getTel02() . "-" . $AddresInfo->getTel03();
                     }
                     break;
                 }
