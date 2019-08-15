@@ -136,13 +136,13 @@ class RegistrationConfirmPdfService extends AbstractFPDIService
                     }
                     $home_zip_code = (is_null($AddresInfo->getZip01())?"":$AddresInfo->getZip01()) . (is_null($AddresInfo->getZip02())?"":$AddresInfo->getZip02());
                     if (!is_null($AddresInfo->getTel01()) && !is_null($AddresInfo->getTel02()) && !is_null($AddresInfo->getTel03())) {
-                        $home_tel = $customerData->getTel01() . "-" . $AddresInfo->getTel02() . "-" . $AddresInfo->getTel03();
+                        $home_tel = $AddresInfo->getTel01() . "-" . $AddresInfo->getTel02() . "-" . $AddresInfo->getTel03();
                     }
                     if (!is_null($AddresInfo->getFax01()) && !is_null($AddresInfo->getFax02()) && !is_null($AddresInfo->getFax03())) {
-                        $home_fax = $customerData->getFax01() . "-" . $AddresInfo->getFax02() . "-" . $AddresInfo->getFax03();
+                        $home_fax = $AddresInfo->getFax01() . "-" . $AddresInfo->getFax02() . "-" . $AddresInfo->getFax03();
                     }
                     if (!is_null($AddresInfo->getMobilephone01()) && !is_null($AddresInfo->getMobilephone02()) && !is_null($AddresInfo->getMobilephone03())) {
-                        $home_mobile_phone = $customerData->getMobilephone01() . "-" . $AddresInfo->getMobilephone02() . "-" . $AddresInfo->getMobilephone03();
+                        $home_mobile_phone = $AddresInfo->getMobilephone01() . "-" . $AddresInfo->getMobilephone02() . "-" . $AddresInfo->getMobilephone03();
                     }
                     if (!is_null($AddresInfo->getEmail())) {
                         $mail_address = $AddresInfo->getEmail();
@@ -153,10 +153,10 @@ class RegistrationConfirmPdfService extends AbstractFPDIService
                     }
                     $company_zip_code = (is_null($AddresInfo->getZip01())?"":$AddresInfo->getZip01()) . (is_null($AddresInfo->getZip02())?"":$AddresInfo->getZip02());
                     if (!is_null($AddresInfo->getTel01()) && !is_null($AddresInfo->getTel02()) && !is_null($AddresInfo->getTel03())) {
-                        $company_tel = $customerData->getTel01() . "-" . $AddresInfo->getTel02() . "-" . $AddresInfo->getTel03();
+                        $company_tel = $AddresInfo->getTel01() . "-" . $AddresInfo->getTel02() . "-" . $AddresInfo->getTel03();
                     }
                     if (!is_null($AddresInfo->getFax01()) && !is_null($AddresInfo->getFax02()) && !is_null($AddresInfo->getFax03())) {
-                        $company_fax = $customerData->getFax01() . "-" . $AddresInfo->getFax02() . "-" . $AddresInfo->getFax03();
+                        $company_fax = $AddresInfo->getFax01() . "-" . $AddresInfo->getFax02() . "-" . $AddresInfo->getFax03();
                     }
                     if (($anonymousCompanyEnabled) && strlen((is_null($AddresInfo->getName01())?"":$AddresInfo->getName01())) > 0 ) {
                         $company = $AddresInfo->getName01();
@@ -169,20 +169,20 @@ class RegistrationConfirmPdfService extends AbstractFPDIService
             if (($anonymousCompanyEnabled) && (strlen($company) < 1)) {
                 $company = $customerData->getCompanyName();
             }
-            if ((strlen($home_addr) < 1) && strlen((is_null($AddresInfo->getPref())?"":$AddresInfo->getPref())) > 0 && strlen((is_null($AddresInfo->getAddr01())?"":$AddresInfo->getAddr01())) > 0  && strlen((is_null($AddresInfo->getAddr02())?"":$AddresInfo->getAddr02())) > 0 ) {
-                $home_addr = (is_null($AddresInfo->getPref())?"":$AddresInfo->getPref()->getName()) . (is_null($AddresInfo->getAddr01())?"":$AddresInfo->getAddr01()) . (is_null($AddresInfo->getAddr02())?"":$AddresInfo->getAddr02());
+            if ((strlen($home_addr) < 1) && strlen((is_null($customerData->getPref())?"":$customerData->getPref())) > 0 && strlen((is_null($customerData->getAddr01())?"":$customerData->getAddr01())) > 0  && strlen((is_null($customerData->getAddr02())?"":$customerData->getAddr02())) > 0 ) {
+                $home_addr = (is_null($customerData->getPref())?"":$customerData->getPref()->getName()) . (is_null($customerData->getAddr01())?"":$customerData->getAddr01()) . (is_null($customerData->getAddr02())?"":$customerData->getAddr02());
             }
             if (strlen($home_zip_code) < 1) {
                 $home_zip_code = (is_null($customerData->getZip01())?"":$customerData->getZip01()) . (is_null($customerData->getZip02())?"":$customerData->getZip02());
             }
-            if ((strlen($home_tel) < 1) && !is_null($AddresInfo->getTel01()) && !is_null($AddresInfo->getTel02()) && !is_null($AddresInfo->getTel03())) {
-                $home_tel = $customerData->getTel01() . "-" . $AddresInfo->getTel02() . "-" . $AddresInfo->getTel03();
+            if ((strlen($home_tel) < 1) && !is_null($customerData->getTel01()) && !is_null($customerData->getTel02()) && !is_null($customerData->getTel03())) {
+                $home_tel = $customerData->getTel01() . "-" . $customerData->getTel02() . "-" . $customerData->getTel03();
             }
-            if ((strlen($home_fax) < 1) && !is_null($AddresInfo->getFax01()) && !is_null($AddresInfo->getFax02()) && !is_null($AddresInfo->getFax03())) {
-                $home_fax = $customerData->getFax01() . "-" . $AddresInfo->getFax02() . "-" . $AddresInfo->getFax03();
+            if ((strlen($home_fax) < 1) && !is_null($customerData->getFax01()) && !is_null($customerData->getFax02()) && !is_null($customerData->getFax03())) {
+                $home_fax = $customerData->getFax01() . "-" . $customerData->getFax02() . "-" . $customerData->getFax03();
             }
-            if ((strlen($home_mobile_phone) < 1) && !is_null($AddresInfo->getMobilephone01()) && !is_null($AddresInfo->getMobilephone02()) && !is_null($AddresInfo->getMobilephone03())) {
-                $home_mobile_phone = $customerData->getMobilephone01() . "-" . $AddresInfo->getMobilephone02() . "-" . $AddresInfo->getMobilephone03();
+            if ((strlen($home_mobile_phone) < 1) && !is_null($customerData->getMobilephone01()) && !is_null($customerData->getMobilephone02()) && !is_null($customerData->getMobilephone03())) {
+                $home_mobile_phone = $customerData->getMobilephone01() . "-" . $customerData->getMobilephone02() . "-" . $customerData->getMobilephone03();
             }
             if ((strlen($mail_address) < 1) && (!is_null($customerData->getEmail()))) {
                 $mail_address = $customerData->getEmail();
