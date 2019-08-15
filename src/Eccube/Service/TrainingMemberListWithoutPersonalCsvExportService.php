@@ -32,6 +32,16 @@ class TrainingMemberListWithoutPersonalCsvExportService extends CsvExportService
         $no = 1;
         $nowDateTime = new \DateTime();
         foreach ($customerDatas as $customerData) {
+            $addr = '';
+            foreach ($customerData->getCustomerAddresses() as $AddresInfo) {
+                if ($AddresInfo->getMailTo()->getId() == 2) {
+                    // 住所
+                    if (strlen((is_null($AddresInfo->getPref())?"":$AddresInfo->getPref())) > 0 && strlen((is_null($AddresInfo->getAddr01())?"":$AddresInfo->getAddr01())) > 0) {
+                        $addr = (is_null($AddresInfo->getPref())?"":$AddresInfo->getPref()->getName()) . (is_null($AddresInfo->getAddr01())?"":$AddresInfo->getAddr01());
+                    }
+                    break;
+                }
+            }
             $row = array();
             // No
             $row[] = $no;
@@ -44,7 +54,7 @@ class TrainingMemberListWithoutPersonalCsvExportService extends CsvExportService
             // 氏名
             $row[] = ((is_null($customerData->getName01())?'':$customerData->getName01() . ' ') . (is_null($customerData->getName02())?'':$customerData->getName02()));
             // 住所
-            $row[] = ((is_null($customerData->getPref())?'':$customerData->getPref()->getName()) . (is_null($customerData->getAddr01())?'':$customerData->getAddr01()));
+            $row[] = $addr;
             // 所属先
             $row[] = (is_null($customerData->getCompanyName())?'':$customerData->getCompanyName());
             // 資格

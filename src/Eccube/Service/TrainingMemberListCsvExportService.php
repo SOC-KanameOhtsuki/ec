@@ -32,6 +32,21 @@ class TrainingMemberListCsvExportService extends CsvExportService
         $no = 1;
         $nowDateTime = new \DateTime();
         foreach ($customerDatas as $customerData) {
+            $addr = '';
+            $tel = '';
+            foreach ($customerData->getCustomerAddresses() as $AddresInfo) {
+                if ($AddresInfo->getMailTo()->getId() == 2) {
+                    // 住所
+                    if (strlen((is_null($AddresInfo->getPref())?"":$AddresInfo->getPref())) > 0 && strlen((is_null($AddresInfo->getAddr01())?"":$AddresInfo->getAddr01())) > 0) {
+                        $addr = (is_null($AddresInfo->getPref())?"":$AddresInfo->getPref()->getName()) . (is_null($AddresInfo->getAddr01())?"":$AddresInfo->getAddr01());
+                    }
+                    // Tel
+                    if (strlen((is_null($AddresInfo->getTel01())?"":$AddresInfo->getTel01())) > 0 && strlen((is_null($AddresInfo->getTel02())?"":$AddresInfo->getTel02())) > 0 && strlen((is_null($AddresInfo->getTel03())?"":$AddresInfo->getTel03())) > 0) {
+                        $tel = $AddresInfo->getTel01() . "-" . $AddresInfo->getTel03() . "-" . $AddresInfo->getTel03();
+                    }
+                    break;
+                }
+            }
             $row = array();
             // No
             $row[] = $no;
@@ -44,7 +59,7 @@ class TrainingMemberListCsvExportService extends CsvExportService
             // 氏名
             $row[] = ((is_null($customerData->getName01())?'':$customerData->getName01() . ' ') . (is_null($customerData->getName02())?'':$customerData->getName02()));
             // 住所
-            $row[] = ((is_null($customerData->getPref())?'':$customerData->getPref()->getName()) . (is_null($customerData->getAddr01())?'':$customerData->getAddr01()));
+            $row[] = $addr;
             // 所属先
             $row[] = (is_null($customerData->getCompanyName())?'':$customerData->getCompanyName());
             // 資格
@@ -77,7 +92,7 @@ class TrainingMemberListCsvExportService extends CsvExportService
                 $row[] = '';
             }
             // TEL
-            $row[] = $customerData->getTelNubmerAll();
+            $row[] = $tel;
             $this->fputcsv($row);
             ++$no;
         }
