@@ -315,7 +315,7 @@ default_membership: 2000
 initialize_customer_basicinfo_status: 4
 initialize_exemption_type: 1
 initialize_supporter_type: 1
-initialize_instructor_type: 6
+initialize_instructor_type: 5
 paying_slip_csv_manufacturer_code: 550056
 paying_slip_csv_company_code: 26552
 paying_slip_csv_shop_code: 

@@ -255,6 +255,24 @@ $(function() {
                                         </div><!-- /.row -->
 
                                         <div class="row">
+                                            <div id="search_box__pref" class="col-md-6">
+                                                <label>都道府県</label>
+                                                <div class="form-pref">
+                                                    {{ form_widget(searchForm.pref) }}
+                                                </div>
+                                            </div>
+                                        </div><!-- /.row -->
+
+                                        <div class="row">
+                                            <div id="search_box__address" class="col-md-6">
+                                                <label>地域</label>
+                                                <div class="form-address">
+                                                    {{ form_widget(searchForm.address) }}
+                                                </div>
+                                            </div>
+                                        </div><!-- /.row -->
+
+                                        <div class="row">
                                             <div id="search_box__create_date" class="col-sm-6">
                                                 <label>講習会日</label>
                                                 <div class="form-group range">
@@ -284,19 +302,6 @@ $(function() {
                                                 <div class="form-group range">
                                                     {{ form_widget(searchForm.update_date_start, {'attr': {'class': 'input_cal'}}) }} ～ {{ form_widget(searchForm.update_date_end, {'attr': {'class': 'input_cal'}}) }}
                                                 </div>
-                                            </div>
-                                            <div class="extra-form col-md-12">
-                                                {% for f in searchForm.getIterator %}
-                                                    {% if f.vars.name matches '[^plg*]' %}
-                                                        <div class="form-group">
-                                                            {{ form_label(f) }}
-                                                            {{ form_widget(f) }}
-                                                            {{ form_errors(f) }}
-                                                        </div>
-                                                    {% endif %}
-                                                {% endfor %}
-                                            <div class="col-sm-6">
-                                                {{ form_rest(searchForm) }}
                                             </div>
                                         </div><!-- /.row -->
                                         <div id="search_box_inner__footer" class="row">

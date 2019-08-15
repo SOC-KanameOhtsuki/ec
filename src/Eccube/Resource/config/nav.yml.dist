@@ -52,7 +52,7 @@
             - id: order_membership_order_regist
               name: 年会費一括受注
               url: admin_membership_order_regist
-- id: customer_group
+- id: customer
   name: 会員管理
   has_child: true
   icon: cb-users
@@ -69,7 +69,7 @@
       - id: customer_out_regular_member_list
         name: 正会員一覧出力
         url: admin_customer_out_regular_member_list
-- id: customer
+- id: customer_group
   name: 会員グループ管理
   has_child: true
   icon: cb-groups

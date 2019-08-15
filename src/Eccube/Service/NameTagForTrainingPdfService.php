@@ -139,9 +139,14 @@ class NameTagForTrainingPdfService extends AbstractFPDIService
                     // 受講日
                     $this->lfText(41.9, 24.2, $product->getProductTraining()->getTrainingDateStart()->format('Y年m月d日'), 11);
                     // 講習会名
+                    $font_size = 11;
                     $this->SetFont('', '', 11);
+                    while (7.0 < $this->getStringHeight(70.4, $product->getProductTraining()->getTrainingType()->getName())) {
+                        --$font_size;
+                        $this->SetFont('', '', $font_size);
+                    }
                     $this->SetXY(23.1, 40.4);
-                    $this->MultiCell(70.4, 7.0, $product->getProductTraining()->getTrainingType()->getName(), 0, "C", false, 0, "", "", true, 0, false, true, 7.0, "T");
+                    $this->MultiCell(70.4, 7.0, $product->getProductTraining()->getTrainingType()->getName(), 0, "C", false, 0, "", "", true, 0, false, true, 7.0, "M");
                     $this->SetFont('', $bakFontStyle, $bakFontSize);
                 }
             }

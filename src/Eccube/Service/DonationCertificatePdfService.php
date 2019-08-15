@@ -58,9 +58,6 @@ class DonationCertificatePdfService extends AbstractFPDIService
     /** ダウンロードファイル名 @var string */
     private $downloadFileName = null;
 
-    /** 発行日 @var string */
-    private $issueDate = '';
-
     /** 最大ページ @var string */
     private $pageMax = '';
 
@@ -105,6 +102,7 @@ class DonationCertificatePdfService extends AbstractFPDIService
             return false;
         }
         $getDonationDetailSql = 'SELECT';
+        $getDonationDetailSql .= ' dtb_order.order_id AS order_id,';
         $getDonationDetailSql .= ' dtb_order.customer_id AS customer_id,';
         $getDonationDetailSql .= ' dtb_order_detail.price AS price,';
         $getDonationDetailSql .= ' dtb_order.payment_date AS payment_date';
@@ -117,15 +115,13 @@ class DonationCertificatePdfService extends AbstractFPDIService
         $getDonationDetailSql .= " AND dtb_order.payment_date >= '" . $searchData['target_year'] . "-01-01 00:00:00'";
         $getDonationDetailSql .= " AND dtb_order.payment_date <= '" . $searchData['target_year'] . "-12-31 23:59:59';";
         $donationDetailDatas = array();
-        $donationDetails = $this->em->getConnection()->fetchAll($getDonationDetailSql);
+        $donationDetails = $this->app['orm.em']->getConnection()->fetchAll($getDonationDetailSql);
         foreach ($donationDetails as $donationDetail) {
             if (!isset($donationDetailDatas[$donationDetail['customer_id']])) {
                 $donationDetailDatas[$donationDetail['customer_id']] = array();
             }
             $donationDetailDatas[$donationDetail['customer_id']][] = $donationDetail;
         }
-        // 発行日の設定
-        $this->issueDate = '作成日: ' . date('Y年m月d日');
         // ダウンロードファイル名の初期化
         $this->downloadFileName = null;
 
@@ -136,17 +132,16 @@ class DonationCertificatePdfService extends AbstractFPDIService
         $BaseInfo = $this->app['eccube.repository.base_info']->get();
 
         // PDFにページを追加する
-        $this->addPdfPage();
-/*
         $this->SetFont(self::FONT_GOTHIC);
         $this->SetTextColor(53, 53, 53);
         foreach ($customersData as $customerData) {
             $zip_code = '';
             $addr = '';
+            $homeaddr = '';
             $company = '';
             $name = '';
             foreach ($customerData->getCustomerAddresses() as $AddresInfo) {
-                if ($AddresInfo->getAddressType()->getId() == $to) {
+                if ($AddresInfo->getMailTo()->getId() == 2) {
                     // 郵便番号
                     $zip_code = "〒" . (is_null($AddresInfo->getZip01())?"":$AddresInfo->getZip01() . (is_null($AddresInfo->getZip02())?'':'-')) . (is_null($AddresInfo->getZip02())?"":$AddresInfo->getZip02());
                     // 住所
@@ -181,115 +176,161 @@ class DonationCertificatePdfService extends AbstractFPDIService
                     $name = $customerData->getName01() . " " . $customerData->getName02() . ' 様';
                 }
             }
+            $mainaddr = (is_null($customerData->getPref())?"":$customerData->getPref()->getName()) . (is_null($customerData->getAddr01())?"":$customerData->getAddr01()) . (is_null($customerData->getAddr02())?"":$customerData->getAddr02());
+            $mainname = $customerData->getName01() . " " . $customerData->getName02() . ' 様';
             // 会員名&勤務先
             if ((strlen($name) > 0) && (strlen($company) > 0)) {
+                $bakFontStyle = $this->FontStyle;
+                $bakFontSize = $this->FontSizePt;
                 foreach($donationDetailDatas[$customerData->getId()] as $donationDetail) {
                     // PDFにページを追加する
                     $this->addPdfPage();
-                    // 寄付金
-                    $row[] = $donationDetail['payment_date'];
-                    // 受領年月日
-                    $row[] = $donationDetail['price'];
                     // 郵便番号
-                    $this->lfText(26.2, 26.0, $zip_code, 11, 'B');
-                    $current_row = 26.0;
+                    $this->lfText(26.2, 20.5, $zip_code, 11, '');
+                    $current_row = 24.0;
                     // 住所
                     if (strlen($addr) > 0) {
-                        $bakFontStyle = $this->FontStyle;
-                        $bakFontSize = $this->FontSizePt;
-                        $this->SetFont('', 'B', 9);
+                        $this->SetFont('', '', 11);
                         $min_height = $this->getStringHeight(70.0, "北") + 0.3;
                         $height = $this->getStringHeight(70.0, $addr) + 0.3;
                         $this->SetXY(26.2, $current_row);
                         $this->MultiCell(70.0, $min_height, $addr, 0, "L", false, 0, "", "", true, 0, false, true, $height, "M");
-                        $this->SetFont('', $bakFontStyle, $bakFontSize);
-                        $current_row += $height;
+                        $current_row += 7.0;
                     }
-                    $bakFontStyle = $this->FontStyle;
-                    $bakFontSize = $this->FontSizePt;
-                    $this->SetFont('', 'B', 9);
+                    $this->SetFont('', '', 11);
                     $min_height = $this->getStringHeight(70.0, "会") + 0.3;
                     $height = $this->getStringHeight(70.0, "会") + 0.3;
                     $this->SetXY(26.2, $current_row);
-                    $current_row += $height;
+                    $current_row += 7.0;
                     $this->MultiCell(70.0, $min_height, $company, 0, "L", false, 0, "", "", true, 0, false, true, $height, "M");
-                    $this->SetFont('', 'B', 14);
+                    $this->SetFont('', '', 11);
                     $min_height = $this->getStringHeight(70.0, "あ") + 0.3;
                     $height = $this->getStringHeight(70.0, "あ") + 0.3;
                     $this->SetXY(26.2, $current_row);
-                    $current_row += $height;
+                    $current_row += 7.0;
                     $this->MultiCell(70.0, $min_height, $name, 0, "L", false, 0, "", "", true, 0, false, true, $height, "M");
-                    $this->SetFont('', $bakFontStyle, $bakFontSize);
+                    // 受注ID
+                    $this->SetFont('', '', 11);
+                    $this->SetXY(180.1, 117.8);
+                    $this->MultiCell(23.0, 6.0, $donationDetail['order_id'], 0, "L", false, 0, "", "", true, 0, false, true, 6.0, "T");
+                    // 会員住所
+                    $this->SetFont('', '', 11);
+                    $this->SetXY(65.3, 138.6);
+                    $this->MultiCell(130.0, 5.0, $mainaddr, 0, "L", false, 0, "", "", true, 0, false, true, 5, "T");
+                    // 会員氏名
+                    $this->SetFont('', '', 11);
+                    $this->SetXY(65.3, 145.8);
+                    $this->MultiCell(130.0, 5.0, $mainname, 0, "L", false, 0, "", "", true, 0, false, true, 5, "T");
+                    // 金額
+                    $this->SetFont('', '', 11);
+                    $this->SetXY(59.7, 152.8);
+                    $this->MultiCell(50.0, 5.0, $donationDetail['price'], 0, "L", false, 0, "", "", true, 0, false, true, 5, "T");
+                    // 受領年月日
+                    $this->SetFont('', '', 11);
+                    $this->SetXY(55.0, 173.5);
+                    $this->MultiCell(50.0, 5.0, date('Y年n月j日', strtotime($donationDetail['payment_date'])), 0, "L", false, 0, "", "", true, 0, false, true, 5, "T");
+                    // 認定年
+                    $this->lfText(135.9, 199.0, $searchData['target_year'] . "年12月28日", 11, '');
                 }
+                $this->SetFont('', $bakFontStyle, $bakFontSize);
             } else if (strlen($company) > 0) {
+                $bakFontStyle = $this->FontStyle;
+                $bakFontSize = $this->FontSizePt;
                 foreach($donationDetailDatas[$customerData->getId()] as $donationDetail) {
                     // PDFにページを追加する
                     $this->addPdfPage();
-                    // 寄付金
-                    $row[] = $donationDetail['payment_date'];
-                    // 受領年月日
-                    $row[] = $donationDetail['price'];
                     // 郵便番号
-                    $this->lfText(26.2, 26.0, $zip_code, 11, 'B');
-                    $current_row = 26.0;
+                    $this->lfText(26.2, 20.5, $zip_code, 11, '');
+                    $current_row = 24.0;
                     // 住所
                     if (strlen($addr) > 0) {
-                        $bakFontStyle = $this->FontStyle;
-                        $bakFontSize = $this->FontSizePt;
-                        $this->SetFont('', 'B', 9);
+                        $this->SetFont('', '', 11);
                         $min_height = $this->getStringHeight(70.0, "北") + 0.3;
                         $height = $this->getStringHeight(70.0, $addr) + 0.3;
                         $this->SetXY(26.2, $current_row);
                         $this->MultiCell(70.0, $min_height, $addr, 0, "L", false, 0, "", "", true, 0, false, true, $height, "M");
-                        $this->SetFont('', $bakFontStyle, $bakFontSize);
-                        $current_row += $height;
+                        $current_row += 7.0;
                     }
-                    $bakFontStyle = $this->FontStyle;
-                    $bakFontSize = $this->FontSizePt;
-                    $this->SetFont('', 'B', 14);
+                    $this->SetFont('', '', 11);
                     $min_height = $this->getStringHeight(70.0, "会") + 0.3;
                     $height = $this->getStringHeight(70.0, "会") + 0.3;
                     $this->SetXY(26.2, $current_row);
-                    $current_row += $height;
+                    $current_row += 7.0;
                     $this->MultiCell(70.0, $min_height, $company, 0, "L", false, 0, "", "", true, 0, false, true, $height, "M");
-                    $this->SetFont('', $bakFontStyle, $bakFontSize);
+                    // 受注ID
+                    $this->SetFont('', '', 11);
+                    $this->SetXY(180.1, 117.8);
+                    $this->MultiCell(23.0, 6.0, $donationDetail['order_id'], 0, "L", false, 0, "", "", true, 0, false, true, 6.0, "T");
+                    // 会員住所
+                    $this->SetFont('', '', 11);
+                    $this->SetXY(65.3, 138.6);
+                    $this->MultiCell(130.0, 5.0, $mainaddr, 0, "L", false, 0, "", "", true, 0, false, true, 5, "T");
+                    // 会員氏名
+                    $this->SetFont('', '', 11);
+                    $this->SetXY(65.3, 145.8);
+                    $this->MultiCell(130.0, 5.0, $mainname, 0, "L", false, 0, "", "", true, 0, false, true, 5, "T");
+                    // 金額
+                    $this->SetFont('', '', 11);
+                    $this->SetXY(59.7, 152.8);
+                    $this->MultiCell(50.0, 5.0, $donationDetail['price'], 0, "L", false, 0, "", "", true, 0, false, true, 5, "T");
+                    // 受領年月日
+                    $this->SetFont('', '', 11);
+                    $this->SetXY(55.0, 173.5);
+                    $this->MultiCell(50.0, 5.0, date('Y年n月j日', strtotime($donationDetail['payment_date'])), 0, "L", false, 0, "", "", true, 0, false, true, 5, "T");
+                    // 認定年
+                    $this->lfText(135.9, 199.0, $searchData['target_year'] . "年12月28日", 11, '');
                 }
+                $this->SetFont('', $bakFontStyle, $bakFontSize);
             } else if (strlen($name) > 0) {
+                $bakFontStyle = $this->FontStyle;
+                $bakFontSize = $this->FontSizePt;
                 foreach($donationDetailDatas[$customerData->getId()] as $donationDetail) {
                     // PDFにページを追加する
                     $this->addPdfPage();
-                    // 寄付金
-                    $row[] = $donationDetail['payment_date'];
-                    // 受領年月日
-                    $row[] = $donationDetail['price'];
                     // 郵便番号
-                    $this->lfText(26.2, 26.0, $zip_code, 11, 'B');
-                    $current_row = 26.0;
+                    $this->lfText(26.2, 20.5, $zip_code, 11, '');
+                    $current_row = 24.0;
                     // 住所
                     if (strlen($addr) > 0) {
-                        $bakFontStyle = $this->FontStyle;
-                        $bakFontSize = $this->FontSizePt;
-                        $this->SetFont('', 'B', 9);
+                        $this->SetFont('', '', 11);
                         $min_height = $this->getStringHeight(70.0, "北") + 0.3;
                         $height = $this->getStringHeight(70.0, $addr) + 0.3;
                         $this->SetXY(26.2, $current_row);
                         $this->MultiCell(70.0, $min_height, $addr, 0, "L", false, 0, "", "", true, 0, false, true, $height, "M");
-                        $this->SetFont('', $bakFontStyle, $bakFontSize);
-                        $current_row += $height;
+                        $current_row += 7.0;
                     }
-                    $bakFontStyle = $this->FontStyle;
-                    $bakFontSize = $this->FontSizePt;
-                    $this->SetFont('', 'B', 14);
+                    $this->SetFont('', '', 11);
                     $min_height = $this->getStringHeight(70.0, "あ") + 0.3;
                     $height = $this->getStringHeight(70.0, "あ") + 0.3;
                     $this->SetXY(26.2, $current_row);
-                    $current_row += $height;
+                    $current_row += 7.0;
                     $this->MultiCell(70.0, $min_height, $name, 0, "L", false, 0, "", "", true, 0, false, true, $height, "M");
-                    $this->SetFont('', $bakFontStyle, $bakFontSize);
+                    // 受注ID
+                    $this->SetFont('', '', 11);
+                    $this->SetXY(180.1, 117.8);
+                    $this->MultiCell(23.0, 6.0, $donationDetail['order_id'], 0, "L", false, 0, "", "", true, 0, false, true, 6.0, "T");
+                    // 会員住所
+                    $this->SetFont('', '', 11);
+                    $this->SetXY(65.3, 138.6);
+                    $this->MultiCell(130.0, 5.0, $mainaddr, 0, "L", false, 0, "", "", true, 0, false, true, 5, "T");
+                    // 会員氏名
+                    $this->SetFont('', '', 11);
+                    $this->SetXY(65.3, 145.8);
+                    $this->MultiCell(130.0, 5.0, $mainname, 0, "L", false, 0, "", "", true, 0, false, true, 5, "T");
+                    // 金額
+                    $this->SetFont('', '', 11);
+                    $this->SetXY(59.7, 152.8);
+                    $this->MultiCell(50.0, 5.0, $donationDetail['price'], 0, "L", false, 0, "", "", true, 0, false, true, 5, "T");
+                    // 受領年月日
+                    $this->SetFont('', '', 11.5);
+                    $this->SetXY(55.0, 173.5);
+                    $this->MultiCell(50.0, 5.0, date('Y年n月j日', strtotime($donationDetail['payment_date'])), 0, "L", false, 0, "", "", true, 0, false, true, 5, "T");
+                    // 認定年
+                    $this->lfText(135.9, 199.0, $searchData['target_year'] . "年12月28日", 11, '');
                 }
+                $this->SetFont('', $bakFontStyle, $bakFontSize);
             }
         }
-*/
         return true;
     }
 
@@ -323,7 +364,6 @@ class DonationCertificatePdfService extends AbstractFPDIService
      */
     public function Footer()
     {
-        $this->Cell(0, 0, $this->issueDate, 0, 0, 'R');
     }
 
     /**

@@ -252,6 +252,13 @@ class SearchCustomerType extends AbstractType
                     new Assert\Length(array('max' => $config['stext_len'])),
                 ),
             ))
+            ->add('customer_group_kana', 'text', array(
+                'label' => '会員グループカナ',
+                'required' => false,
+                'constraints' => array(
+                    new Assert\Length(array('max' => $config['stext_len'])),
+                ),
+            ))
             ->add('customer_basicinfo_status', 'choice', array(
                 'label' => '会員ステータス',
                 'required' => false,

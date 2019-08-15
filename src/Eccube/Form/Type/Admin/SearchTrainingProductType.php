@@ -51,12 +51,16 @@ class SearchTrainingProductType extends AbstractType
                 'label' => '商品名(講習会名)',
                 'required' => false,
             ))
-            ->add('place', 'date', array(
+            ->add('place', 'text', array(
                 'label' => '会場名',
                 'required' => false,
             ))
             ->add('pref', 'pref', array(
                 'label' => '都道府県',
+                'required' => false,
+            ))
+            ->add('address', 'text', array(
+                'label' => '地域',
                 'required' => false,
             ))
             ->add('training_date_from', 'date', array(

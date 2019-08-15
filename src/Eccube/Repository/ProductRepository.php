@@ -371,8 +371,7 @@ class ProductRepository extends EntityRepository
             //スペース除去
             $clean_key_multi = preg_replace('/\s+|[　]+/u', '', $searchData['multi']);
             $id = preg_match('/^\d+$/', $clean_key_multi) ? $clean_key_multi : null;
-            $qb
-                ->andWhere('p.id = :product_id OR p.name LIKE :name OR pt.place LIKE :place')
+            $qb->andWhere('p.id = :product_id OR p.name LIKE :name OR pt.place LIKE :place')
                 ->setParameter('product_id', $id)
                 ->setParameter('name', '%' . $clean_key_multi . '%')
                 ->setParameter('place', '%' . $clean_key_multi . '%');
@@ -381,8 +380,7 @@ class ProductRepository extends EntityRepository
         // id
         if (isset($searchData['id']) && Str::isNotBlank($searchData['id'])) {
             $id = preg_match('/^\d+$/', $searchData['id']) ? $searchData['id'] : null;
-            $qb
-                ->andWhere('p.id = :id OR p.name LIKE :likeid OR pc.code LIKE :likeid')
+            $qb->andWhere('p.id = :id OR p.name LIKE :likeid OR pc.code LIKE :likeid')
                 ->setParameter('id', $id)
                 ->setParameter('likeid', '%' . $searchData['id'] . '%');
         }
@@ -391,16 +389,14 @@ class ProductRepository extends EntityRepository
         if (!empty($searchData['name']) && $searchData['name']) {
             $keywords = preg_split('/[\s　]+/u', $searchData['name'], -1, PREG_SPLIT_NO_EMPTY);
             foreach ($keywords as $keyword) {
-                $qb
-                    ->andWhere('p.name LIKE :name')
+                $qb->andWhere('p.name LIKE :name')
                     ->setParameter('name', '%' . $keyword . '%');
             }
         }
 
         // Training Type
         if (!empty($searchData['training_type']) && $searchData['training_type']) {
-            $qb
-                ->andWhere('tt.id = :trainingType')
+            $qb->andWhere('tt.id = :trainingType')
                 ->setParameter('trainingType', $searchData['training_type']);
         }
 
@@ -408,25 +404,27 @@ class ProductRepository extends EntityRepository
         if (!empty($searchData['place']) && $searchData['place']) {
             $keywords = preg_split('/[\s　]+/u', $searchData['place'], -1, PREG_SPLIT_NO_EMPTY);
             foreach ($keywords as $keyword) {
-                $qb
-                    ->andWhere('pt.place LIKE :place')
+                $qb->andWhere('pt.place LIKE :place')
                     ->setParameter('place', '%' . $keyword . '%');
             }
         }
 
         // Pref
         if (!empty($searchData['pref']) && $searchData['pref']) {
-            $qb
-                ->andWhere('pt.Pref = :pref')
+            $qb->andWhere('pt.Pref = :pref')
                 ->setParameter('pref', $searchData['pref']->getId());
+        }
+
+        // Address
+        if (!empty($searchData['address']) && $searchData['address']) {
+            $qb->andWhere("pt.addr01 LIKE '%" . $searchData['address'] . "%'");
         }
 
         // training_date
         if (!empty($searchData['training_date_from']) && $searchData['training_date_from']) {
             $date = $searchData['training_date_from']
                 ->format('Y-m-d H:i:s');
-            $qb
-                ->andWhere('pt.training_date_start >= :training_date_from')
+            $qb->andWhere('pt.training_date_start >= :training_date_from')
                 ->setParameter('training_date_from', $date);
         }
 
@@ -434,29 +432,25 @@ class ProductRepository extends EntityRepository
             $date = clone $searchData['training_date_to'];
             $date = $date
                 ->format('Y-m-d H:i:s');
-            $qb
-                ->andWhere('pt.training_date_start < :training_date_to')
+            $qb->andWhere('pt.training_date_start < :training_date_to')
                 ->setParameter('training_date_to', $date);
         }
 
         // status
         if (!empty($searchData['status']) && $searchData['status']->toArray()) {
-            $qb
-                ->andWhere($qb->expr()->in('p.Status', ':Status'))
+            $qb->andWhere($qb->expr()->in('p.Status', ':Status'))
                 ->setParameter('Status', $searchData['status']->toArray());
         }
 
         // link_status
         if (isset($searchData['link_status'])) {
-            $qb
-                ->andWhere($qb->expr()->in('p.Status', ':Status'))
+            $qb->andWhere($qb->expr()->in('p.Status', ':Status'))
                 ->setParameter('Status', $searchData['link_status']);
         }
 
         // stock status
         if (isset($searchData['stock_status'])) {
-            $qb
-                ->andWhere('pc.stock_unlimited = :StockUnlimited AND pc.stock = 0')
+            $qb->andWhere('pc.stock_unlimited = :StockUnlimited AND pc.stock = 0')
                 ->setParameter('StockUnlimited', $searchData['stock_status']);
         }
 
@@ -464,8 +458,7 @@ class ProductRepository extends EntityRepository
         if (!empty($searchData['create_date_start']) && $searchData['create_date_start']) {
             $date = $searchData['create_date_start']
                 ->format('Y-m-d H:i:s');
-            $qb
-                ->andWhere('p.create_date >= :create_date_start')
+            $qb->andWhere('p.create_date >= :create_date_start')
                 ->setParameter('create_date_start', $date);
         }
 
@@ -474,8 +467,7 @@ class ProductRepository extends EntityRepository
             $date = $date
                 ->modify('+1 days')
                 ->format('Y-m-d H:i:s');
-            $qb
-                ->andWhere('p.create_date < :create_date_end')
+            $qb->andWhere('p.create_date < :create_date_end')
                 ->setParameter('create_date_end', $date);
         }
 
@@ -483,8 +475,7 @@ class ProductRepository extends EntityRepository
         if (!empty($searchData['update_date_start']) && $searchData['update_date_start']) {
             $date = $searchData['update_date_start']
                 ->format('Y-m-d H:i:s');
-            $qb
-                ->andWhere('p.update_date >= :update_date_start')
+            $qb->andWhere('p.update_date >= :update_date_start')
                 ->setParameter('update_date_start', $date);
         }
         if (!empty($searchData['update_date_end']) && $searchData['update_date_end']) {
@@ -492,8 +483,7 @@ class ProductRepository extends EntityRepository
             $date = $date
                 ->modify('+1 days')
                 ->format('Y-m-d H:i:s');
-            $qb
-                ->andWhere('p.update_date < :update_date_end')
+            $qb->andWhere('p.update_date < :update_date_end')
                 ->setParameter('update_date_end', $date);
         }
 
@@ -523,7 +513,6 @@ class ProductRepository extends EntityRepository
                 }
             }
         }
-
         return $qb;
     }
 
