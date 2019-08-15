@@ -59,12 +59,6 @@ class InstructorFlyerPdfService extends AbstractFPDIService
     /** ダウンロードファイル名 @var string */
     private $downloadFileName = null;
 
-    /** 発行日 @var string */
-    private $issueDate = '';
-
-    /** 最大ページ @var string */
-    private $pageMax = '';
-
     /** 曜日 @var array */
     private $WeekDay = ['0' => '日', '1' => '月', '2' => '火', '3' => '水', '4' => '木', '5' => '金', '6' => '土'];
 
@@ -79,7 +73,7 @@ class InstructorFlyerPdfService extends AbstractFPDIService
         parent::__construct();
 
         // Fontの設定しておかないと文字化けを起こす
-        $this->SetFont(self::FONT_SJIS);
+        $this->SetFont(self::FONT_GOTHIC);
 
         // PDFの余白(上左右)を設定
         $this->SetMargins(15, 20);
@@ -106,8 +100,6 @@ class InstructorFlyerPdfService extends AbstractFPDIService
         if (is_null($flyer_data)) {
             return false;
         }
-        // 発行日の設定
-        $this->issueDate = '作成日: ' . date('Y年m月d日');
         // ダウンロードファイル名の初期化
         $this->downloadFileName = null;
         $BaseInfo = $this->app['eccube.repository.base_info']->get();
@@ -116,79 +108,83 @@ class InstructorFlyerPdfService extends AbstractFPDIService
         $pdfFile = $this->app['config']['pdf_template_instructor_flyer1'];
         $templateFilePath = __DIR__.'/../Resource/pdf/'.$pdfFile;
         $this->setSourceFile($templateFilePath);
+        $this->SetFont(self::FONT_GOTHIC);
         // PDFにページを追加する
         $this->addPdfPage();
-        // 地域
-        $idx = 0;
-        $this->SetFont(self::FONT_GOTHIC);
-        $this->SetTextColor(255, 255, 255);
-        $bakFontStyle = $this->FontStyle;
-        $bakFontSize = $this->FontSizePt;
-        $fontSize = 22;
-        $this->SetFont('', 'B', $fontSize);
-        while (8.7 < $this->getStringHeight(27.0, $flyer_data->getProductTraining()->getPref())) {
-            --$fontSize;
-            $this->SetFont('', 'B', $fontSize);
-        }
-        $this->SetXY(10.8, 85.8);
-        $this->MultiCell(29.0, 8.7, $flyer_data->getProductTraining()->getPref(), 0, "C", false, 0, "", "", true, 0, false, true, 8.7, "M");
-        $fontSize = 22;
-        $this->SetFont('', 'B', $fontSize);
-        while (8.7 < $this->getStringHeight(27.0, $flyer_data->getProductTraining()->getAddr01())) {
-            --$fontSize;
-            $this->SetFont('', 'B', $fontSize);
-        }
-        $this->SetXY(10.8, 95.3);
-        $this->MultiCell(29.0, 8.7, $flyer_data->getProductTraining()->getAddr01(), 0, "C", false, 0, "", "", true, 0, false, true, 8.7, "M");
-        $this->SetFont('', $bakFontStyle, $bakFontSize);
-        $this->SetTextColor(50, 50, 50);
+        $this->SetTextColor(35, 31, 32);
         // 講習会種別
-        $this->SetFont(self::FONT_GOTHIC);
         if ($flyer_data->getProductTraining()->getTrainingType()->getId() == 2) {
-            $this->lfText(176.5, 29.0, "３級", 31, 'B');
+            $this->lfText(177.0, 31.2, "３", 39.5, 'B');
         } else if ($flyer_data->getProductTraining()->getTrainingType()->getId() == 3) {
-            $this->lfText(176.5, 29.0, "２級", 31, 'B');
+            $this->lfText(177.0, 31.2, "２", 39.5, 'B');
         } else if ($flyer_data->getProductTraining()->getTrainingType()->getId() == 4) {
-            $this->lfText(176.5, 29.0, "１級", 31, 'B');
+            $this->lfText(177.0, 31.2, "１", 39.5, 'B');
         }
+        // 地域
+        $this->SetTextColor(50, 50, 50);
+        $fontSize = 22;
+        $this->SetFont('', 'B', $fontSize);
+        while (8.6 < $this->getStringHeight(26.9, $flyer_data->getProductTraining()->getPref())) {
+            --$fontSize;
+            $this->SetFont('', 'B', $fontSize);
+        }
+        $this->SetXY(15.5, 91.3);
+        $this->MultiCell(26.9, 8.6, $flyer_data->getProductTraining()->getPref(), 0, "C", false, 0, "", "", true, 0, false, true, 8.7, "B");
+        $fontSize = 22;
+        $this->SetFont('', 'B', $fontSize);
+        while (8.6 < $this->getStringHeight(26.9, $flyer_data->getProductTraining()->getAddr01())) {
+            --$fontSize;
+            $this->SetFont('', 'B', $fontSize);
+        }
+        $this->SetXY(15.5, 99.8);
+        $this->MultiCell(26.9, 8.6, $flyer_data->getProductTraining()->getAddr01(), 0, "C", false, 0, "", "", true, 0, false, true, 8.7, "T");
         // 講習会日
-        $this->lfText(61.2, 92.5, $flyer_data->getProductTraining()->getTrainingDateStart()->format('n月j日(') . $this->WeekDay[$flyer_data->getProductTraining()->getTrainingDateStart()->format('w')] . ')', 18, 'B');
-        $this->lfText(61.2, 102.3, $flyer_data->getProductTraining()->getTrainingDateStart()->format('H:i～') . $flyer_data->getProductTraining()->getTrainingDateEnd()->format('H:i'), 12, 'B');
+        $this->SetFont('', '', 11.0);
+        $this->SetXY(62.0, 90.0);
+        $this->MultiCell(60.0, 5.1, mb_convert_kana($flyer_data->getProductTraining()->getTrainingDateStart()->format('Y年'), 'A', 'UTF-8'), 0, "L", false, 0, "", "", true, 0, false, true, 5.1, "M");
+        $this->SetFont('', 'B', 19.0);
+        $this->SetXY(62.0, 95.4);
+        $this->MultiCell(60.0, 8.4, mb_convert_kana($flyer_data->getProductTraining()->getTrainingDateStart()->format('n月j日(') . $this->WeekDay[$flyer_data->getProductTraining()->getTrainingDateStart()->format('w')] . ')', 'A', 'UTF-8'), 0, "L", false, 0, "", "", true, 0, false, true, 8.4, "M");
+        $this->SetFont('', 'B', 11.0);
+        $this->SetXY(62.0, 103.6);
+        $this->MultiCell(60.0, 5.1, mb_convert_kana($flyer_data->getProductTraining()->getTrainingDateStart()->format('H：i～') . $flyer_data->getProductTraining()->getTrainingDateEnd()->format('H：i'), 'A', 'UTF-8'), 0, "L", false, 0, "", "", true, 0, false, true, 5.1, "M");
         // 場所
-        $this->lfText(126.0, 92.5, $flyer_data->getProductTraining()->getPlace(), 18, 'B');
-        // 住所
-        $this->lfText(126.0, 102.3, $flyer_data->getProductTraining()->getPref()->getName() . $flyer_data->getProductTraining()->getAddr01() . $flyer_data->getProductTraining()->getAddr02(), 12, 'B');
-        // 内容
-        $this->lfMultiText(30.8, 124.3, 92.0, 32.3, str_replace("　", "", $flyer_data->getProductTraining()->getProduct()->getDescriptionDetail()), 11, '');
-        // 対象
-        $this->lfText(30.8, 160.7, $flyer_data->getProductTraining()->getTarget(), 11, '');
-        // 受講料
-        $this->lfText(30.8, 169.4, (0<($flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax())?number_format($flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax()) . '円':'無料'), 11, '');
-        // 持ち物
-        $this->lfMultiText(30.8, 194.2, 92.0, 10.4, $flyer_data->getProductTraining()->getItem(), 11, '');
-        // 期限
-        if (is_null($flyer_data->getProductTraining()->getAcceptLimitDate())) {
-            $limit = date('Y/m/d', strtotime($flyer_data->getProductTraining()->getTrainingDateStart()->format('Y/m/d') . " -24 day"));
-            $holidayRepository = new HolidayRepository();
-            while($holidayRepository->isHoliday($limit)) {
-                $limit = date('Y/m/d', strtotime($limit . " -1 day"));
-            }
-        } else {
-            $limit = $flyer_data->getProductTraining()->getAcceptLimitDate()->format('Y/m/d');
+        $font_size = 22.0;
+        $this->SetFont('', 'B', $font_size);
+        while (13.5 < $this->getStringHeight(65.0, $flyer_data->getProductTraining()->getPlace())) {
+            $this->SetFont('', 'B', --$font_size);
         }
-        $this->lfText(78.8, 220.4, date('n月j日', strtotime($limit)), 12, 'B');
+        $this->SetXY(131.5, 90.0);
+        $this->MultiCell(65.0, 13.5, $flyer_data->getProductTraining()->getPlace(), 0, "L", false, 0, "", "", true, 0, false, true, 13.5, "M");
+        // 住所
+        $font_size = 18.0;
+        $prace_addr = "(" . $flyer_data->getProductTraining()->getPref()->getName() . $flyer_data->getProductTraining()->getAddr01() . $flyer_data->getProductTraining()->getAddr02() . ")";
+        $this->SetFont('', 'B', $font_size);
+        while (5.1 < $this->getStringHeight(65.0, $prace_addr)) {
+            $this->SetFont('', 'B', --$font_size);
+        }
+        $this->SetXY(131.5, 103.6);
+        $this->MultiCell(65.0, 5.1, $prace_addr, 0, "L", false, 0, "", "", true, 0, false, true, 5.1, "M");
+        // 内容
+        $this->lfMultiText(34.6, 127.9, 92.0, 27.0, str_replace("　", "", $flyer_data->getProductTraining()->getProduct()->getDescriptionDetail()), 11, '', "L", "T");
+        // 対象
+        $this->lfMultiText(34.6, 155.7, 92.0, 16.0, $flyer_data->getProductTraining()->getTarget(), 11, '');
+        // 受講料
+        $this->lfText(34.6, 184.5, (0<($flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax())?number_format($flyer_data->getProductTraining()->getProduct()->getPrice02IncTaxMax()) . '円':'無料'), 11, '');
+        // 持ち物
+        $this->lfMultiText(34.6, 212.6, 92.0, 10.4, $flyer_data->getProductTraining()->getItem(), 11, '');
         // 定員
         $ProductClasses = $flyer_data->getProductTraining()->getProduct()->getProductClasses();
         $ProductClass = $ProductClasses[0];
-        $this->lfText(30.8, 211.5, '定員' . $ProductClass->getStock() . '名', 11, '');
+        $this->lfText(34.6, 231.7, $ProductClass->getStock() . '名', 11, '');
         // 協力
         $collaborator = "";
         if (!is_null($flyer_data->getProductTraining()->getCollaborators())) {
             $collaborator = $flyer_data->getProductTraining()->getCollaborators();
         }
         if (strlen($collaborator) > 0) {
-            $this->lfText(9.7, 265.2, "【協　力】", 12, 'B');
-            $this->lfText(30.8, 264.9, $collaborator, 15, 'B');
+            $this->lfText(12.5, 265.2, "【協　力】", 12, 'B');
+            $this->lfText(33.0, 264.9, $collaborator, 15, 'B');
         }
 
         // テンプレートファイルを読み込む
@@ -197,17 +193,42 @@ class InstructorFlyerPdfService extends AbstractFPDIService
         $this->setSourceFile($templateFilePath);
         // PDFにページを追加する
         $this->addPdfPage();
+        $this->SetTextColor(255, 255, 255);
+        // 講習会種別
+        if ($flyer_data->getProductTraining()->getTrainingType()->getId() == 2) {
+            $this->lfText(107.6, 96.1, "３", 15.5, 'B');
+        } else if ($flyer_data->getProductTraining()->getTrainingType()->getId() == 3) {
+            $this->lfText(107.6, 96.1, "２", 15.5, 'B');
+        } else if ($flyer_data->getProductTraining()->getTrainingType()->getId() == 4) {
+            $this->lfText(107.6, 96.1, "１", 15.5, 'B');
+        }
+        $this->SetTextColor(50, 50, 50);
         // 記入日
-        $this->lfText(151.5, 130.5, date('Y'), 13, 'B');
-        $this->lfText(168.5, 130.5, date('n'), 13, 'B');
-        $this->lfText(179.0, 130.5, date('j'), 13, 'B');
+        $this->SetFont('', '', 13.0);
+        $this->SetXY(149.5, 126.4);
+        $this->MultiCell(15.0, 6.0, date('Y'), 0, "R", false, 0, "", "", true, 0, false, true, 6.0, "M");
+        $this->SetXY(169.3, 126.4);
+        $this->MultiCell(7.0, 6.0, date('n'), 0, "R", false, 0, "", "", true, 0, false, true, 6.0, "M");
+        $this->SetXY(180.2, 126.4);
+        $this->MultiCell(7.0, 6.0, date('j'), 0, "R", false, 0, "", "", true, 0, false, true, 6.0, "M");
         // 受講日
-        $this->lfText(55.8, 225.3, date('Y', strtotime($flyer_data->getProductTraining()->getTrainingDateStart()->format('Y/m/d H:i'))), 15, 'B');
-        $this->lfText(79.2, 225.3, date('n', strtotime($flyer_data->getProductTraining()->getTrainingDateStart()->format('Y/m/d H:i'))), 15, 'B');
-        $this->lfText(96.5, 225.3, date('j', strtotime($flyer_data->getProductTraining()->getTrainingDateStart()->format('Y/m/d H:i'))), 15, 'B');
-        $this->lfText(112.7, 225.3, $this->WeekDay[date('w', strtotime($flyer_data->getProductTraining()->getTrainingDateStart()->format('Y/m/d H:i')))], 15, 'B');
+        $trainingDate = $flyer_data->getProductTraining()->getTrainingDateStart()->format('Y-m-d H:i');
+        $this->lfText(57.0, 225.8, date('Y', strtotime($trainingDate)), 15, '');
+        $this->SetFont('', '', 15.0);
+        $this->SetXY(74.4, 221.6);
+        $this->MultiCell(12.4, 7.2, date('n', strtotime($trainingDate)), 0, "R", false, 0, "", "", true, 0, false, true, 7.2, "M");
+        $this->SetXY(91.4, 221.6);
+        $this->MultiCell(12.4, 7.2, date('j', strtotime($trainingDate)), 0, "R", false, 0, "", "", true, 0, false, true, 7.2, "M");
+        $this->lfText(113.0, 225.4, $this->WeekDay[date('w', strtotime($trainingDate))], 15, '');
         // 場所
-        $this->lfText(147.3, 226.2, $flyer_data->getProductTraining()->getPlace(), 9, 'B');
+        $font_size = 15;
+        $this->SetFont('', '', $font_size);
+        while (7.2 < $this->getStringHeight(41.0, $flyer_data->getProductTraining()->getPlace())) {
+            $this->SetFont('', '', --$font_size);
+        }
+        $this->SetXY(148.1, 221.6);
+        $this->MultiCell(41.0, 7.2, $flyer_data->getProductTraining()->getPlace(), 0, "C", false, 0, "", "", true, 0, false, true, 7.2, "M");
+        $this->SetFont('', $bakFontStyle, $bakFontSize);
 
         return true;
     }
@@ -292,7 +313,7 @@ class InstructorFlyerPdfService extends AbstractFPDIService
      * @param int    $size  フォントサイズ
      * @param string $style フォントスタイル
      */
-    protected function lfMultiText($x, $y, $w, $h, $text, $size = 0, $style = '')
+    protected function lfMultiText($x, $y, $w, $h, $text, $size = 0, $style = '', $h_style = 'L', $v_style = 'M')
     {
         // 退避
         $bakFontStyle = $this->FontStyle;
@@ -300,8 +321,7 @@ class InstructorFlyerPdfService extends AbstractFPDIService
 
         $this->SetFont('', $style, $size);
         $this->SetXY($x, $y);
-        $line_height = $this->getStringHeight($w, "あ");
-        $this->MultiCell($w, $line_height, $text, 0, 'L', false, 0,  "", "", true, 0, false, true, $h, "T");
+        $this->MultiCell($w, $h, $text, 0, $h_style, false, 0,  "", "", true, 0, false, true, $h, $v_style);
 
         // 復元
         $this->SetFont('', $bakFontStyle, $bakFontSize);

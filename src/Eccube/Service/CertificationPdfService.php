@@ -58,12 +58,6 @@ class CertificationPdfService extends AbstractFPDIService
     /** ダウンロードファイル名 @var string */
     private $downloadFileName = null;
 
-    /** 発行日 @var string */
-    private $issueDate = '';
-
-    /** 最大ページ @var string */
-    private $pageMax = '';
-
     /**
      * コンストラクタ.
      *
@@ -102,10 +96,6 @@ class CertificationPdfService extends AbstractFPDIService
         if (count($customersData) < 1) {
             return false;
         }
-        // 発行日の設定
-        $this->issueDate = '作成日: ' . date('Y年m月d日');
-        // ページ計算
-        $this->pageMax = ((int) (count($customersData) / self::MAX_ROR_PER_PAGE)) + (((count($customersData) % self::MAX_ROR_PER_PAGE) == 0)?0:1);
         // ダウンロードファイル名の初期化
         $this->downloadFileName = null;
 
@@ -115,26 +105,35 @@ class CertificationPdfService extends AbstractFPDIService
         $this->setSourceFile($templateFilePath);
 
         $this->SetFont(self::FONT_GOTHIC);
+        $height_interval = 98.65;
+        $width_interval = 56.25;
+        $count = 1;
+        $bakFontStyle = $this->FontStyle;
+        $bakFontSize = $this->FontSizePt;
         foreach ($customersData as $customerData) {
-            // PDFにページを追加する
-            $this->addPdfPage();
+            if (($count % 10) == 1) {
+                // PDFにページを追加する
+                $this->addPdfPage();
+                $col = 0;
+                $row = 0;
+            }
             // サポーター
             if ($customerData->getCustomerBasicInfo()->getSupporterType()->getId() == 2) {
                 $imgFile = __DIR__.'/../Resource/pdf/supporter_mark.jpg';
                 if (file_exists($imgFile)) {
-                    $this->Image($imgFile, 10.0, 10.4, 27.5);
+                    $this->Image($imgFile, 10.05 + ($height_interval * $col), 10.4 + ($width_interval * $row), 27.6);
                 }
             }
             // インストラクタ
             if ($customerData->getCustomerBasicInfo()->getInstructorType()->getId() == 1) {
                 $imgFile = __DIR__.'/../Resource/pdf/instructor_3_mark.jpg';
                 if (file_exists($imgFile)) {
-                    $this->Image($imgFile, 39.1, 10.4, 27.5);
+                    $this->Image($imgFile, 39.00 + ($height_interval * $col), 10.4 + ($width_interval * $row), 27.6);
                 }
             } else if ($customerData->getCustomerBasicInfo()->getInstructorType()->getId() == 2) {
                 $imgFile = __DIR__.'/../Resource/pdf/instructor_2_mark.jpg';
                 if (file_exists($imgFile)) {
-                    $this->Image($imgFile, 39.1, 10.4, 27.5);
+                    $this->Image($imgFile, 39.00 + ($height_interval * $col), 10.4 + ($width_interval * $row), 27.6);
                 }
             }
             // 年度
@@ -153,20 +152,19 @@ class CertificationPdfService extends AbstractFPDIService
             } else {
                 $currentTermYear = date('Y');
             }
-            $bakFontStyle = $this->FontStyle;
-            $bakFontSize = $this->FontSizePt;
+            $this->SetTextColor(31, 33, 34);
             $this->SetFont('', 'B', 17);
-            $this->SetXY(72.4, 14.8);
+            $this->SetXY(72.4 + ($height_interval * $col), 14.8 + ($width_interval * $row));
             $this->MultiCell(18.0, 8.0, $currentTermYear, 0, "C", false, 0, "", "", true, 2, false, true, 8.0, "T");
-            $this->SetFont('', $bakFontStyle, $bakFontSize);
+            $this->SetTextColor(38, 39, 39);
             // 会員番号
-            $this->lfText(42.9, 28.0, $customerData->getId(), 12, 'B');
+            $this->lfText(42.9 + ($height_interval * $col), 28.6 + ($width_interval * $row), $customerData->getId(), 12, '');
             // プロフィール写真
             if (!is_null($customerData->getCustomerImages())) {
                 if (0 < count($customerData->getCustomerImages())) {
                     $photoFile = $this->app['config']['customer_image_save_realdir'].'/'.$customerData->getCustomerImages()[0]->getFileName();
                     if (file_exists($photoFile)) {
-                        $this->Image($photoFile, 11.0, 23.8, 19.5);
+                        $this->Image($photoFile, 11.0 + ($height_interval * $col), 23.8 + ($width_interval * $row), 19.5);
                     }
                 }
             }
@@ -203,21 +201,27 @@ class CertificationPdfService extends AbstractFPDIService
             }
             if ($isQrCodeRegisted) {
                 $photoFile = $this->app['config']['customer_image_save_realdir'] . "/" . $QrCode->getFileName();
-                $this->Image($photoFile, 82.3, 23.8, 9.0);
+                $this->Image($photoFile, 82.3 + ($height_interval * $col), 23.2 + ($width_interval * $row), 10.0);
             }
             // 会員名
-            $bakFontStyle = $this->FontStyle;
-            $bakFontSize = $this->FontSizePt;
             $fontSize = 22;
             $this->SetFont('', 'B', $fontSize);
             while (11.5 < $this->getStringHeight(64.0, $customerData->getName01() . " " . $customerData->getName02())) {
                 $this->SetFont('', 'B', --$fontSize);
             }
-            $this->SetXY(30.5, 32.3);
+            $this->SetXY(30.5 + ($height_interval * $col), 32.3 + ($width_interval * $row));
             $this->MultiCell(64.0, 11.5, $customerData->getName01() . " " . $customerData->getName02(), 1, "C", false, 0, "", "", true, 0, false, true, 11.5, "M");
             // PINコード
-            $this->lfText(72.4, 49.7, $customerData->getCustomerBasicInfo()->getCustomerPinCode(), 10);
+            $this->lfText(72.0 + ($height_interval * $col), 49.6 + ($width_interval * $row), $customerData->getCustomerBasicInfo()->getCustomerPinCode(), 12);
+            if ($col < 1) {
+                ++$col;
+            } else {
+                $col = 0;
+                ++$row;
+            }
+            ++$count;
         }
+        $this->SetFont('', $bakFontStyle, $bakFontSize);
 
         return true;
     }
@@ -252,7 +256,6 @@ class CertificationPdfService extends AbstractFPDIService
      */
     public function Footer()
     {
-        $this->Cell(0, 0, $this->issueDate, 0, 0, 'R');
     }
 
     /**
@@ -268,9 +271,6 @@ class CertificationPdfService extends AbstractFPDIService
 
         // テンプレートに使うテンプレートファイルのページ番号を指定
         $this->useTemplate($tplIdx, null, null, null, null, true);
-
-        // ページ情報
-        $this->lfText(194.3, 7.6, '(' . $this->PageNo() . '/' . $this->pageMax . ')', 8);
     }
 
     /**

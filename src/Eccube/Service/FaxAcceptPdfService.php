@@ -32,8 +32,6 @@ class FaxAcceptPdfService extends AbstractFPDIService
     const FONT_GOTHIC = 'kozgopromedium';
     /** FONT 明朝 */
     const FONT_SJIS = 'kozminproregular';
-    /** 1ページ最大行数 */
-    const MAX_ROR_PER_PAGE = 8;
 
     // ====================================
     // 変数宣言
@@ -57,12 +55,6 @@ class FaxAcceptPdfService extends AbstractFPDIService
 
     /** ダウンロードファイル名 @var string */
     private $downloadFileName = null;
-
-    /** 発行日 @var string */
-    private $issueDate = '';
-
-    /** 最大ページ @var string */
-    private $pageMax = '';
 
     /** 曜日 @var array */
     private $WeekDay = ['0' => '日', '1' => '月', '2' => '火', '3' => '水', '4' => '木', '5' => '金', '6' => '土'];
@@ -105,8 +97,6 @@ class FaxAcceptPdfService extends AbstractFPDIService
         if (count($customersData) < 1) {
             return false;
         }
-        // 発行日の設定
-        $this->issueDate = '作成日: ' . date('Y年m月d日');
         // ダウンロードファイル名の初期化
         $this->downloadFileName = null;
 
@@ -129,37 +119,36 @@ class FaxAcceptPdfService extends AbstractFPDIService
                     break;
                 }
             }
-            $this->lfText(36.1, 19.0, $fax, 15, '');
+            $this->lfText(37.1, 20.6, $fax, 15, '');
             // 会員名
-            $this->lfText(18.3, 28.1, $customerData->getName01() . $customerData->getName02() . '様', 15, '');
-            $this->lfText(33.8, 76.7, $customerData->getName01() . $customerData->getName02() . '様', 12, '');
+            $this->lfText(37.1, 28.1, $customerData->getName01() . '　' . $customerData->getName02() . '様', 15, '');
+            $this->lfText(33.8, 62.2, $customerData->getName01() . '　' . $customerData->getName02() . '様', 12, '');
+            // 勤務先
+            if (strlen((is_null($customerData->getCompanyName())?"":$customerData->getCompanyName())) > 0 ) {
+                $this->lfText(33.8, 70.0, $customerData->getCompanyName(), 12, '');
+            }
             if ($product->hasProductTraining()) {
                 // 講習会種別
-                $bakFontStyle = $this->FontStyle;
-                $bakFontSize = $this->FontSizePt;
-                $this->SetFont('', '', 12);
-                $this->SetXY(38.6, 45.8);
-                $this->MultiCell(67.8, 7.0, $product->getProductTraining()->getTrainingType()->getName(), 0, "C", false, 0, "", "", true, 0, false, true, 7.0, "T");
-                $this->SetFont('', $bakFontStyle, $bakFontSize);
+                $this->lfText(33.8, 77.4, $product->getProductTraining()->getTrainingType()->getName(), 12, '');
                 // 受講日
                 $startDate = $product->getProductTraining()->getTrainingDateStart()->format('Y年n月j日(') . $this->WeekDay[$product->getProductTraining()->getTrainingDateStart()->format('w')] . ')';
                 $endDate = $product->getProductTraining()->getTrainingDateEnd()->format('Y年n月j日(') . $this->WeekDay[$product->getProductTraining()->getTrainingDateEnd()->format('w')] . ')';
-                $this->lfText(33.8, 82.2, $startDate . $product->getProductTraining()->getTrainingDateStart()->format(' G:i～') . (($startDate==$endDate)?'':$endDate . ' ') . $product->getProductTraining()->getTrainingDateEnd()->format('G:i'), 12, '');
+                $this->lfText(33.8, 85.4, $startDate . $product->getProductTraining()->getTrainingDateStart()->format(' G:i～') . (($startDate==$endDate)?'':$endDate . ' ') . $product->getProductTraining()->getTrainingDateEnd()->format('G:i'), 12, '');
                 // 受付開始時間
-                $this->lfText(143.3, 82.2, date('G:i', strtotime($product->getProductTraining()->getTrainingDateStart()->format('Y-m-d H:i:s') . " -30 minute")), 12, '');
+                $this->lfText(143.3, 85.4, date('G:i', strtotime($product->getProductTraining()->getTrainingDateStart()->format('Y-m-d H:i:s') . " -30 minute")), 12, '');
                 // 場所
-                $this->lfText(33.8, 87.7, $product->getProductTraining()->getPlace(), 12, '');
+                $this->lfText(33.8, 93.2, $product->getProductTraining()->getPlace(), 12, '');
                 // 住所
-                $this->lfText(33.8, 93.2, $product->getProductTraining()->getPref()->getName() . $product->getProductTraining()->getAddr01() . $product->getProductTraining()->getAddr02(), 12, '');
+                $this->lfText(33.8, 100.9, $product->getProductTraining()->getPref()->getName() . $product->getProductTraining()->getAddr01() . $product->getProductTraining()->getAddr02(), 12, '');
                 // 持ち物
-                $this->lfText(33.8, 98.7, $product->getProductTraining()->getItem(), 12, '');
+                $this->lfText(33.8, 109.1, $product->getProductTraining()->getItem(), 12, '');
             }
             // 備考
             $bakFontStyle = $this->FontStyle;
             $bakFontSize = $this->FontSizePt;
             $this->SetFont('', '', 12);
-            $this->SetXY(33.8, 100.2);
-            $this->MultiCell(88.4, 5.5, str_replace("　", "", $product->getDescriptionDetail()), 0, "L", false, 0, "", "", true, 0, false, true, 17.0, "T");
+            $this->SetXY(33.8, 112.8);
+            $this->MultiCell(135.0, 17.0, str_replace("　", "", $product->getDescriptionDetail()), 0, "L", false, 0, "", "", true, 0, false, true, 17.0, "T");
             $this->SetFont('', $bakFontStyle, $bakFontSize);
             // 受講料
             $price = 0;
@@ -172,12 +161,12 @@ class FaxAcceptPdfService extends AbstractFPDIService
                 $bakFontStyle = $this->FontStyle;
                 $bakFontSize = $this->FontSizePt;
                 $this->SetFont('', '', 12);
-                $this->SetXY(32.5, 157.0);
-                $this->MultiCell(24.4, 7.0, number_format($price), 0, "R", false, 0, "", "", true, 0, false, true, 7.0, "T");
+                $this->SetXY(33.8, 170.4);
+                $this->MultiCell(24.4, 7.0, number_format($price), 0, "R", false, 0, "", "", true, 0, false, true, 7.0, "M");
                 $this->SetFont('', $bakFontStyle, $bakFontSize);
             } else {
-                $this->lfText(33.8, 161.0, '無料', 12, '');
-                $this->Rect(58.7, 157.7, 4.3, 5.0, 'F', null, array(255, 255, 255));
+                $this->lfText(33.8, 175.4, '無料', 12, '');
+                $this->Rect(58.4, 172.0, 4.3, 5.0, 'F', null, array(255, 255, 255));
             }
         }
 
@@ -214,7 +203,6 @@ class FaxAcceptPdfService extends AbstractFPDIService
      */
     public function Footer()
     {
-        $this->Cell(0, 0, $this->issueDate, 0, 0, 'R');
     }
 
     /**
