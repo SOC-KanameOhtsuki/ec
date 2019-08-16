@@ -233,9 +233,9 @@ This file is Custom File
                 } else {
                     $('#customInfoAlert').empty();
                     if (isMixed) {
-                        $('#customInfoAlert').append(" 処理可能なものに対して認定しました。");
+                        $('#customInfoAlert').append("処理可能なものに対して認定しました。");
                     } else {
-                        $('#customInfoAlert').append(" 一括認定しました。");
+                        $('#customInfoAlert').append("一括認定しました。");
                     }
                     $('#customInfoAlert').show();
                     setTimeout(function() {
@@ -334,6 +334,12 @@ This file is Custom File
                 $('#loadingModal').modal('hide');
             });
         }
+    });
+    $('#all_bulk_certified').click(function() {
+        $("#dropdown-form").attr('action', "{{ path('admin_training_all_certified', {'id': ProductId}) }}");
+        $("#dropdown-form").attr('method', 'POST');
+        $('#dropdown-form').empty();
+        $("#dropdown-form").submit();
     });
     $('#all_mail_accept').click(function() {
         $("#dropdown-form").attr('action', "{{ path('admin_training_printing_mail_accept', {'id': ProductId}) }}");
