@@ -225,9 +225,6 @@ class CustomerEditController extends AbstractController
                     $CustomerBasicInfo->setBulkBillingGroup(0);
                     $CustomerBasicInfo->setEnvelopeUnneeded(0);
                 }
-                if (strlen($CustomerBasicInfo->getCustomerPinCode()) < 1) {
-                    $CustomerBasicInfo->setCustomerPinCode(rand(10000000, 99999999));
-                }
 
                 $HomeCustomerAddress->setCustomer($Customer)
                         ->setAddressType($app['orm.em']->getRepository('Eccube\Entity\Master\CustomerAddressType')->find(1))
@@ -372,6 +369,7 @@ class CustomerEditController extends AbstractController
                     // 正会員ID
                     $customerId = 'MMB-' . date('Ymd') . sprintf("%07d", $Customer->getId());
                     $CustomerBasicInfo->setCustomerNumber($customerId);
+                    $CustomerBasicInfo->setCustomerPinCode(rand(10000000, 99999999));
                     $app['orm.em']->persist($CustomerBasicInfo);
                     $app['orm.em']->flush();
                 }

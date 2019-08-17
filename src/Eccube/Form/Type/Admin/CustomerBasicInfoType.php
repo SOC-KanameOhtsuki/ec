@@ -37,6 +37,7 @@ class CustomerBasicInfoType extends AbstractType
                 'label' => 'PINコード',
                 'required' => false,
                 'mapped' => true,
+                'read_only' =>'true',
             ))
             ->add('last_pay_membership_year', 'text', array(
                 'label' => '最終支払会費年度',

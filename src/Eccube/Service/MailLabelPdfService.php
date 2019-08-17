@@ -140,16 +140,18 @@ class MailLabelPdfService extends AbstractFPDIService
                         if (strlen((is_null($AddresInfo->getPref())?"":$AddresInfo->getPref())) > 0 && strlen((is_null($AddresInfo->getAddr01())?"":$AddresInfo->getAddr01())) > 0  && strlen((is_null($AddresInfo->getAddr02())?"":$AddresInfo->getAddr02())) > 0 ) {
                             $addr = (is_null($AddresInfo->getPref())?"":$AddresInfo->getPref()->getName()) . (is_null($AddresInfo->getAddr01())?"":$AddresInfo->getAddr01()) . (is_null($AddresInfo->getAddr02())?"":$AddresInfo->getAddr02());
                         }
-                        // 勤務先
-                        if (strlen((is_null($AddresInfo->getCompanyName())?"":$AddresInfo->getCompanyName())) > 0 ) {
-                            $company = $AddresInfo->getCompanyName();
-                        }
-                        // 会員名
-                        if (strlen((is_null($AddresInfo->getName01())?"":$AddresInfo->getName01())) > 0 && strlen((is_null($AddresInfo->getName02())?"":$AddresInfo->getName02())) > 0 ) {
-                            $name = $AddresInfo->getName01() . " " . $AddresInfo->getName02() . ' 様';
+                        if ($AddresInfo->getAddressType()->getId() != 1) {
+                            // 勤務先
+                            if (strlen((is_null($AddresInfo->getCompanyName())?"":$AddresInfo->getCompanyName())) > 0 ) {
+                                $company = $AddresInfo->getCompanyName();
+                            }
                         }
                         break;
                     }
+                }
+                // 会員名
+                if (strlen((is_null($customerData->getName01())?"":$customerData->getName01())) > 0 && strlen((is_null($customerData->getName02())?"":$customerData->getName02())) > 0 ) {
+                    $name = $customerData->getName01() . " " . $customerData->getName02() . ' 様';
                 }
                 // 郵便番号
                 $this->lfText(26.2 + $col_adjuster, 26.0 + $row_adjuster, $zip_code, 11, 'B');
@@ -240,16 +242,18 @@ class MailLabelPdfService extends AbstractFPDIService
                         if (strlen((is_null($AddresInfo->getPref())?"":$AddresInfo->getPref())) > 0 && strlen((is_null($AddresInfo->getAddr01())?"":$AddresInfo->getAddr01())) > 0  && strlen((is_null($AddresInfo->getAddr02())?"":$AddresInfo->getAddr02())) > 0 ) {
                             $addr = (is_null($AddresInfo->getPref())?"":$AddresInfo->getPref()->getName()) . (is_null($AddresInfo->getAddr01())?"":$AddresInfo->getAddr01()) . (is_null($AddresInfo->getAddr02())?"":$AddresInfo->getAddr02());
                         }
-                        // 勤務先
-                        if (strlen((is_null($AddresInfo->getCompanyName())?"":$AddresInfo->getCompanyName())) > 0 ) {
-                            $company = $AddresInfo->getCompanyName();
-                        }
-                        // 会員名
-                        if (strlen((is_null($AddresInfo->getName01())?"":$AddresInfo->getName01())) > 0 && strlen((is_null($AddresInfo->getName02())?"":$AddresInfo->getName02())) > 0 ) {
-                            $name = $AddresInfo->getName01() . " " . $AddresInfo->getName02() . ' 様';
+                        if ($AddresInfo->getAddressType()->getId() != 1) {
+                            // 勤務先
+                            if (strlen((is_null($AddresInfo->getCompanyName())?"":$AddresInfo->getCompanyName())) > 0 ) {
+                                $company = $AddresInfo->getCompanyName();
+                            }
                         }
                         break;
                     }
+                }
+                // 会員名
+                if (strlen((is_null($customerData->getName01())?"":$customerData->getName01())) > 0 && strlen((is_null($customerData->getName02())?"":$customerData->getName02())) > 0 ) {
+                    $name = $customerData->getName01() . " " . $customerData->getName02() . ' 様';
                 }
                 // 郵便番号
                 $this->lfText(26.2 + $col_adjuster, 26.0 + $row_adjuster, $zip_code, 11, 'B');
@@ -267,7 +271,6 @@ class MailLabelPdfService extends AbstractFPDIService
                     $current_row += $height;
                 }
                 // 会員名&勤務先
-                file_put_contents('/var/www/ec_ohtsuki/app/log/check.log', "name" . $name . "\n", FILE_APPEND);
                 if ((strlen($name) > 0) && (strlen($company) > 0)) {
                     $bakFontStyle = $this->FontStyle;
                     $bakFontSize = $this->FontSizePt;

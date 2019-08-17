@@ -2426,7 +2426,6 @@ class TrainingController extends AbstractController
 
                 $InfoStatus = $app['eccube.repository.customer_basic_info_status']->find(1);
                 $CustomerInfo->setStatus($InfoStatus);
-                $CustomerInfo->setCustomerPinCode(rand(10000000, 99999999));
                 $CustomerInfo->setLastPayMembershipYear($paymentYear);
                 $CustomerInfo->setMembershipExpired(new \DateTime($termEnd));
                 $CustomerInfo->setRegularMemberPromoted(new \DateTime(date('Y-m-d')));
