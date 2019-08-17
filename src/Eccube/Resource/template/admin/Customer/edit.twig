@@ -647,9 +647,7 @@
                                         </td>
                                         <td id="history_box__order_name--{{ Order.id }}" class="orderdeleil_name">
                                             {% for OrderDetails in Order.OrderDetails %}
-                                                {%  if OrderDetails.id == Order.id %}
-                                                    {{  OrderDetails.product_name  }}
-                                                {% endif %}
+                                                {{  OrderDetails.product_name  }}
                                             {% endfor  %}
                                         </td>
                                         <td id="history_box__order_id--{{ Order.id }}" class="member_name">
