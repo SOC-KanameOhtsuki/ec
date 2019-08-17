@@ -157,19 +157,57 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
             ->select('c')
             ->leftJoin('c.CustomerBasicInfo', 'bc')
             ->leftJoin('c.CustomerGroup', 'cg')
+            ->leftJoin('c.CustomerAddresses', 'ca')
             ->andWhere('c.del_flg = 0');
 
         if (isset($searchData['multi']) && Str::isNotBlank($searchData['multi'])) {
             //スペース除去
             $clean_key_multi = preg_replace('/\s+|[　]+/u', '', $searchData['multi']);
             $id = preg_match('/^\d+$/', $clean_key_multi) ? $clean_key_multi : null;
-            $qb
-                ->andWhere('c.id = :customer_id OR bc.customer_number LIKE :customer_number OR CONCAT(c.name01, c.name02) LIKE :name OR CONCAT(c.kana01, c.kana02) LIKE :kana OR c.email LIKE :email')
-                ->setParameter('customer_id', $id)
-                ->setParameter('customer_number', '%' . $clean_key_multi . '%')
-                ->setParameter('name', '%' . $clean_key_multi . '%')
-                ->setParameter('kana', '%' . $clean_key_multi . '%')
-                ->setParameter('email', '%' . $clean_key_multi . '%');
+            $tel_key_multi = preg_match('/^(\d|\-)+$/', $clean_key_multi) ? preg_replace('/\-/u', '', $clean_key_multi): null;
+            if ((is_null($id)) && (is_null($tel_key_multi))) {
+                $qb->andWhere('bc.customer_number LIKE :customer_number OR CONCAT(c.name01, c.name02) LIKE :name OR CONCAT(c.kana01, c.kana02) LIKE :kana OR c.email LIKE :email OR ca.company_name LIKE :company OR CONCAT(ca.addr01, ca.addr02) LIKE :address')
+                    ->setParameter('customer_number', '%' . $clean_key_multi . '%')
+                    ->setParameter('name', '%' . $clean_key_multi . '%')
+                    ->setParameter('kana', '%' . $clean_key_multi . '%')
+                    ->setParameter('email', '%' . $clean_key_multi . '%')
+                    ->setParameter('company', '%' . $clean_key_multi . '%')
+                    ->setParameter('address', '%' . $clean_key_multi . '%');
+            } else if ((!is_null($id)) && (!is_null($tel_key_multi))) {
+                $qb->andWhere('bc.customer_number LIKE :customer_number OR CONCAT(c.name01, c.name02) LIKE :name OR CONCAT(c.kana01, c.kana02) LIKE :kana OR c.email LIKE :email OR ca.company_name LIKE :company OR CONCAT(ca.addr01, ca.addr02) LIKE :address OR c.id LIKE :customer_id OR bc.customer_pin_code LIKE :pin OR CONCAT(ca.tel01, ca.tel02, ca.tel03) LIKE :tel OR CONCAT(ca.fax01, ca.fax02, ca.fax03) LIKE :fax OR CONCAT(ca.mobilephone01, ca.mobilephone02, ca.mobilephone03) LIKE :phone')
+                    ->setParameter('customer_number', '%' . $clean_key_multi . '%')
+                    ->setParameter('name', '%' . $clean_key_multi . '%')
+                    ->setParameter('kana', '%' . $clean_key_multi . '%')
+                    ->setParameter('email', '%' . $clean_key_multi . '%')
+                    ->setParameter('company', '%' . $clean_key_multi . '%')
+                    ->setParameter('address', '%' . $clean_key_multi . '%')
+                    ->setParameter('customer_id', '%' . $id . '%')
+                    ->setParameter('pin', '%' . $id . '%')
+                    ->setParameter('tel', '%' . $tel_key_multi . '%')
+                    ->setParameter('fax', '%' . $tel_key_multi . '%')
+                    ->setParameter('phone', '%' . $tel_key_multi . '%');
+            } else if (!is_null($id)) {
+                $qb->andWhere('bc.customer_number LIKE :customer_number OR CONCAT(c.name01, c.name02) LIKE :name OR CONCAT(c.kana01, c.kana02) LIKE :kana OR c.email LIKE :email OR ca.company_name LIKE :company OR CONCAT(ca.addr01, ca.addr02) LIKE :address OR c.id LIKE :customer_id OR bc.customer_pin_code LIKE :pin')
+                    ->setParameter('customer_number', '%' . $clean_key_multi . '%')
+                    ->setParameter('name', '%' . $clean_key_multi . '%')
+                    ->setParameter('kana', '%' . $clean_key_multi . '%')
+                    ->setParameter('email', '%' . $clean_key_multi . '%')
+                    ->setParameter('company', '%' . $clean_key_multi . '%')
+                    ->setParameter('address', '%' . $clean_key_multi . '%')
+                    ->setParameter('customer_id', '%' . $id . '%')
+                    ->setParameter('pin', '%' . $id . '%');
+            } else if (!is_null($tel_key_multi)) {
+                $qb->andWhere('bc.customer_number LIKE :customer_number OR CONCAT(c.name01, c.name02) LIKE :name OR CONCAT(c.kana01, c.kana02) LIKE :kana OR c.email LIKE :email OR ca.company_name LIKE :company OR CONCAT(ca.addr01, ca.addr02) LIKE :address OR CONCAT(ca.tel01, ca.tel02, ca.tel03) LIKE :tel OR CONCAT(ca.fax01, ca.fax02, ca.fax03) LIKE :fax OR CONCAT(ca.mobilephone01, ca.mobilephone02, ca.mobilephone03) LIKE :phone')
+                    ->setParameter('customer_number', '%' . $clean_key_multi . '%')
+                    ->setParameter('name', '%' . $clean_key_multi . '%')
+                    ->setParameter('kana', '%' . $clean_key_multi . '%')
+                    ->setParameter('email', '%' . $clean_key_multi . '%')
+                    ->setParameter('company', '%' . $clean_key_multi . '%')
+                    ->setParameter('address', '%' . $clean_key_multi . '%')
+                    ->setParameter('tel', '%' . $tel_key_multi . '%')
+                    ->setParameter('fax', '%' . $tel_key_multi . '%')
+                    ->setParameter('phone', '%' . $tel_key_multi . '%');
+            }
         }
 
         // CusotmerId
@@ -557,14 +595,22 @@ class CustomerRepository extends EntityRepository implements UserProviderInterfa
                 ->select($alias.'.id')
                 ->leftJoin($alias . '.CustomerGroup', 'cg'. $subQueryIndex)
                 ->leftJoin($alias . '.CustomerBasicInfo', 'bc' . $subQueryIndex)
+                ->leftJoin($alias . '.CustomerAddresses', 'ca' . $subQueryIndex)
                 ->andWhere($alias . '.del_flg = 0');
             if (isset($searchData['searchData']['multi']) && Str::isNotBlank($searchData['searchData']['multi'])) {
                 //スペース除去
                 $clean_key_multi = preg_replace('/\s+|[　]+/u', '', $searchData['searchData']['multi']);
-                $like_word = '%' . $clean_key_multi . '%';
                 $id = preg_match('/^\d+$/', $clean_key_multi) ? $clean_key_multi : null;
-                $subQuery
-                    ->andWhere($alias . ".id = " . $id . " OR bc" . $subQueryIndex . ".customer_number LIKE '" . $like_word . "' OR CONCAT(" . $alias . ".name01, " . $alias . ".name02) LIKE '" . $like_word . "' OR CONCAT(" . $alias . ".kana01, " . $alias . ".kana02) LIKE '" . $like_word . "' OR " . $alias . ".email LIKE '" . $like_word . "'");
+                $tel_key_multi = preg_match('/^(\d|\-)+$/', $clean_key_multi) ? preg_replace('/\-/u', '', $clean_key_multi): null;
+                if ((is_null($id)) && (is_null($tel_key_multi))) {
+                    $subQuery->andWhere("bc" . $subQueryIndex . ".customer_number LIKE '%" . $clean_key_multi . "%' OR CONCAT(" . $alias . ".name01, " . $alias . ".name02) LIKE '%" . $clean_key_multi . "%' OR CONCAT(" . $alias . ".kana01, " . $alias . ".kana02) LIKE '%" . $clean_key_multi . "%' OR " . $alias . ".email LIKE '%" . $clean_key_multi . "%' OR ca" . $subQueryIndex . ".company_name LIKE '%" . $clean_key_multi . "%' OR CONCAT(ca" . $subQueryIndex . ".addr01, ca" . $subQueryIndex . ".addr02) LIKE '%" . $clean_key_multi . "%'");
+                } else if ((!is_null($id)) && (!is_null($tel_key_multi))) {
+                    $subQuery->andWhere("bc" . $subQueryIndex . ".customer_number LIKE '%" . $clean_key_multi . "%' OR CONCAT(" . $alias . ".name01, " . $alias . ".name02) LIKE '%" . $clean_key_multi . "%' OR CONCAT(" . $alias . ".kana01, " . $alias . ".kana02) LIKE '%" . $clean_key_multi . "%' OR " . $alias . ".email LIKE '%" . $clean_key_multi . "%' OR ca" . $subQueryIndex . ".company_name LIKE '%" . $clean_key_multi . "%' OR CONCAT(ca" . $subQueryIndex . ".addr01, ca" . $subQueryIndex . ".addr02) LIKE '%" . $clean_key_multi . "%' OR " . $alias . ".id LIKE '%" . $id . "%' OR bc" . $subQueryIndex . ".customer_pin_code LIKE '%" . $id . "%' OR CONCAT(ca" . $subQueryIndex . ".tel01, ca" . $subQueryIndex . ".tel02, ca" . $subQueryIndex . ".tel03) LIKE '%" . $tel_key_multi . "%' OR CONCAT(ca" . $subQueryIndex . ".fax01, ca" . $subQueryIndex . ".fax02, ca" . $subQueryIndex . ".fax03) LIKE '%" . $tel_key_multi . "%' OR CONCAT(ca" . $subQueryIndex . ".mobilephone01, ca" . $subQueryIndex . ".mobilephone02, ca" . $subQueryIndex . ".mobilephone03) LIKE '%" . $tel_key_multi . "%'");
+                } else if (!is_null($id)) {
+                    $subQuery->andWhere("bc" . $subQueryIndex . ".customer_number LIKE '%" . $clean_key_multi . "%' OR CONCAT(" . $alias . ".name01, " . $alias . ".name02) LIKE '%" . $clean_key_multi . "%' OR CONCAT(" . $alias . ".kana01, " . $alias . ".kana02) LIKE '%" . $clean_key_multi . "%' OR " . $alias . ".email LIKE '%" . $clean_key_multi . "%' OR ca" . $subQueryIndex . ".company_name LIKE '%" . $clean_key_multi . "%' OR CONCAT(ca" . $subQueryIndex . ".addr01, ca" . $subQueryIndex . ".addr02) LIKE '%" . $clean_key_multi . "%' OR " . $alias . ".id LIKE '%" . $id . "%' OR bc" . $subQueryIndex . ".customer_pin_code LIKE '%" . $id . "%'");
+                } else if (!is_null($tel_key_multi)) {
+                    $subQuery->andWhere("bc" . $subQueryIndex . ".customer_number LIKE '%" . $clean_key_multi . "%' OR CONCAT(" . $alias . ".name01, " . $alias . ".name02) LIKE '%" . $clean_key_multi . "%' OR CONCAT(" . $alias . ".kana01, " . $alias . ".kana02) LIKE '%" . $clean_key_multi . "%' OR " . $alias . ".email LIKE '%" . $clean_key_multi . "%' OR ca" . $subQueryIndex . ".company_name LIKE '%" . $clean_key_multi . "%' OR CONCAT(ca" . $subQueryIndex . ".addr01, ca" . $subQueryIndex . ".addr02) LIKE '%" . $clean_key_multi . "%' OR CONCAT(ca" . $subQueryIndex . ".tel01, ca" . $subQueryIndex . ".tel02, ca" . $subQueryIndex . ".tel03) LIKE '%" . $tel_key_multi . "%' OR CONCAT(ca" . $subQueryIndex . ".fax01, ca" . $subQueryIndex . ".fax02, ca" . $subQueryIndex . ".fax03) LIKE '%" . $tel_key_multi . "%' OR CONCAT(ca" . $subQueryIndex . ".mobilephone01, ca" . $subQueryIndex . ".mobilephone02, ca" . $subQueryIndex . ".mobilephone03) LIKE '%" . $tel_key_multi . "%'");
+                }
             }
 
             // CusotmerId
