@@ -32,8 +32,6 @@ class DonationListPdfService extends AbstractFPDIService
     const FONT_GOTHIC = 'kozgopromedium';
     /** FONT 明朝 */
     const FONT_SJIS = 'kozminproregular';
-    /** 1ページ最大行数 */
-    const MAX_ROR_PER_PAGE = 8;
 
     // ====================================
     // 変数宣言
@@ -58,11 +56,8 @@ class DonationListPdfService extends AbstractFPDIService
     /** ダウンロードファイル名 @var string */
     private $downloadFileName = null;
 
-    /** 発行日 @var string */
-    private $issueDate = '';
-
-    /** 最大ページ @var string */
-    private $pageMax = '';
+    /** 対象年度(西暦) @var string */
+    private $targetYear = '';
 
     /** 曜日 @var array */
     private $WeekDay = ['0' => '日', '1' => '月', '2' => '火', '3' => '水', '4' => '木', '5' => '金', '6' => '土'];
@@ -81,15 +76,17 @@ class DonationListPdfService extends AbstractFPDIService
         $this->SetFont(self::FONT_GOTHIC);
 
         // PDFの余白(上左右)を設定
-        $this->SetMargins(0, 0);
+        $this->SetMargins(18.0, 29.0, 19.0);
+        $this->SetAutoPageBreak(true, 22.0);
 
-        // ヘッダーの出力を無効化
-        $this->setPrintHeader(false);
+        $this->setHeaderMargin(29.0);
+        $this->setHeaderFont(array(self::FONT_GOTHIC, '', 8));
+        $this->setPrintHeader(true);
 
         // フッターの出力を無効化
         $this->setPrintFooter(true);
         $this->setFooterMargin();
-        $this->setFooterFont(array(self::FONT_GOTHIC, '', 8));
+        $this->setFooterFont(array(self::FONT_SJIS, '', 8));
     }
 
     /**
@@ -104,6 +101,8 @@ class DonationListPdfService extends AbstractFPDIService
         if (is_null($TermInfo)) {
             return false;
         }
+        $anonymous = 0;
+        $this->targetYear = $TermInfo->getTermYear();
         $getDonationDetailSql = 'SELECT';
         $getDonationDetailSql .= ' dtb_order.customer_id AS customer_id,';
         $getDonationDetailSql .= ' dtb_order_detail.price AS price,';
@@ -116,80 +115,106 @@ class DonationListPdfService extends AbstractFPDIService
         $getDonationDetailSql .= ' dtb_product_category.category_id = 2';
         $getDonationDetailSql .= " AND dtb_order.payment_date >= '" . $TermInfo->getTermStart()->format('Y-m-d 00:00:00') . "'";
         $getDonationDetailSql .= " AND dtb_order.payment_date <= '" . $TermInfo->getTermEnd()->format('Y-m-d 23:59:59') . "'";
-        $getDonationSummarySql = 'SELECT';
-        $getDonationSummarySql .= ' dtb_order.customer_id AS customer_id,';
-        $getDonationSummarySql .= ' SUM(dtb_order_detail.price) AS total_donation';
-        $getDonationSummarySql .= ' FROM';
-        $getDonationSummarySql .= ' dtb_order';
-        $getDonationSummarySql .= ' INNER JOIN dtb_order_detail ON dtb_order_detail.order_id = dtb_order.order_id';
-        $getDonationSummarySql .= ' INNER JOIN dtb_product_category ON dtb_product_category.product_id = dtb_order_detail.product_id';
-        $getDonationSummarySql .= ' WHERE';
-        $getDonationSummarySql .= ' dtb_product_category.category_id = 2';
-        $getDonationSummarySql .= " AND dtb_order.payment_date >= '" . $TermInfo->getTermStart()->format('Y-m-d 00:00:00') . "'";
-        $getDonationSummarySql .= " AND dtb_order.payment_date <= '" . $TermInfo->getTermEnd()->format('Y-m-d 23:59:59') . "'";
+        $getDonationDetailSql .= ' AND dtb_order_detail.kifu_no_pub = 0;';
+        $getAnonymouDonationCountSql = 'SELECT COUNT(*) FROM (SELECT dtb_order.customer_id FROM dtb_order';
+        $getAnonymouDonationCountSql .= ' INNER JOIN dtb_order_detail ON dtb_order_detail.order_id = dtb_order.order_id';
+        $getAnonymouDonationCountSql .= ' INNER JOIN dtb_product_category ON dtb_product_category.product_id = dtb_order_detail.product_id';
+        $getAnonymouDonationCountSql .= ' WHERE';
+        $getAnonymouDonationCountSql .= ' dtb_product_category.category_id = 2';
+        $getAnonymouDonationCountSql .= " AND dtb_order.payment_date >= '" . $TermInfo->getTermStart()->format('Y-m-d 00:00:00') . "'";
+        $getAnonymouDonationCountSql .= " AND dtb_order.payment_date <= '" . $TermInfo->getTermEnd()->format('Y-m-d 23:59:59') . "'";
+        $getAnonymouDonationCountSql .= ' AND dtb_order_detail.kifu_no_pub = 1';
+        $getAnonymouDonationCountSql .= ' GROUP BY dtb_order.customer_id) AS TEMP;';
+        $donationDetailDatas = array();
+        $donationDetails = $this->app['orm.em']->getConnection()->fetchAll($getDonationDetailSql);
+        foreach ($donationDetails as $donationDetail) {
+            if (!isset($donationDetailDatas[$donationDetail['customer_id']])) {
+                $donationDetailDatas[$donationDetail['customer_id']] = array();
+            }
+            $donationDetailDatas[$donationDetail['customer_id']][] = $donationDetail;
+        }
+        $anonymous = $this->app['orm.em']->getConnection()->fetchColumn($getAnonymouDonationCountSql);
 
-        // 発行日の設定
-        $this->issueDate = '作成日: ' . date('Y年m月d日');
         // ダウンロードファイル名の初期化
         $this->downloadFileName = null;
 
-        // テンプレートファイルを読み込む
-        $pdfFile = $this->app['config']['pdf_template_fax_accept'];
-        $templateFilePath = __DIR__.'/../Resource/pdf/'. $pdfFile;
-        $this->setSourceFile($templateFilePath);
-        $BaseInfo = $this->app['eccube.repository.base_info']->get();
-
         $this->SetFont(self::FONT_GOTHIC);
-        $this->SetTextColor(53, 53, 53);
+
+        // PDFにページを追加する
+        $this->AddPage('PORTRAIT', 'A4');
+        $this->SetFont('', '', 9);
+        $this->SetTextColor(0, 0, 0);
+        $no = 1;
+        $count = 1;
         foreach ($customersData as $customerData) {
-            // PDFにページを追加する
-            $this->addPdfPage();
-            // Fax番号
-            $this->lfText(36.1, 19.0, $customerData->getFax01() . '-' . $customerData->getFax02() . '-' . $customerData->getFax03(), 15, '');
-            // 会員名
-            $this->lfText(18.3, 28.1, $customerData->getName01() . $customerData->getName02() . '様', 15, '');
-            $this->lfText(33.8, 76.7, $customerData->getName01() . $customerData->getName02() . '様', 12, '');
-            if ($product->hasProductTraining()) {
-                // 講習会種別
-                $bakFontStyle = $this->FontStyle;
-                $bakFontSize = $this->FontSizePt;
-                $this->SetFont('', '', 12);
-                $this->SetXY(38.6, 45.8);
-                $this->MultiCell(67.8, 7.0, $product->getProductTraining()->getTrainingType()->getName(), 0, "C", false, 0, "", "", true, 0, false, true, 7.0, "T");
-                $this->SetFont('', $bakFontStyle, $bakFontSize);
-                // 受講日
-                $startDate = $product->getProductTraining()->getTrainingDateStart()->format('Y年n月j日(') . $this->WeekDay[$product->getProductTraining()->getTrainingDateStart()->format('w')] . ')';
-                $endDate = $product->getProductTraining()->getTrainingDateEnd()->format('Y年n月j日(') . $this->WeekDay[$product->getProductTraining()->getTrainingDateEnd()->format('w')] . ')';
-                $this->lfText(33.8, 82.2, $startDate . $product->getProductTraining()->getTrainingDateStart()->format(' G:i～') . (($startDate==$endDate)?'':$endDate . ' ') . $product->getProductTraining()->getTrainingDateEnd()->format('G:i'), 12, '');
-                // 受付開始時間
-                $this->lfText(143.3, 82.2, date('G:i', strtotime($product->getProductTraining()->getTrainingDateStart()->format('Y-m-d H:i:s') . " -30 minute")), 12, '');
-                // 場所
-                $this->lfText(33.8, 87.7, $product->getProductTraining()->getPlace(), 12, '');
-                // 住所
-                $this->lfText(33.8, 93.2, $product->getProductTraining()->getPref()->getName() . $product->getProductTraining()->getAddr01() . $product->getProductTraining()->getAddr02(), 12, '');
-                // 持ち物
-                $this->lfText(33.8, 98.7, $product->getProductTraining()->getItem(), 12, '');
+            $Out = false;
+            foreach ($customerData->getCustomerAddresses() as $AddresInfo) {
+                if ($AddresInfo->getMailTo()->getId() == 2) {
+                    // 都道府県
+                    $pref = (is_null($AddresInfo->getPref())?"":$AddresInfo->getPref());
+                    // 市町村
+                    $addr = (is_null($AddresInfo->getAddr01())?"":$AddresInfo->getAddr01());
+                    $Out = true;
+                    break;
+                }
             }
-            // 備考
-            $bakFontStyle = $this->FontStyle;
-            $bakFontSize = $this->FontSizePt;
-            $this->SetFont('', '', 12);
-            $this->SetXY(33.8, 100.2);
-            $this->MultiCell(88.4, 5.5, str_replace("　", "", $product->getDescriptionDetail()), 0, "L", false, 0, "", "", true, 0, false, true, 17.0, "T");
-            $this->SetFont('', $bakFontStyle, $bakFontSize);
-            // 受講料
-            $price = 0;
-            if (isset($orders[$customerData->getId()])) {
-                $price = $orders[$customerData->getId()]->getPaymentTotal();
-            } else {
-                $price = $product->getPrice02IncTaxMax();
+            if (!$Out) {
+                // 都道府県
+                $pref = (is_null($customerData->getPref())?"":$customerData->getPref());
+                // 市町村
+                $addr = (is_null($customerData->getAddr01())?"":$customerData->getAddr01());
             }
-            $bakFontStyle = $this->FontStyle;
-            $bakFontSize = $this->FontSizePt;
-            $this->SetFont('', '', 12);
-            $this->SetXY(32.5, 157.0);
-            $this->MultiCell(24.4, 7.0, number_format($price), 0, "R", false, 0, "", "", true, 0, false, true, 7.0, "T");
-            $this->SetFont('', $bakFontStyle, $bakFontSize);
+            $name = $customerData->getName01() . ((0<strlen($customerData->getName02()))?$customerData->getName02():"");
+            $height = 5.0;
+            if ($height < $this->getStringHeight(72.0, $name, false, true, 0)) {
+                $height = $this->getStringHeight(72.0, $name, false, true, 0);
+            }
+            if ($height < $this->getStringHeight(23.4, $pref, false, true, 0)) {
+                $height = $this->getStringHeight(23.4, $pref, false, true, 0);
+            }
+            if ($height < $this->getStringHeight(34.5, $addr, false, true, 0)) {
+                $height = $this->getStringHeight(34.5, $addr, false, true, 0);
+            }
+            if (isset($donationDetailDatas[$customerData->getId()])) {
+                foreach($donationDetailDatas[$customerData->getId()] as $donationDetail) {
+                    // No
+                    $this->Cell(10.2, $height, $no, 1, 0, "R", false, "", 0, false, "T", "M");
+                    // 氏名
+                    $this->MultiCell(72.0, $height, $name, 1, "L", false, 0, "", "", true, 0, false, true, $height, "M");
+                    // 都道府県
+                    $this->MultiCell(23.4, $height, $pref, 1, "L", false, 0, "", "", true, 0, false, true, $height, "M");
+                    // 市町村
+                    $this->MultiCell(34.5, $height, $addr, 1, "L", false, 0, "", "", true, 0, false, true, $height, "M");
+                    // 寄付日
+                    $this->MultiCell(32.0, $height, date('Y年n月j日', strtotime($donationDetail['payment_date'])), 1, "R", false, 0, "", "", true, 0, false, true, $height, "M");
+                    $this->Ln();
+                    ++$no;
+                }
+            }
+            ++$count;
+            if ($count > 137) {
+                break;
+            }
+        }
+        if ($this->GetY() < 250) {
+            $baseY = $this->GetY();
+            $this->Text(29.0, $baseY + 6.0, $this->targetYear . "年度寄付者名簿について");
+            $this->Text(29.0, $baseY + 11.0, "①上に上げた一覧の寄付者の他に、匿名希望の方が" . $anonymous . "名いらっしゃいます");
+            $this->Text(29.0, $baseY + 16.0, "②名簿の作成には最新の注意を払っておりますが、万が一の訂正がありましたら");
+            $this->Text(29.0, $baseY + 21.0, "事務局までご一報くださいますようお願い申し上げます。");
+            $this->Text(29.0, $baseY + 31.0, "認定NPO法人ふまねっと");
+            $this->Text(29.0, $baseY + 36.0, "TEL 011-807-4667");
+            $this->Text(29.0, $baseY + 41.0, "Mail info@1to3.jp");
+        } else {
+            $this->setPrintHeader(false);
+            $this->AddPage('PORTRAIT', 'A4');
+            $this->Text(29.0, 6.0, $this->targetYear . "年度寄付者名簿について");
+            $this->Text(29.0, 11.0, "①上に上げた一覧の寄付者の他に、匿名希望の方が" . $anonymous . "名いらっしゃいます");
+            $this->Text(29.0, 16.0, "②名簿の作成には最新の注意を払っておりますが、万が一の訂正がありましたら");
+            $this->Text(29.0, 21.0, "事務局までご一報くださいますようお願い申し上げます。");
+            $this->Text(29.0, 31.0, "認定NPO法人ふまねっと");
+            $this->Text(29.0, 36.0, "TEL 011-807-4667");
+            $this->Text(29.0, 41.0, "Mail info@1to3.jp");
         }
 
         return true;
@@ -220,49 +245,32 @@ class DonationListPdfService extends AbstractFPDIService
         return $this->downloadFileName;
     }
 
+    public function Header()
+    {
+        $this->backupFont();
+        $this->SetFont('', '', 10);
+        $this->Text(18.0, 19.6, $this->targetYear . "年寄付者名簿(氏名順)敬称略");
+        $this->Ln();
+        $this->SetFont('', '', 9);
+        // No
+        $this->Cell(10.2, 4.8, "", 1, 0, "C", false, "", 0, false, "T", "M");
+        // 氏名
+        $this->Cell(72.0, 4.8, "氏名", 1, 0, "C", false, "", 0, false, "T", "M");
+        // 都道府県
+        $this->Cell(23.4, 4.8, "都道府県", 1, 0, "C", false, "", 0, false, "T", "M");
+        // 市町村
+        $this->Cell(34.5, 4.8, "市町村", 1, 0, "C", false, "", 0, false, "T", "M");
+        // 寄付日
+        $this->Cell(32.0, 4.8, "寄付日", 1, 0, "C", false, "", 0, false, "T", "M");
+        $this->Ln();
+        $this->restoreFont();
+    }
+
     /**
      * フッターに発行日を出力する.
      */
     public function Footer()
     {
-        $this->Cell(0, 0, $this->issueDate, 0, 0, 'R');
-    }
-
-    /**
-     * 作成するPDFのテンプレートファイルを指定する.
-     */
-    protected function addPdfPage()
-    {
-        // ページを追加
-        $this->AddPage();
-
-        // テンプレートに使うテンプレートファイルのページ番号を取得
-        $tplIdx = $this->importPage(1);
-
-        // テンプレートに使うテンプレートファイルのページ番号を指定
-        $this->useTemplate($tplIdx, null, null, null, null, true);
-    }
-
-    /**
-     * PDFへのテキスト書き込み
-     *
-     * @param int    $x     X座標
-     * @param int    $y     Y座標
-     * @param string $text  テキスト
-     * @param int    $size  フォントサイズ
-     * @param string $style フォントスタイル
-     */
-    protected function lfText($x, $y, $text, $size = 0, $style = '')
-    {
-        // 退避
-        $bakFontStyle = $this->FontStyle;
-        $bakFontSize = $this->FontSizePt;
-
-        $this->SetFont('', $style, $size);
-        $this->Text($x + $this->baseOffsetX, $y + $this->baseOffsetY, $text);
-
-        // 復元
-        $this->SetFont('', $bakFontStyle, $bakFontSize);
     }
 
     /**

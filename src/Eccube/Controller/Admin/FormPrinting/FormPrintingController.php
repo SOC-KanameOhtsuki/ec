@@ -1807,6 +1807,8 @@ class FormPrintingController extends AbstractController
 
         // 顧客情報取得
         $customers = $app['eccube.repository.customer']->getQueryBuilderBySearchDataForDanation($searchData)
+                ->OrderBy('c.kana01', 'asc')
+                ->addOrderBy('c.kana02', 'asc')
                 ->getQuery()
                 ->getResult();
 
