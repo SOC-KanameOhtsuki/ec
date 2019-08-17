@@ -192,9 +192,6 @@ class DonationListPdfService extends AbstractFPDIService
                 }
             }
             ++$count;
-            if ($count > 137) {
-                break;
-            }
         }
         if ($this->GetY() < 250) {
             $baseY = $this->GetY();
